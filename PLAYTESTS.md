@@ -10,43 +10,52 @@ valuable entries here. Append, never rewrite.
 Live at https://gideon6222.github.io/coreward/
 
 Dig toward a planet core, sell ore at the surface pad, buy upgrades, break the core and the
-planet explodes, launch to a harder planet. Fuel and hull heat are the two pressures pushing
-you back up.
+planet explodes, launch to a harder planet. Fuel and heat are the two pressures pushing you up.
 
 ### 2026-09-06 — first run
 "the game looks like it runs great"
 
-Confirmed working on the S26 Ultra in Chrome and installed as a PWA. No performance or
-rendering complaints.
+Ran well on the S26 Ultra in Chrome, installed as a PWA. No performance complaints.
 
 ### 2026-09-06 — first real session, reached 75m
 
 "I can afford upgrades pretty early on for fuel and cooling so neither is a risk."
-Both pressure systems were defused before they ever applied pressure. Lesson: if a resource
-is meant to create tension, its mitigating upgrade must not be affordable on the first or
-second haul. Price the counter-upgrade against the depth where the threat actually begins.
+Both pressure systems were defused before they applied pressure. Lesson: price the upgrade
+that counters a threat against the depth where the threat actually begins, not against the
+first haul.
 
 "Right now it doesnt say it costs anything, so it feels free."
-The Return button charged fuel but never displayed the cost, so it read as a free teleport
-and erased the entire journey home. Lesson: an escape hatch with an invisible cost is the
-same as no cost. Either show the price on the button or do not offer the button.
+The Return button charged fuel but never showed the cost, so it read as a free teleport.
+Lesson: an escape hatch with an invisible cost is the same as no cost.
 
-His redesign, which is better than what I built: no return button at all. Running out of fuel
-gets you towed back and the tow takes half your cargo. A Tow Insurance upgrade reduces the
-cut. Autopilot is a separate, later, expensive upgrade that unlocks a fast ride home, and
-further levels make it cheaper in fuel. This turns the failure state into the default way
-home and makes the escape hatch something you earn.
+His redesign, better than mine: no return button, running dry gets you towed home for a cut
+of the haul, Tow Insurance reduces the cut, and Autopilot is a separate expensive unlock.
 
 "It is difficult to judge the price of the different blocks you are mining."
-Cargo counted units, so a lump of dirt and a ruby occupied the same slot and the haul value
-was invisible until you sold it. Lesson: if the player cannot compare two things on screen,
-the choice between them is not really a choice.
-
-His fix: cargo measured in weight, rarer minerals heavier but with a large price jump, dirt
-nearly weightless and nearly worthless, plus a manifest showing count per mineral and total
-sale value. The point is to make hunting deposits the game, rather than tunnelling.
+Cargo counted units, so dirt and rubies took the same slot. Lesson: if the player cannot
+compare two things on screen, the choice between them is not a real choice. Fixed with
+weight-based cargo and a manifest showing count, weight and value per mineral.
 
 "The ship should turn to face the direction it is digging in."
 
-Wanted better mineral visuals, reading as actual mineral deposits, and a visible progressive
-breaking effect on blocks that take more than an instant to dig.
+### 2026-09-06 — autopilot and music
+
+"Instead of having the autopilot backtrack my path, can make it find the most efficient way
+back? Also it looks like it is just fast forwarding."
+Retracing the breadcrumb trail was both slower than necessary and, because it stepped
+linearly from cell to cell at high speed, it read as a fast-forward rather than as flying.
+Fixed with a breadth-first search for the shortest tunnel route and a Catmull-Rom spline with
+ease-in and ease-out. Lesson: high speed alone does not read as motion. Curvature,
+acceleration and a heading that follows the velocity are what make movement look piloted.
+
+"The music has random higher pitch beeps that I dont like."
+The score picked melody notes at random from a pentatonic scale. Musically valid, and it
+still sounded like beeps. Lesson: randomness cannot substitute for melody. Without repetition
+there is no phrase for the ear to latch onto, so isolated notes register as UI noise rather
+than music. Also, a fast attack on a high sine is literally the shape of a notification
+sound, which is exactly what he was hearing.
+
+Fixed by writing an actual 32-beat theme in A minor over i - VI - III - VII, playing it only
+every other cycle, giving every note a 0.3s attack and a long release, dropping it into a
+register below where it gets shrill, and running it through a delay. The ambient bed was
+thickened underneath with a continuous low drone and filtered air.
