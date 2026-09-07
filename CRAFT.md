@@ -281,3 +281,32 @@ created on the first user gesture and is null-or-complete, never partial. Typing
 became the guards the type checker reads, and every non-null assertion disappeared. Reach for
 this before reaching for a suppression: an opt-out is sometimes right, but check first
 whether the structure is simply better than the types were saying.
+
+---
+
+## 2026-09-06 — Read the game's own NOTES.md before trusting the shared pipeline
+
+**The shared pipeline is now wrong about at least one game, and it will go wrong about more.**
+The phone-game-studio skill describes every game as five files at the repo root with a
+hand-written `sw.js` whose `CACHE` constant you bump on each deploy. That is still exactly
+right for starting a new game. It is no longer true of Coreward, which has a Vite build,
+sixteen modules and a generated service worker with nothing to bump. A session following the
+pipeline there would go looking for a file that does not exist, and its fallback diagnosis
+for "your change did nothing" points at a cache version when the real answer is the build
+stamp in the pause menu.
+
+So: **check the game repo's `NOTES.md` first, and let it override the shared pipeline.**
+Coreward's now opens with a table of exactly where the two disagree. Any game that outgrows
+the five-file stack should get the same treatment on the day it does, not later.
+
+The general shape of this, worth remembering the next time anything is shared across
+projects: a common how-to goes stale the moment one project outgrows it, and the project that
+moved is never the one that remembers to update the shared doc. Put the per-project truth
+inside the project, and make the shared doc defer to it. That way the document that is
+easiest to keep correct is also the one that wins.
+
+**Corollary about editing tooling.** The skill itself lives in a managed plugin cache that is
+re-extracted and overwritten, so fixing it there does not stick. A fix that silently reverts
+is worse than none, because you stop expecting the problem. When the tool cannot be fixed
+where it lives, fix it where you do have control - in this case the two repos that the skill
+already tells every session to read.
