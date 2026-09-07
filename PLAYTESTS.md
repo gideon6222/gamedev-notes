@@ -77,3 +77,35 @@ the frame loop and were never covered by a test at any point. If a future refact
 that loop, ask him specifically about weight on a valuable strike and about whether the
 autopilot still reads as flying, because those are the two things he has already complained
 about once and would notice again.
+
+### 2026-09-06 — heat soak, first pass
+
+"I think it is good for now and will be a good mechanic when more gets added. right now it
+doesnt seem very obvious that there is a distinct line. I think if we make it so that there
+is a decent jump in materials and the visuals change to show there is a distinct difference,
+that will help but I think future improvements will made this mechanic more obvious"
+
+He was right twice in one paragraph, and the first half was a real bug rather than a
+preference. The rock band changed at 60 m while heat started at 70 m, so the only marker of
+the boundary was a number that never appears on screen. He could feel that the line existed
+and could not find it, which is the correct read of a mechanic whose threshold is invisible.
+
+Fixed by making four things land on the same metre: a new smouldering rock called scoria
+starting at exactly the heat depth, the sky, fog, ambient light and dust all warming to
+ember, the hull starting to drain, and the vignette building. There is now a test asserting
+the rock boundary and the heat threshold stay equal, because they drifted apart silently
+once already.
+
+The second half is also worth keeping: he read the mechanic as scaffolding rather than as
+finished, which it is. Heat is currently the only thing that punishes dwell time, so
+"lingering is the gamble" has exactly one teeth. It gets interesting when there is more than
+one reason to want to stay down.
+
+### 2026-09-06 — after the fix
+
+"I just tested it it on my phone through the app and it looks good."
+
+No complaint about the balance, which is the part I was least sure of - the soak rates, the
+0.72 shield cap and the reprice were derived from modelling, not from play. Treat that as
+"nothing is obviously broken" rather than "the balance is right"; he has not yet played deep
+enough on the new numbers to hit the wall where cooling becomes mandatory.

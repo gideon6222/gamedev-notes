@@ -310,3 +310,40 @@ re-extracted and overwritten, so fixing it there does not stick. A fix that sile
 is worse than none, because you stop expecting the problem. When the tool cannot be fixed
 where it lives, fix it where you do have control - in this case the two repos that the skill
 already tells every session to read.
+
+---
+
+## 2026-09-06 — A threshold the player cannot see is not a mechanic yet
+
+Coreward's heat pressure was rebuilt so that lingering deep escalates the damage rather than
+depth alone deciding it. Playtest verdict: good mechanic, but "it doesnt seem very obvious
+that there is a distinct line".
+
+**The boundary has to be visible or the mechanic does not exist.** The rock band changed at
+60 m while the heat threshold sat at 70 m. Ten metres of mismatch was enough that the only
+marker of the real boundary was a number that never appears on screen. The player could feel
+that a line existed and could not find it. Fixing it meant putting four signals on the same
+metre: a new rock that starts exactly there, the sky, fog, ambient light and dust all shifting
+to ember, the hull starting to drain, and the warning vignette building. One signal would have
+been missable; four is unmissable.
+
+**Announce the zone before charging for it.** The world tint ramps over about 26 m of digging
+while the damage escalation takes 40 seconds. That ordering is deliberate: the world should
+say "you are somewhere dangerous" before the hull says "and it is costing you". A warning that
+arrives with the punishment is not a warning.
+
+**Couple the numbers in a test, because they drift.** The rock boundary and the heat threshold
+were almost certainly aligned once and separated during some later retune, silently, because
+nothing connected them. There is now an assertion that the two constants are equal. Any pair
+of numbers that must agree for the game to explain itself should be tied together by a test
+rather than by a comment or by memory.
+
+**Check that every content band is actually reachable.** Found while in there: the hardest and
+most valuable rock started at 130 m, and the first planet's core sits at 110. It could never
+be seen on the planet every player starts on. Generated content silently falls outside the
+reachable range as other numbers move; assert reachability the same way you assert ordering.
+
+**Believe the player about the symptom, not about the cause.** He proposed a bigger jump in
+materials plus a visual change, which was the right fix. But the underlying problem was a
+misalignment he had no way to see, not a matter of the contrast being too subtle. Take the
+report seriously, then go and find out what is actually producing it.
