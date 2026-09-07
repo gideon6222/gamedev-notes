@@ -426,3 +426,137 @@ twice, in the browser and again in a Playwright test.
 drifted to +8% before a legitimate feature pushed it past the tolerance and failed the build.
 The budget is a drift detector, not a ceiling: re-record it deliberately as part of any commit
 that adds a system, and it keeps catching the accidental doubling it exists for.
+
+## 2026-09-07 — Ten changes in one session, none of them playtested
+
+Gideon asked for a full overhaul and said he would be away, so everything below was
+verified by golden tests, smoke tests against the real build, and screenshots — never by
+playing. That constraint shaped the work as much as the design did, and half these lessons
+are about it.
+
+### Economy and tension
+
+**One resource is no resource.** Coreward had nine ores and five rocks that all converted to
+the same number, so where you dug never mattered — only how long. That is a difficulty
+slider wearing a resource system's clothes. The Dome Keeper design dive puts the threshold
+at three: fewer and there is no decision, more and there is no comprehension.
+
+**Gate an upgrade behind a place, not a price.** The best version of this is when the thing
+that counters a threat requires surviving the threat first. Coreward's Cooling Rig now costs
+emerald, which starts eight metres *inside* the heat zone — so you make a heat run without
+protection in order to buy protection. That is the "hit a wall, upgrade, get past it" spine
+that Motherload-likes live on, and no amount of money substitutes for it.
+
+**A weight limit is what turns "which is worth more" into a decision.** The mineral gate only
+creates a choice because cargo is capped by kilos: six emerald is 51 kg of a 60 kg hold, and
+every kilo is one not spent on something worth more per kilo. Without the cap it would be a
+shopping list.
+
+**Attrition gives you one question; a rhythm gives you a bet.** A slow drain charges for time
+and the answer is always "leave a bit sooner". A recurring, announced event — Coreward's
+tremors collapse part of your tunnel every ~27 s past 85 m — makes depth a commitment rather
+than a number, because what it takes is the way *out*.
+
+**Never let a hazard take the run.** A tremor may cost time, fuel and patience. After
+choosing which cells to collapse, the code re-runs the pathfinder; if the ship can no longer
+reach the surface, the whole collapse is reverted and the tremor is spent as noise. Bound the
+worst case explicitly and test the bound, or the mechanic is a coin flip on whether the
+player quits.
+
+**A discovery has to be un-re-rollable.** Cache contents come from the cell's own
+coordinates, not from a random call, so closing the tab and reopening it cannot fish for a
+better prize. Same discipline as the terrain; costs nothing; makes the reward testable as a
+bonus.
+
+**Reward the thing that is actually blocking them.** Once a mineral gate exists, the most
+valuable thing a surprise can hand you is two emerald, not any amount of money. Weight cache
+contents toward whatever the current bottleneck is, and money last — money is what the loop
+already pays constantly.
+
+### Making things legible
+
+**Silhouette carries more than colour.** Third time this has come up and it has now been
+wrong in three different ways: a green gas pocket that looked like an emerald, a pink supply
+cache next to purple amethyst, and parallax background slabs that read as UI panels because
+they were rectangles in a world made of chipped angular rock. Change the *form* — a lit body
+instead of lit crystals, parallel machined faces instead of points, a jittered hexagon
+instead of a plane.
+
+**When a change must be noticed from memory rather than from comparison, change the amount,
+not the shade.** Repainting the drill per tier is correct and completely invisible: at play
+scale the ship is thirty pixels and the auger is eight of them. What reads is the drill
+*spark* — and even there, Steel and Godcore are both pale, so hue alone is legible side by
+side and forgettable alone. Three times the sparks, twice as fast, is legible alone.
+
+**An upgrade you cannot see is one the player buys on trust.** Coreward's Scanner Array only
+ever changed a light radius. Giving the ship a headlight cone whose length tracks that radius
+turned the most invisible purchase on the shelf into a visible one, for one draw call.
+
+**Give each pressure its own channel.** One red vignette driven by the larger of hull damage
+and heat soak was fine while heat was the only thing that emptied the hull. The moment a
+second source existed, the screen was saying "heat" for something that was not heat. Ember
+edges are heat; a red pulse is the hull, whatever emptied it.
+
+**A number beats a bar when the player needs to understand causation.** The single most
+effective part of that fix was putting "HULL -3.4/s" on the hull bar while heat is draining
+it. A coolant flush takes it to "-0.7/s" in front of you, which is the clearest possible
+statement of what the purchase bought.
+
+**Put the gauge on the thing it is eating**, and do not let it cover that thing. The soak
+gauge lives inside the hull bar. At full height it covered the hull level entirely — the
+gauge was hiding what it explains. Seven pixels of nineteen, along the bottom.
+
+**Draw the player's own goal into the world.** A faint line across the rock at your previous
+deepest reach is a target you set, as opposed to the core, which the game set. Freeze it at
+the record you had when the run *started* — a line that retreats ahead of you is not a line
+you can cross — and fade it once passed, or a moment becomes scenery.
+
+### Adaptive music
+
+**Vertical layering needs one tempo, one key, one harmony** — which a procedurally generated
+score gets for free, since it is all coming off one scheduler.
+
+**Fade times should not match.** Places arrive slowly (a second and a half); alarms snap in
+over a quarter second and leave lazily. Late is useless for an alarm, and one that vanishes
+the instant you patch the hull teaches you nothing about how close it was.
+
+**Route the alarm past the filter that is darkening everything else.** Coreward closes a
+lowpass over the whole score as you descend. The danger layer bypasses it, because the moment
+it needs to be heard is exactly the moment everything else is being muffled.
+
+**A texture reads as ambience; only a rhythm reads as movement.** The unstable-band layer is
+scheduled thuds on beats 3 and 6, off the downbeat — on it, they would read as part of the
+score rather than as something else in the room.
+
+### Working without a playtester
+
+**When a mechanic is a clock, extract the clock.** The tremor rhythm is a pure reducer taking
+a clock and a delta and returning the next clock. Otherwise the only way to see it run is to
+sit in the band for thirty-four seconds with a renderer attached — and the preview pane stops
+animation frames entirely when it is hidden, so that was not even possible. Extracting it
+immediately found a real bug: a long frame armed the warning and fired on the same tick, then
+armed it again on the next.
+
+**A safety property tested against a case that cannot trigger it is worse than no test.** The
+first collapse fixture dug below the depth the pathfinder refuses to search, so every collapse
+silently reverted and three tests passed while checking nothing. Fixtures should assert their
+own preconditions, and a guarantee test should count the events it is guaranteeing about.
+
+**Measure the worst case, not the reachable one.** The draw-call budget test dug down for a
+few seconds, which by the end of this session measured a window with three block types in it.
+Seeded to a deep opened-out chamber with rubble and caches, the real number is 50 of 70. A
+budget that only ever sees the easy case has quietly stopped being a budget.
+
+**Convert tuned constants rather than re-deriving them.** Fixing frame-rate-dependent
+smoothing could have changed how the camera feels, which is the one thing a desktop cannot
+verify. Instead every rate goes through a helper returning the exponential rate that covers
+the same fraction in one 60 fps frame, and the golden baseline records those fractions — so
+the file itself proves the feel did not move.
+
+**Anything a test installs on the page must go in after the last reload.** A counter set
+before a reload is wiped, and incrementing an undefined value produces NaN, which surfaces as
+"expected 1, received NaN" — a failure that reads like a claim about the game.
+
+**When something new renders as nothing, check what is already in that slice of z before you
+touch its colour.** Two parallax layers were invisible even in pure red, because an opaque
+backdrop plane sat in front of them.
