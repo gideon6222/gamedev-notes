@@ -347,3 +347,82 @@ reachable range as other numbers move; assert reachability the same way you asse
 materials plus a visual change, which was the right fix. But the underlying problem was a
 misalignment he had no way to see, not a matter of the contrast being too subtle. Take the
 report seriously, then go and find out what is actually producing it.
+
+## 2026-09-07 — Adding content to a hash-generated world without rebalancing it
+
+Coreward's world is a pure seeded hash: `rnd(x, d, planet)` decides every cell, which is what
+makes it reproducible and testable. Stage 4 added gas pockets, geodes, caves and per-planet
+traits on top of it. Everything below came out of doing that.
+
+**A new world feature must roll on its own seed offset, never the existing one.** If a new
+check consumes the same roll the ore stream uses, every ore at every depth on every planet
+shifts. The game is rebalanced end to end and the diff is three lines. Caves roll on
+`planet + 77` against a coarse `(x/2, d/2)` grid, pockets on `planet + 41` against
+`(x + 313, d + 977)`. The ore roll is untouched, so adding them is purely additive.
+
+**Freeze the world as it was the moment before you add to it, and test the property rather
+than the snapshot.** The pre-feature grid is kept as its own baseline with its own id legend,
+and the test asserts the only legal difference: a cell either kept its id, or one of the new
+things overwrote it. It also asserts the change touches more than 200 cells and less than 12%
+of the world, so it cannot pass by generating nothing. That file is explicitly never
+re-recorded - re-recording it is exactly the mistake it exists to catch. A plain golden
+snapshot would have accepted a total reshuffle as "intentional, re-record".
+
+**A hazard must not resemble a reward, and hue alone is not enough separation.** The gas
+pocket shipped as a green crystal in dark rock, which is what an emerald looks like, at depths
+where both appear. Fixed by changing the *form*: gas is now the only cell whose body is
+emissive rather than its crystals, so it reads as a lit slab where every ore reads as dark
+rock with sparks in it. Silhouette and material survive a small screen and a colour-blind
+player; hue does not.
+
+**The most valuable thing on screen must be the brightest thing on screen.** First pass made
+the hazard glow harder than the payout, which points the player's eye at the thing they must
+not touch. The hazard only has to be unmistakable. The reward has to be magnetic.
+
+**Make a decoy break faster than its surroundings, not slower.** The gas pocket was initially
+harder than the rock band it sits in, so you felt it coming and it became a tax. Softer means
+you hit it by accident and the bang is a surprise. There is now a test asserting it is softer
+than every band it can appear in, because the first version was wrong by 0.1 and nothing
+noticed.
+
+**A consumable must refuse rather than silently spend.** A full tank, an intact hull, no heat
+soak: the button says why and keeps the item. On a phone these sit next to the movement
+controls, and an item burnt for no effect is the kind of thing a player never forgives. The
+same three states are worth generalising - hidden when you own none, dim when it would do
+nothing, lit when it would help. In play the lit button *is* the advice, which turned out to
+be better feedback than the count.
+
+**Consumables and upgrades must sit on different axes or one kills the other.** An upgrade
+raises the ceiling on every future run; a consumable buys one more minute on this one. Keep
+the stack limits small (two or three), price the consumable that answers an uncapped threat
+above the first level of the upgrade that answers it, and make sure a full kit costs more than
+several rungs of the ladder. Otherwise stocking up quietly replaces deciding.
+
+**Differing by numbers that all climb together is a difficulty slider, not variety.** Coreward's
+planets had a deeper core, harder rock and better prices - so every planet was the previous
+one with the dial turned up, and the ladder taught you nothing. Traits (twice the gas, triple
+the geodes, riddled with caves, soak builds faster) give each planet a different question for
+one multiplier each.
+
+**A trait should multiply a layer, not the generator.** Every Coreward trait scales something
+sitting on top of world generation and none of them touches the ore roll - enforced by running
+the additive-only test with traits applied. This ruled out the trait I most wanted, a planet
+where heat starts higher: that threshold is welded to the rock band, sky, fog and ambient
+tint, and moving it changes block ids. Reaching the same idea from a different constant (soak
+rate rather than heat depth) cost one parameter instead of a redesign.
+
+**Put the modifier where the thing is already named.** The trait rides on the planet chip in
+the HUD, because that is the only always-visible place the planet is named. A modifier you
+have to open a menu to remember is one you play without.
+
+### Two operational notes
+
+**Seeding a save through localStorage and reloading does not work if the game saves on
+`visibilitychange`.** The unload writes the live state straight back over the seed. Freeze
+`Storage.prototype.setItem` for that key on the outgoing page first. This has now cost time
+twice, in the browser and again in a Playwright test.
+
+**A bundle-size budget only works if you update it when growth is real.** Coreward's had
+drifted to +8% before a legitimate feature pushed it past the tolerance and failed the build.
+The budget is a drift detector, not a ceiling: re-record it deliberately as part of any commit
+that adds a system, and it keeps catching the accidental doubling it exists for.
