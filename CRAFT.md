@@ -145,3 +145,79 @@ verify it by deliberately breaking an import once.
 
 **Still to come.** TypeScript, strict mode and the module split. Those lessons belong in a
 later entry, once the game has actually been played on the phone afterwards.
+
+---
+
+## 2026-09-06 — Coreward, TypeScript and the module split
+
+Completes the entry above. One 1093 line app.ts is now 16 modules under strict TypeScript,
+deployed and played on the phone with no change to how it plays.
+
+**Convert in two moves, not one.** Rename to .ts with strict off first, fix only what the
+compiler refuses to parse, and ship that. Then turn strict on in a single switch and work
+through the pile. Tightening flags one at a time sounds gentler and is worse: each small
+batch gets absorbed as noise, whereas one loud switch-on of 317 errors forces every one to be
+looked at. The rename pass found six pieces of real looseness on its own — a number assigned
+to style.opacity, isNaN called on a Date, two functions called with fewer arguments than they
+declared.
+
+**Check whether the library actually ships types.** three.js does not. Until @types/three was
+installed, every three call in the render layer was silently any, and strict mode over that
+layer would have bought nothing while looking like it had. Pin the types to the same version
+as the runtime dependency.
+
+**With verbatimModuleSyntax, `import type` is load bearing.** A plain namespace import used
+only in type positions is still emitted. Writing `import * as THREE` in a types file would
+have given the pure config, state and world modules a runtime dependency on three.js and
+broken the headless tests. The word `type` is the whole difference.
+
+**What strict actually caught, as opposed to ceremony.** A fog handle typed as the union
+FogBase, where only one member has the `density` the frame loop writes every frame. A
+direction held as an unconstrained string being assigned into a four value union. A sound
+function whose signature demanded a number while its own body defended against undefined —
+the signature was the liar, not the call site. Three empty array literals inferred as
+never[]. None of these were crashing. All of them were wrong.
+
+**Opting out honestly beats a fake green.** The audio module builds every node lazily on the
+first user gesture, behind guards the compiler cannot follow through a function call.
+Threading a narrowed context through 34 call sites would have been a real refactor of a
+module with no null bugs, so those fields are typed non-null and the invariant is written
+down in the file and in CLAUDE.md: the runtime guards protect this module, not the types.
+Suppressing a check is fine. Suppressing it quietly is not.
+
+**You cannot assign to an imported binding.** This is the thing that shapes how a single file
+splits. State written in one module and read in another has to live on one mutable object,
+the way a game state singleton already does. Do that promotion as its own pass before moving
+any code. State that only one module touches should stay there — resist the urge to sweep it
+all into the shared object because it looks tidier.
+
+**Separate the module that renders from the module that wires.** Keeping DOM event handlers
+out of the ui module is what stopped a cycle: the pause menu needs the hard reset action, and
+the actions module already needs ui. The fix is layering, not a circular import workaround.
+
+**Compare bundle sizes across a refactor.** This is the most valuable line in this entry. The
+split silently dropped the last line of the file, the requestAnimationFrame call that starts
+the loop. The game booted, drew one frame and sat there. Nothing caught it: the golden tests
+only cover pure functions, the typecheck passed, the build succeeded. What caught it was the
+bundle shrinking by 7463 bytes, because every function reachable only from the frame loop had
+been tree-shaken away as unreachable. A build that gets smaller for no reason has lost
+something.
+
+**Type erasure gives a free proof.** After a pure typing pass the emitted bundle should be
+nearly identical, so any delta has to be nameable. Phase 5 came out 110 bytes larger with
+exactly one new string literal in it, the error message of the one helper that was
+deliberately changed. That is a stronger statement than any test.
+
+**The golden tests never once failed.** Across three phases of renaming, splitting and typing
+they stayed green the whole way, and the only real bug was found by a bundle size. That is
+not an argument against writing them. Their value was permission — being able to move a
+thousand lines and know within seconds that world generation, prices and pathfinding were
+still bit for bit identical. Tests that never fail during a refactor are the refactor going
+well, not the tests being useless. But do not mistake them for coverage of what they do not
+touch, and do check they can fail before trusting them.
+
+**Findings that came from noticing, not from tooling.** The dropped line, the stale cache
+that made a good deploy look broken, and a play test that showed a frozen game because the
+browser tab was in the background and does not run requestAnimationFrame when hidden. Each
+looked like a serious bug and only one was. Confirm what a symptom actually means before
+acting on it.

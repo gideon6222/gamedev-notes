@@ -59,3 +59,21 @@ Fixed by writing an actual 32-beat theme in A minor over i - VI - III - VII, pla
 every other cycle, giving every note a 0.3s attack and a long release, dropping it into a
 register below where it gets shrill, and running it through a delay. The ambient bed was
 thickened underneath with a continuous low drone and filtered air.
+
+### 2026-09-06 — after the build-step migration
+
+"I pulled it up on my phone and it has the correct version. I tested it and it runs well."
+
+"It all looks good. It runs smoothly and I don't see any issues."
+
+No gameplay feedback, and that is the entire point of recording it. The game moved from five
+hand-written files to a Vite build, a generated service worker, TypeScript and sixteen
+modules, and he had nothing to say about it. A migration that is invisible to the player is a
+migration that worked.
+
+Worth keeping in mind for the next one: nothing here is evidence that the *feel* is intact,
+only that nothing obvious broke. Hit-stop, the camera lerps and the autopilot spline live in
+the frame loop and were never covered by a test at any point. If a future refactor touches
+that loop, ask him specifically about weight on a valuable strike and about whether the
+autopilot still reads as flying, because those are the two things he has already complained
+about once and would notice again.
