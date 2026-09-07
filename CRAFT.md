@@ -560,3 +560,112 @@ before a reload is wiped, and incrementing an undefined value produces NaN, whic
 **When something new renders as nothing, check what is already in that slice of z before you
 touch its colour.** Two parallax layers were invisible even in pure red, because an opaque
 backdrop plane sat in front of them.
+
+## 2026-09-07 — Second Coreward overhaul: seven asks from one playtest
+
+All of these came out of Gideon playing for an hour and writing a paragraph. Every one of
+his observations turned out to name a structural problem rather than a matter of degree,
+which is the pattern worth remembering more than any individual fix.
+
+### The player names the symptom; go and find the cause
+
+**"The light upgrade doesn't seem beneficial. I can see all of the blocks on screen."** The
+Scanner changed a lamp radius while the camera framed a fixed number of rows, so the whole
+frame was always inside the lit circle. No amount of tuning the radius could have fixed
+that. The framing had to belong to the upgrade. Once it did, his *other* suggestion —
+distant blocks being hard to identify — arrived free, because a tight camera means the lamp
+no longer covers the frame.
+
+**"I can always dig but if the hull is full, leave the resources floating."** A full hold
+had stopped the drill dead and shown a number. That is the worst kind of wall: it does not
+ask the player to decide anything, it just stops them doing the thing the game is about.
+Ore that will not fit now waits at the cell it came from. It turned cargo capacity from a
+hard stop into a rate limit on value per trip, which is a far better shape.
+
+### Make the decoration mean something before you add more of it
+
+**"I like the sections of texture. Make those give more."** Decorative flecks had been
+scattered by one seeded roll. World generation now uses *that same roll* to decide which
+cells are worth more, so the texture and the payout agree by construction rather than by
+being kept in step. **The best new mechanic is often the one already drawn on screen.**
+
+Two calibration notes. A third of all rock was far too many — the screen stopped saying
+"some of this has mineral in it" and started saying "the rock is made of mineral", and every
+wall went sandy. A sixth reads as a find. And the *blend* of the seam's own colour into the
+band had to come down to a fifth: the cell has to stay recognisably its own band, because
+the flecks are what the eye is meant to catch.
+
+### A shop is a place, not a list
+
+Grouping the upgrades onto named counters, giving the panel a sticky header with the
+station's name and the planet, and — the part that does the work — **showing locked stock
+rather than hiding it**. A sealed row that says "Sealed until you have reached 90 m" is a
+reason to go deeper. A hidden row is nothing at all. Depth is a currency you can charge in,
+and it is the only one that cannot be farmed.
+
+### Abilities need a meter, and the meter is the design
+
+A bomb and a laser, both spending one shared Power Cell pool that trickles back underground
+and refills at the surface. That combination is the whole balance:
+
+- the trickle means a long descent is never completely without an answer
+- the refill gives the home base a purpose beyond selling
+- a cap of four means a meter you can spend twice is a decision, not a second drill
+
+They ignore hardness, so their value scales with exactly the thing that makes drilling slow —
+which means they get better the deeper you go without a single line of tuning.
+
+**Two abilities need a reason each to exist.** The first version had the bomb clear five
+cells for two power while the laser cleared five for one — and the bomb unlocked earlier and
+cost half as much, so owning both made the bomb pointless. There is now a test asserting the
+expensive-to-fire one clears more per point *at every level*, with the other keeping reach
+instead. Write that test before tuning, not after.
+
+**Two gates on one thing means one of them is decoration.** The laser was gated at 90 m of
+depth and by a mineral available from 22 m. A test now asserts every gated upgrade's mineral
+lives within 30 m of its unlock depth, and it caught this before a human did.
+
+### A secondary objective has to be a thing you keep
+
+Money is a rung: every amount you earn makes the last amount irrelevant, so "what have I
+got" is always a number that will look small next week. A collection is the opposite. One
+relic per planet, buried below the halfway mark, marked on nothing, granting a permanent
+perk — and it is **the only thing in the game you can miss permanently**, because breaking
+the core takes the planet and everything still in it. That last property is what makes it
+worth looking for rather than something you will pick up eventually.
+
+**One cell on a planet with nothing marking it is a lottery, not a secret.** What turns
+searching into a skill is a bearing: within the Scanner's radius, a mote drifts off the ship
+in the relic's direction and brightens as you close. That gave one upgrade a third distinct
+job — light, framing, finding — and three reasons to buy the same thing is worth more than
+three upgrades with one reason each.
+
+**Perks should be data, not callbacks.** Each one is read by a named derived stat rather
+than being a function the relic runs, so a perk cannot do anything a test cannot see. There
+is a test that applies every perk alone and asserts the stat it *claims* to move actually
+moves — a perk that is described and never wired is the easiest thing in this category to
+ship and the hardest to notice.
+
+### The bug worth generalising
+
+Past the eighth relic, every planet granted the same stacking perk. The check for "is this
+relic still in the ground" asked *do I already own this perk*, which answers yes for every
+planet from the ninth onward — so relics silently stopped existing for the rest of the game.
+
+**What you own and what you have done are different lists.** Any time a reward repeats,
+the "already collected" test has to key on the *event*, not on the reward. Verified the fix
+by reintroducing the old check and watching the new test fail, which is the only way to know
+a regression test regresses anything.
+
+### Two smaller ones
+
+**Rounding before clamping.** A new perk turned a tow cut into `0.5 - 8*0.05 - 0`, which is
+0.09999999999999998 in floating point, and the golden baseline duly recorded a cut of
+9.999999999999998%. True, useless, and exactly the kind of diff that trains you to
+re-record without reading — the one habit golden baselines cannot survive.
+
+**Categorise the kinds of legal change in a world-diff test.** An "additive only" assertion
+with a single percentage ceiling broke when seams converted a third of all rock, because it
+was counting a rare-pocket overwrite and a wholesale category conversion as the same claim.
+Counted apart, with a ceiling each, both stay meaningful. A test whose failure message
+blames the wrong subsystem is worse than one that does not fire.

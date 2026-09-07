@@ -109,3 +109,56 @@ No complaint about the balance, which is the part I was least sure of - the soak
 0.72 shield cap and the reprice were derived from modelling, not from play. Treat that as
 "nothing is obviously broken" rather than "the balance is right"; he has not yet played deep
 enough on the new numbers to hit the wall where cooling becomes mandatory.
+
+### 2026-09-07 — after the first overhaul, ten changes deep
+
+"I tested it and it looked good."
+
+Then, exploring rather than playing deep: he had not reached the new deep-game content at
+all, and every note he wrote was about the first sixty metres. Worth remembering when
+prioritising - the part of the game he actually spends time in is the shallow part.
+
+Seven observations, and every one of them named a structural problem rather than a matter of
+degree. Recorded in his words because the phrasing is the useful part:
+
+"can you update the shop to look more like a separate upgrade screen, like an actual shop or
+building? can you organize them and make it so certain things don't unlock until you make it
+to a certain depth?"
+
+"can you also make the light upgrade more important? I can see all of the blocks on screen,
+so it doesnt seem very beneficial. If you make it so far away blocks are hard to tell what
+they are without light upgrades, or start zoomed in a bit and each light upgrade zooms out,
+that could be cool."
+- He diagnosed it correctly AND proposed the fix. The Scanner only changed a lamp radius
+  while the camera framed a fixed number of rows, so the frame was always inside the lit
+  circle - no amount of tuning the radius could have helped. His zoom suggestion was the
+  right shape.
+
+"I like the sections of texture you added to the regular blocks. can you make it so most
+regular dirt and rock give you a very small amount of resource, and those textured areas
+give you more?"
+- The single best suggestion of the batch. The flecks were decoration scattered by a seeded
+  roll; generation now uses that same roll to decide which cells pay, so the texture and the
+  payout agree by construction. He found a mechanic that was already drawn on screen.
+
+"can you also make it so I can always dig but if the hull is full, just leave the resources
+floating in place for me to pick up later"
+- A full hold stopped the drill and showed a number, which is a wall that asks nothing of
+  the player. Lesson recorded in CRAFT.
+
+"can you add additional creative upgrades like a bomb that explodes a decent area, a laser
+beam that destroys a straight line... they may work best as an ability that recharges over
+time, or takes resources that you find while digging, or refill when you get back to the
+surface"
+- He specified the balance mechanism unprompted, and all three of his options turned out to
+  be right together: one shared meter that trickles underground and refills at the pad.
+
+"can you also think about a larger point to the game, or secondary objective?"
+- Answered with relics. Still unplayed.
+
+"is the memory limit something you have set or a build in standard for html or chrome?"
+- Fair question after hearing about budgets repeatedly. Every budget in the repo is mine and
+  is a drift detector; the only real platform limit in play is localStorage at ~5 MB, and
+  the worst-case save is 12.5 KB. Recorded in the game's NOTES.md so it does not need
+  answering twice.
+
