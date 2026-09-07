@@ -221,3 +221,63 @@ that made a good deploy look broken, and a play test that showed a frozen game b
 browser tab was in the background and does not run requestAnimationFrame when hidden. Each
 looked like a serious bug and only one was. Confirm what a symptom actually means before
 acting on it.
+
+---
+
+## 2026-09-06 — Coreward, closing the gaps the migration exposed
+
+The migration left three things it had itself proved were missing: nothing booted the built
+game, nothing watched the bundle, and nothing covered the frame loop. Fixing those turned up
+one real bug in the game that had been there since the beginning.
+
+**Unit tests over pure functions cannot see a wiring bug. Boot the real build.** Playwright
+loading the production artifact in headless Chrome catches everything the golden tests
+structurally cannot: a dead frame loop, a broken import, a missing DOM id, a service worker
+that precaches nothing. The single assertion worth the most is "hold a direction and check
+the depth changes", because a frozen game passes every other check ever written. Headless
+Chrome needs `--use-angle=swiftshader` for WebGL, and the whole suite runs in twelve seconds.
+
+**Never sleep for a fixed time in a game test; wait on game state.** The frame loop clamps
+its delta so a stutter cannot teleport the player, which also means that under load the game
+advances in slow motion and three wall-clock seconds is not three game seconds. The first
+draft of these tests failed for exactly that reason, on a game that was working perfectly.
+Related: do not assert on a rounded readout. The HUD showed "DEPTH 0 m" while the ship was
+still a cell above the pad, so waiting for it to detect a landing was a race.
+
+**A size guard needs the right granularity to be worth anything.** Guarding total bundle size
+at 3% was useless: the regression that started all of this removed 7463 bytes from a 506 kB
+bundle, a 1.57% drop that sails through. One dependency dominating the bundle hides
+everything else. Splitting three.js into its own chunk made the same regression a 22% shrink
+of the 35 kB game chunk, which nothing lets through. It pays twice, because a gameplay tweak
+now invalidates 35 kB of precache instead of 506 kB. Check the granularity by re-running the
+mutation, not by reasoning about it.
+
+**Test design intent, not just values.** A snapshot of the feel constants fixes the numbers,
+which is worth having, but it says nothing about why they are those numbers and it has to be
+re-recorded on every deliberate retune. Assertions like "ore must freeze longer than rock",
+"the core giving way must be the biggest shake in the game" and "hit-stop must stay between
+30 and 120 ms" survive retuning and are what actually encodes the design. Write both; the
+second kind is the one that will still be true in a year.
+
+**Wrap a browser API to observe what you otherwise cannot.** Nothing could see whether the
+audio graph worked, because it is module-scoped and produces no DOM. Replacing AudioContext
+in an init script and counting instances proved sound starts only after a user gesture, which
+is what Chrome requires. But counting contexts alone would still have passed a graph that was
+built and never published, since every sound would silently do nothing. Counting the buffer
+sources created while drilling is what actually caught that mutation. Pick the counter that
+fails for the reason you care about.
+
+**`min(1, dt * rate)` is not frame-rate independent, and almost every game uses it anyway.**
+One 100 ms step covers 60% of the distance to the target; ten 10 ms steps cover 46%. So
+camera lag genuinely differs with frame rate, and with a delta cap a stuttering frame makes
+the camera snap harder rather than merely lag. The correct form is `1 - exp(-rate * dt)`.
+Found by writing a test asserting frame-rate independence and watching it fail against
+working code. Left alone deliberately, with a test pinning the current behaviour, because
+changing it changes how the camera feels and that is a decision rather than a tidy-up.
+
+**A lazily built subsystem should be one nullable object, not many.** The audio graph is
+created on the first user gesture and is null-or-complete, never partial. Typing it as
+`Graph | null` means one check narrows every node at once, so the guards the code already had
+became the guards the type checker reads, and every non-null assertion disappeared. Reach for
+this before reaching for a suppression: an opt-out is sometimes right, but check first
+whether the structure is simply better than the types were saying.
