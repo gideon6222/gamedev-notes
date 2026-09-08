@@ -543,6 +543,45 @@ tools and platform-tools.
 - **`MultiMesh.visible_instance_count` is the flush** and is the number to assert a render
   path against, exactly as `mesh.count` is in three.js.
 
+### Godot facts that cost time on the first real game
+
+- **A headless run allocates no MultiMesh buffer at all.** `use_colors` reads back `true`,
+  `set_instance_color` raises no error, and `get_instance_color` returns black - because
+  `multimesh.buffer` is empty under the dummy rendering server. So instance colour cannot
+  be checked headlessly, and a headless probe of it is worse than none: it reports a
+  confident wrong answer. `visible_instance_count` is a CPU-side property and *is* reliable
+  headlessly, which is why the smoke test is built on that and not on colour. Check colour
+  in a real renderer or not at all.
+- **`Node3D.global_transform` outside the tree does not error - it returns IDENTITY.**
+  `look_at` at least refuses; this hands back a plausible wrong answer, so a camera assertion
+  fails for a reason that has nothing to do with what it tests. In any harness, use
+  `transform` and keep the node a direct child of a root that never moves.
+- **A value read out of a Dictionary is a Variant, and `:=` cannot infer from one.**
+  `var b := Basis.from_euler(c.ang)` is a parse error, and the message names the variable
+  rather than the dictionary lookup that caused it. Annotate the local explicitly:
+  `var ang: Vector3 = c.ang`. Entities held as dictionaries - which is what keeps the scene
+  tree out of the test runner - make this common.
+- **A parse error in a script the harness loads produces a run that never terminates**, not
+  a failure: `_initialize` aborts before it reaches `quit()`. The symptom is a hung command,
+  and the cause is several screens up the output. Read the top of the log, not the end.
+- **Drive the picture with a screenshot script, which is the Godot equivalent of driving a
+  browser.** A `SceneTree` script that instantiates the real scene, calls `freeze()`, advances
+  through the same seam the tests use, waits about five frames and saves
+  `root.get_texture().get_image()`. It must NOT be headless - that is the whole point - and
+  waiting the frames matters, since capturing on frame one gives a grey rectangle. Because it
+  goes through `freeze` and `advance`, the same second of the same street is captured every
+  time, which makes two screenshots taken a week apart genuinely comparable.
+
+### Do not build a gameplay pendulum out of the physics server
+
+The obvious way to hang a wrecking ball in Godot is a `RigidBody3D` on a `PinJoint3D`. That
+puts the outcome of every run inside the physics server, at the mercy of its tick rate and
+its solver, and ends any possibility of a whole-run golden. Thirty lines of arithmetic -
+`L*theta'' = -g*sin(theta) - a_pivot*cos(theta) - c*L*theta'` - is deterministic, runs
+headlessly, and is testable at 120 fps against 60. **Physics is for debris, which decides
+nothing.** The same reasoning applies to any engine feature that would own a number the game
+is scored on.
+
 ### Measured on the phone
 
 First native build on the S26 Ultra, 2026-09-08: **Vulkan 1.4.295, Forward Mobile, Adreno

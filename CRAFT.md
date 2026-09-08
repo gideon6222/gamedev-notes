@@ -931,6 +931,14 @@ Either move the player along -z so the camera keeps its default orientation, or 
 where the drag meets the world and comment it loudly. Do not "fix" it later by flipping
 something else as well.
 
+**Take the first option.** Wrecking Crew draws the street along -Z while the simulation
+counts distance upward, through one `wz()` helper called everywhere, so the camera is never
+turned around and screen right IS world +X by construction - no sign flip anywhere near the
+input. A flipped sign is a fact that has to stay true through every future change to the
+camera; an axis convention is one that cannot come apart. Keep the NDC test either way, and
+**verify it by turning the camera around and watching it fail** - it should name the
+consequence ("a rightward drag will move the rig the wrong way"), not the geometry.
+
 **A raycast reads world matrices, and those are only refreshed by a render.** Tap something in the
 same tick a 3D screen opens — before it has ever been drawn — and every object is still at the
 identity matrix, so the ray misses everything and the tap silently does nothing. It starts working
