@@ -62,6 +62,28 @@ predictable number. Rare enough that you cannot plan around it, or it becomes a 
 cache can hand you is the two units you are short, not any amount of money. Money is what the
 loop already pays constantly.
 
+**If the thing you are destroying can be walked past, destruction is optional and the game
+has no stakes.** Wrecking Crew spent two builds as a runner with a wrecking ball, and no
+amount of tuning made the buildings matter, because the genre answers the question before
+the design gets to: in a runner you pass things, passing is free, and hitting them is a
+bonus. Gideon's word for the result was that there was "no risk or reward yet", which was
+exactly right and was not a balance problem.
+
+**Destruction becomes a game the moment it is the only way forward, or the only thing being
+scored.** The fix was to stop moving: one condemned building per level, a fixed number of
+swings, and a way to fail that is not "you did not do enough" but "you did it in the wrong
+order". Ask of any resource-gathering or destruction loop: *what happens if the player
+ignores this entirely?* If the answer is "they score less", it is a difficulty slider. If
+the answer is "they cannot continue" or "they lose what they came for", it is a mechanic.
+
+**A budget is the cheapest risk there is, and it must be derived from the content rather than
+set as a rate.** Wrecking Crew gives exactly enough swings to break every column plus four.
+A flat three-per-bay drifted out of step the moment columns started varying in strength:
+five bays of four hit points got 17 swings for a job needing 20, so the last levels were
+arithmetically unwinnable however well they were played, and nothing said so. **Any budget
+expressed as a rate over content will eventually disagree with the content.** Compute it
+from the thing it is a budget for, and assert it is sufficient at every level.
+
 ---
 
 ## Progression
@@ -363,6 +385,32 @@ wrong.** Shortening the boom to a third of its length - which the design require
 rest the tool falls just short of the target" was the load-bearing number - compressed the whole
 machine toward the camera and put a two-metre ball across a quarter of a portrait screen. The
 camera had to go back nearly half as far again. Re-shoot after any change to a length.
+
+**Make the failure a SHAPE rather than a number.** The interesting risk in a demolition is
+not how much came down, it is which way it went. Wrecking Crew's lean is the centroid of
+what is still standing over the building's half width: work the bays alternately and it
+stays at zero, work along one side and it goes over onto the neighbours. The player is
+managing a picture, not a bar, and the gauge is a direct reading of the same number the
+building is drawn leaning by - so the HUD cannot lie about the world.
+
+Three details that turned out to be load bearing, and are worth stealing whole:
+
+**The failure state needs something visible to fail ONTO.** The blocks either side of the
+site are the entire stake. A lean gauge with nothing next to the building is a number about
+nothing, so they are placed close enough to be in frame and painted LIGHTER than the
+condemned building - separated by lightness, so "the one you must not hit" and "the one you
+must" read apart at a glance.
+
+**Judge the bonus on the worst state reached, not the final one.** When the last bay lands
+there is nothing left to be off-centre, so a clean-drop bonus keyed on the final lean pays
+out for every demolition including the reckless ones. What is being rewarded is never having
+come close, and that is a maximum over the whole job.
+
+**Check the endgame of any "balance" metric before shipping it.** The same centroid that
+makes the mechanic work says the LAST remaining piece is at maximum imbalance, by
+definition - so without an explicit "a lone piece cannot topple" clause, no building could
+ever be finished, in any order. A metric derived from what remains will always do something
+strange as what remains approaches nothing.
 
 ---
 
@@ -1105,6 +1153,27 @@ bot, which was right once on this game and wrong the next time. What separated t
 was cheap: sweeping the bot's one free parameter across eleven values took a minute and showed
 no setting anywhere beat the blind policy, which rules the bot out and points at the design.
 **Sweep the bot's parameter before touching the game's.**
+
+**Make every scripted policy fail for a DIFFERENT reason, and you have a design you can
+read.** Wrecking Crew's four: one touches nothing and scores zero; one swings blindly and
+cannot reach the outer bays; one works the bays from one end and topples; one works them in
+a balanced order and sweeps. Four rows, four distinct failures, and the table is a
+description of what the game rewards. When two policies fail the same way - or worse, score
+the same - one of them is not testing anything, and on the earlier build of this game that
+was the signal that the whole genre was wrong.
+
+**The pair that proves a decision exists must differ in exactly ONE thing.** The balanced and
+the reckless policies here share all their code and take the same argument; the only
+difference is which bay they pick next. Same control, same effort, same building on the
+ground - 2.2x the score. That is a claim about the design that cannot be confounded by the
+bots being differently good at driving.
+
+**A test helper that plays the game is a second, worse player.** Eight tests failed here for
+a reason unrelated to anything they asserted, because the helper driving the tool had its own
+sweep and was quietly worse at connecting than the committed policy - so tests meant to check
+"does a column take its hit points to break" were really checking "can this particular sweep
+connect at all". Export the policy's own routine and have the tests drive through it. One
+definition of how the game is played, used by the bots and the tests alike.
 
 ---
 
