@@ -169,6 +169,47 @@ surface"
   the worst-case save is 12.5 KB. Recorded in the game's NOTES.md so it does not need
   answering twice.
 
+**2026-09-08, on lighting. Three rounds in one session, and every round moved it.**
+
+"Can you make the lighting from the ship a much more obvious and integrated mechanic? Instead
+of seeing a cone of light, I want the light look like it actually spreading from the ship.
+When a tunnel is dug down or to the side, light should fill those tunnels and spread to nearby
+rocks, but areas that are multiple rocks deep should be very dark. light should come from the
+actual ship so if it hits a corner or branch, it should cast a shadow down that tunnel."
+
+- The whole feature in one paragraph, and it named the technique without naming it: light that
+  travels through the tunnels rather than through the rock is a flood fill over the grid. He
+  also spotted, unprompted, that the volumetric cone was a fake standing where the real thing
+  should be - it went in the same commit.
+- The half I got wrong on the first pass: lighting the WALLS of a tunnel is not lighting the
+  tunnel. A dug cell contains no geometry, so the space itself stayed dead until an additive
+  quad put light in the air. He asked for both halves in one sentence and I heard one.
+
+"that looks very close to what I want but a couple of issues. each block shows that angled
+shadow. that should only show on actual branched off tunnels."
+
+- A real bug, described precisely enough to find: shadow acne on every wall face, caused by
+  recording where a ray leaves a cell instead of the cell's far corner. Thirteen per cent of
+  every wall was in its own shadow. **He described the symptom in terms of what it should
+  have been, which is what made it findable** - "only on actual branched off tunnels" is the
+  invariant, not the complaint.
+
+"rocks to the sides of the tunnel should be a bit brighter and gradually dim, so around 3
+layers should be visible but start bright and dim quickly by the third. rocks any further than
+that should be almost completely black."
+
+- A tuning spec, in layers, with a curve. Straight into the constants. Worth noting he gave a
+  NUMBER of layers rather than an adjective, which is the difference between a note you can
+  act on and one you have to interpret.
+- It also exposed two tests asserting on the raw light field rather than on what the shader
+  displays - both failed the moment the gradient became what he asked for.
+
+"the rocks still stick up past the fog in certain areas."
+
+- Sounded like a depth-sorting problem and was not. The displacement shader pushes tunnel
+  walls a fifth of a cell into the tunnel, and those bulges sat inside a lit shaft with no
+  light on them. Fixed by letting the glow spill onto the wall, which is where it belonged.
+
 
 ---
 
