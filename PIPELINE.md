@@ -513,3 +513,32 @@ tools and platform-tools.
   case. `Transform3D.looking_at` is pure maths and works anywhere. Prefer it always.
 - **`MultiMesh.visible_instance_count` is the flush** and is the number to assert a render
   path against, exactly as `mesh.count` is in three.js.
+
+### Measured on the phone
+
+First native build on the S26 Ultra, 2026-09-08: **Vulkan 1.4.295, Forward Mobile, Adreno
+840**. `adb shell dumpsys gfxinfo <pkg>` over the first 44 frames gave **5 ms at the 50th,
+90th and 95th percentiles**, one janky frame, 1 ms GPU at the median. That is a placeholder
+scene, so it measures the engine and the pipeline rather than a game — but it is the
+baseline every later number gets compared against, and it says the ceiling is nowhere near.
+
+`adb shell dumpsys gfxinfo <package>` is the measurement. `adb shell screencap -p /sdcard/x.png`
+then `adb pull` is how to see what is actually on screen; piping `exec-out screencap` through
+PowerShell corrupts the bytes.
+
+### CI, and one rule about it
+
+`barichello/godot-ci:<version>` works for both the test job and the export job. Two things
+were needed beyond the obvious:
+
+- **The image may not have an Android SDK.** Have the workflow *look* for one, install it
+  if missing, and print what it found. Hard-coding `/usr/lib/android-sdk` and reaching for
+  `python3` (which is not in the image) produced `Process completed with exit code 127` and
+  nothing else — the least informative failure available.
+- **A CI step that can fail should say what it was looking for when it did.** Every path
+  check in that job now fails with the directory it wanted. That turned the second attempt
+  into a single fix rather than a guessing loop.
+
+**A throwaway debug key per CI run means every build is signed differently**, and Android
+refuses to update an installed app whose signature changed. Put the keystore in a base64
+repository secret once the APK stops being a one-off proof.
