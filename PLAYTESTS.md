@@ -438,3 +438,28 @@ Still unverified, and he should be asked: the upgrade list. "Same traps and upgr
 derived from two action screenshots and no source on the web lists them, so the shop is still
 our own - Bigger Batch, Earning Power, Steady Tray, Long Reach, Deeper Vats, Glitter Cannon,
 Press, Wrap. A screenshot of the reference's upgrade screen would settle it in one message.
+
+### 2026-09-08 - the art pass, and a question about budgets
+
+"the game looks a little cartoonie. can you update the graphics to look more realistic and
+detailed? make the dirt and rocks look more like realistic minerals, make the colors and textures
+more gritty. change the ship to look less bubbly and cartoonish. since we can use pre-made assets
+I want you to make use of them wherever you think it can help. can you also rearrange how the shop
+is layed out? make it look like a full room where upgrades have a physical model associated with
+it instead of a list of upgrades. make it so upgrades to the ship show visual changes."
+- Five asks in one paragraph and every one of them structural again. "Cartoonie" was three
+  separate things: no roughness channel anywhere (Lambert), a sphere for a cockpit, and a shop
+  that was a list. None of them was the amount of detail.
+
+"Are we still stuck to seventy draw calls? What is preventing that from being a higher possible
+number"
+- Nothing was: it was my number, from the "50 to 100 on mobile" rule of thumb. Measured properly
+  it is 5.0 us per call and about 3,200 before missing 60 fps. He was right to push on it, and the
+  guideline was wrong by more than an order of magnitude. Worth remembering that he asks this kind
+  of question about numbers he is told, and that the numbers should be measured before he does.
+
+"can you make it so that the upgrades that you get correlate with what we see in the actual game?
+So, like, when you upgrade thrusters and starts to change the way they look, it also changes the
+way that they look when you're actually playing the game."
+- The right instinct, and it turned into the design of the whole shop: show the real ship and the
+  real parts rather than a preview, so the two cannot disagree.

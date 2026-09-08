@@ -611,6 +611,25 @@ in a decorative group before you place three of them; detail below a few pixels 
 a shop says "you are still out there". Hide the game entirely, give the screen a window that looks
 out on where the player actually is, and put the exit at the bottom where a door would be.
 
+**And a list is a list however you style it.** That fix was still a scrolling list of rows on a
+painted background, and the next note was to make it a room. A second scene - the shop drawn as
+somewhere you stand, with the goods on pedestals - costs one extra Scene and camera and reuses
+every material the game already has. The rule underneath: **if the player is meant to feel they
+are somewhere, the somewhere has to be geometry, not gradients.**
+
+**Show the REAL object in the shop, not a preview of it.** Coreward reparents the actual ship into
+the station scene rather than building a copy, and the parts in the display cases are the same
+geometry and materials that get bolted to the hull. So "what changes in the shop" and "what
+changes in play" cannot disagree — not because they are kept in sync, but because there is only
+one of them. Any time a shop shows a thing the game also shows, a copy is a second source of truth
+that will drift, usually within one session.
+
+**Lay a 3D shop out for the aspect ratio you actually have.** Portrait is ~0.46, so a 46 degree
+vertical field is only ~22 degrees horizontal: eight units back shows 6.8 units of height and 3.1
+of width. A hangar laid out sideways — the obvious shape for a hangar — puts most of itself off
+the edges of a phone. Racking the goods in vertical columns flanking the centre is both what fits
+and what a parts wall in a workshop looks like anyway.
+
 **One scroll region per screen.** Giving an inner list its own `overflow-y` inside a flex column
 quietly clips it at the fold — an entire category looked like it held one item, and another looked
 like it did not exist.
@@ -800,6 +819,19 @@ chase camera needs that one test.
 Either move the player along -z so the camera keeps its default orientation, or flip the sign
 where the drag meets the world and comment it loudly. Do not "fix" it later by flipping
 something else as well.
+
+**A raycast reads world matrices, and those are only refreshed by a render.** Tap something in the
+same tick a 3D screen opens — before it has ever been drawn — and every object is still at the
+identity matrix, so the ray misses everything and the tap silently does nothing. It starts working
+the instant one frame has gone by, which means it reproduces on a fast tap and nowhere else. Call
+`updateMatrixWorld(true)` at the top of the pick.
+
+**A second scene does not inherit the first one's layer decisions.** Coreward's ship sits on its
+own layer so the gameplay lamp cannot blow it out; moving it into the shop scene made it vanish,
+because that scene's camera did not render the layer and its lights did not reach it. Anything
+that reparents an object across scenes has to carry the layers, the lights and the background with
+it — and a background especially, since a scene deliberately left transparent will show the wrong
+thing through it somewhere else.
 
 **Use `requestAnimationFrame` to draw, never to undo.** Anything that reverses itself on the next
 frame sticks forever if the tab is hidden at that moment. An impact flash cleared from a rAF
