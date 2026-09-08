@@ -210,6 +210,22 @@ that should be almost completely black."
   walls a fifth of a cell into the tunnel, and those bulges sat inside a lit shaft with no
   light on them. Fixed by letting the glow spill onto the wall, which is where it belonged.
 
+"I think I am explaing what I want wrong. there should basically be two types of light. one
+will be the light in the tunnels, which will disperse and spread through all of the connected
+tunnels ... the second type of light I want is on the rock faces and separate from the tunnel
+light."
+
+- **He was not explaining it wrong.** He had been describing two lights since the first
+  message; I had been building one. Every note about the shadow therefore read as a bug in the
+  shadow rather than as a bug in WHERE the shadow was applied, and I fixed the shadow twice.
+- The tell I missed: the same complaint came back after a fix that genuinely worked. **A note
+  that survives a correct fix is a note about something else.** Three rounds of "still getting
+  angled shadows on the blocks" were three rounds of him saying the shadow was on the wrong
+  surface, and I heard three rounds of "the shadow is wrong".
+- Worth adding to the pattern already recorded here: **when he restates a request from
+  scratch rather than refining it, that is the signal that the model is wrong, not the
+  tuning.** Stop adjusting numbers and go looking for the structure he is describing.
+
 
 ---
 

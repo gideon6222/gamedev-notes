@@ -619,6 +619,25 @@ surface the light is falling ON and has to stay lit; shadow starts behind it. Th
 puts every rock face in the game into its own shadow, which reads as "the lighting is broken"
 rather than as an off-by-one.
 
+**Light on surfaces and light in the air are two different lights, and a shadow belongs to
+only one of them.** Coreward ran one lighting number and handed it to both, so the ray fan -
+which answers "can light get along this tunnel to here" - was also carving hard-edged wedges
+across every rock face in the frame. A surface is lit by being NEAR a lit space, which is a
+property of the surface; the air in a corridor is lit by light travelling along it, which a
+corner can block. Same terms, one difference:
+
+    SURFACE   flood x falloff x beam
+    AIR       flood x falloff x beam x shadow
+
+They also want very different ambient floors - a corridor is full of dust with light bouncing
+off every wall in it, a surface the beam is not on is simply dark. Sharing one figure made
+every side passage read as a hole.
+
+**And the process lesson under it:** three rounds of playtest notes all pointed at this and
+were all read as tuning requests, because each one described a symptom on a rock face. The
+tell was that the complaint kept coming back after a fix that genuinely worked. **A note that
+survives a correct fix is a note about something else.**
+
 **A shadow fan sampled by angle needs the FARTHEST CORNER of the cell it hits, not where the
 ray leaves it.** Per ray, the exit distance is exactly right - a point inside the cell is always
 between entry and exit. But the shader interpolates between the two nearest rays, and those may
