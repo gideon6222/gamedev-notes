@@ -162,6 +162,7 @@ surface"
   the worst-case save is 12.5 KB. Recorded in the game's NOTES.md so it does not need
   answering twice.
 
+<<<<<<< HEAD
 
 ---
 
@@ -206,3 +207,46 @@ good; is the jotunn a wall or a formality; and does the music annoy him. The las
 the Coreward score drew the only outright "I don't like" of that entire game, so the theme
 here is a written 8-note phrase on a slow-attack horn rather than random notes — and it is
 worth knowing whether that lesson actually transferred.
+=======
+### 2026-09-07 - still exploring, six more asks
+
+"im still testing the new update but a couple changes I want to make."
+
+Again all of it about the first sixty metres and the surface, and again every observation
+named a structure rather than a degree. His words:
+
+"can you make the ship feel more like it is free to fly not on a grid? still make it easy
+and intuitive to control but don't keep it stuck on the grid."
+- The single biggest change to how the game feels, and he named it in one sentence. The
+  cell-to-cell hop was the thing making a good-looking world read like a spreadsheet.
+
+"Blocks should stop being dug if you stop drilling but remember how much damage is already
+done to them so they can be partially damaged, then easily finished off."
+- He specified the whole mechanic including the part that makes it work. A commitment you
+  cannot back out of is a wall rather than a decision.
+
+"zoom the camera out slightly and make shadows and darkness denser. I want it hard to see
+blocks that are far away and almost black toward the edge of the screen, so it feels like we
+are only zoomed in vecause we can see any further out."
+- The second half is the design note: the darkness has to JUSTIFY the framing. A tight frame
+  on its own reads as a close camera; the same frame with the corners black reads as the
+  limit of the light.
+
+"can you also add a more intuitive version number and patch notes to the pause screen? so I
+can see what version update we are actually on and what each iteration added."
+- After several sessions the build stamp stopped being enough. Worth doing much earlier in
+  the next game.
+
+"can you make the shop an actually different screen instead of a pop up screen and make it
+look more like a space station shop?"
+- He had already been shown a restyled shop panel and still read it as a pop-up, which is
+  the answer: leaving the world visible behind it is what makes it one.
+
+"can you find where to get free assets for the game automatically and improve the ship, pad,
+and anything else that could easily benefit from pre-made assets? I want you to research
+were the best place to get them from and how to install them all on your end."
+- Answered with a font (installed) and a reasoned no on the 3D models, plus a hand-rebuilt
+  pad. He asked for research and installation, so the reasoning was given rather than the
+  absence being left silent. The rule that came out of it is in CRAFT.
+
+>>>>>>> 2bd6861 (Third Coreward pass: taking the grid out of a grid game)

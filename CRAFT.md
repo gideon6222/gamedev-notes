@@ -670,6 +670,7 @@ was counting a rare-pocket overwrite and a wholesale category conversion as the 
 Counted apart, with a ceiling each, both stay meaningful. A test whose failure message
 blames the wrong subsystem is worse than one that does not fire.
 
+<<<<<<< HEAD
 ## 2026-09-07 — Captain Run, a second game and the first one not built like Coreward
 
 Gideon sent a screenshot of a commercial viking crowd-runner and asked whether that level of
@@ -774,3 +775,113 @@ the in-run forge bar (about four axe tiers a run, at every ascent), gold only ev
 permanent upgrades, runes only ever buy blessings. The forge bar is the minute-to-minute
 power fantasy and the camp is the session-to-session one, and neither can substitute for the
 other. Leftover iron converts to gold at the end so nothing is wasted.
+=======
+## 2026-09-07 — Coreward, third pass: taking a grid out of a grid game
+
+### Movement
+
+**A grid you can feel is a spreadsheet you can see.** Coreward's ship hopped cell to cell on
+a fixed timer, and no amount of work on the rock underneath changed how that read. Giving it
+a velocity and a collision box was the single largest change to how the game feels, and it
+touched one file plus a hundred lines of the frame loop.
+
+**Put the collision in a pure module and test the failures, not the successes.** "Moves in
+open space" is not worth a test. Tunnelling through a wall at speed, catching on a corner,
+creeping into a block by leaning on it for four hundred frames, getting wedged in a dead
+end, and thrust that differs with frame rate — those are the five things that actually go
+wrong, and all five are checkable in milliseconds without a renderer.
+
+**Substep rather than sweep.** Splitting any movement longer than a third of a cell into
+pieces is a tenth of the code of a swept test and, at any speed a player will ever reach,
+almost never costs more than two iterations.
+
+**Derive the interaction from the collision, not alongside it.** Digging used to ask "is
+there a block in front of me" separately from moving. Now the collision reports the cell
+that stopped the ship, and that cell *is* what the drill points at. Two facts that could
+disagree became one fact that cannot.
+
+**Count what the grid was silently doing for you before you remove it.** Three things, all
+found by playing rather than by reading: selling triggered on arriving in the pad's *cell*;
+breaking a block scheduled a step *into* it, which is what kept continuous digging from
+stuttering; and cell-snapping is what kept tunnels aligned to the world the terrain is still
+built on. Each needed an explicit replacement.
+
+### Interruption is a feature
+
+**A commitment the player cannot back out of is a wall, not a decision.** Coreward's drill
+ran a block to completion once started. Letting go now stops it and the rock keeps its
+damage. The difference is between a wall you can probe and one you have to commit to
+blind — and it costs one number per cell.
+
+**Store progress as a share, never as elapsed time.** With seconds, buying a better tool
+shrinks the total while the stored number stays put, so a job you had half finished silently
+becomes nearly finished — backwards from what an upgrade should do. And when you write the
+test, assert that the two interpretations actually *differ* in the case you picked;
+otherwise the test passes under both and proves nothing.
+
+### Light and framing
+
+**Fog is not distance in a 2.5D game.** `FogExp2` measures distance from the camera, and a
+camera twenty units back looking at a flat plane is the same distance from every object in
+the scene. Turning fog up to fade the far edges of the frame instead puts an even grey wash
+over the whole picture. The thing that falls off across the plane is a *point light* — in
+this game, the ship's own lamp, whose decay is the actual lever.
+
+**Make the camera's tightness the upgrade, and then make the darkness justify it.** A tight
+frame on its own reads as "the camera is too close". The same frame with the ambient nearly
+gone and the corners falling to black reads as "this is as far as the light reaches", which
+is the same picture with the opposite meaning.
+
+**Three stops, not two.** A vignette ramping linearly from clear to black across the whole
+radius reads as a grey wash over the picture. Holding the middle mostly clear and falling
+off hard in the last third reads as light running out.
+
+### Screens
+
+**A panel over the game is a pop-up however you style it.** Leaving half the world visible
+behind a shop says "you are still out there". Hiding the game entirely, giving the screen a
+window that looks out on where you actually are, and putting the exit button at the bottom
+where a door would be — those three things turn a menu into a place.
+
+**A station interior is flat panels, seams and warning tape**, which is exactly what
+gradients and repeating stripes are good at. No images, no bytes.
+
+**One scroll region per screen.** Giving an inner list its own `overflow-y` inside a flex
+column quietly clips it at the fold: an entire category looked like it contained one item,
+and another looked like it did not exist.
+
+### Version numbers
+
+**A build stamp answers "did my update land". It cannot answer "what is different".** After
+a few sessions of work the second question matters more, and a commit log is the wrong shape
+for it — it is written for whoever maintains the code, and there are eighty entries. A short
+hand-written list of player-facing lines, newest first, one tap from the pause screen. The
+rule for writing an entry: describe what the player can now do or see. If an entry cannot be
+written that way, it probably did not need a version.
+
+### Free assets: where, and when not to
+
+The good CC0 sources for a game like this are **Kenney** (kenney.nl, ~40k assets, one
+consistent style), **Quaternius**, and **Poly Pizza / Icosa** for the archived Google Poly
+library (mostly CC-BY, so attribution required). Poly Haven is CC0 but photoreal, which is
+the wrong register for anything stylised. Kenney's downloads go through a session redirect
+rather than a stable URL, so they cannot be fetched unattended; Google Fonts can.
+
+**The asset that was worth importing was a typeface.** Two weights of a condensed technical
+face, self-hosted at 20 KB, added to the service worker's precache so an installed app never
+falls back to a system font offline. It changed every screen in the game for less than a
+third of the cost of the game's own code.
+
+**The assets that were not worth importing were the 3D models**, and the reason generalises:
+*import assets for things the player reads at their real size — type, UI, sound — and model
+in code anything that is thirty pixels tall and judged on silhouette.* A downloaded model
+arrives with its own topology, normals and sense of scale, and next to hand-tuned
+flat-shaded low-poly the join shows in the first frame. It also costs a loader, an async
+fetch and a precache entry to buy surface detail at a distance nothing is viewed from.
+
+The exception inside that rule is worth naming: the **landing pad** was rebuilt by hand with
+real structure, because it is the one object in the game that is stationary, close to the
+camera, and looked at while nothing else is happening. That is the only place where surface
+detail earns its keep — and it is a description of a situation, not of an object, so it is
+the thing to look for in the next game rather than "the pad".
+>>>>>>> 2bd6861 (Third Coreward pass: taking the grid out of a grid game)
