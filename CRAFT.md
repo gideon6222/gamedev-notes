@@ -169,6 +169,24 @@ clear the obstacle yourself and drag half your tray through it - which means gro
 costs agility, and the player has to start steering well before an obstacle is in reach.
 Obstacles must then test **every** unit, not the leader, or none of it is real.
 
+**Put the resource ON THE GROUND and let the formation decide who touches it.** Candle Gift's
+first build made every station a gate across the track that treated the whole tray at once,
+and it measured as *identical* per-candle value across four scripted play styles - never
+touching the screen scored the same quality as playing perfectly. The reference is a pool the
+tray drives *through*: which candles get dipped depends on where each one was as the line
+snaked over it, so sweeping left and right through a pair of pools gets some candles into each.
+That one change turned every station from a thing that happens to you into a decision, and
+weaving measured 2.6x per candle over driving straight.
+
+The general rule: **if a system applies itself to everything you own, it is not a mechanic.**
+Give the reward an extent in space, give the player a formation with lag, and the geometry
+does the design for you.
+
+**Per-unit state is what makes a formation worth looking at.** Once each candle carried its own
+recipe, a tray that wove came out visibly striped in different colours and one that held a line
+did not - the skill is legible on screen without a single number. Shared state across a group
+is cheaper and always looks like one object.
+
 **Interruption is a feature.** A commitment the player cannot back out of is a wall, not a
 decision. Coreward's drill ran a block to completion once started; letting go now stops it and
 the rock keeps its damage. The difference is between a wall you can probe and one you must

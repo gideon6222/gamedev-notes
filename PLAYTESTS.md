@@ -409,3 +409,32 @@ is what turned a scrolling bug into a dead end.
 
 Worth remembering for every game here: **the first thing he does with a new build is open the
 menus.** Both of the last two games' first reports were about a screen, not the gameplay.
+
+### 2026-09-07 - "still pretty far off", and he was right
+
+"I like the improvements but it looks like we are atill pretty far off from the original game
+she was talking about. can you do a full overhaul to make the mechanics the same, same traps
+and upgrades. I want the base of the game to be like the one she is talking about, then we can
+upgrade it from there."
+
+Third pass at this game, and the first two were both built on inference. Worth recording the
+process failure as much as the fix: I had the reference's store copy and its strategy guide
+from the first session and had extracted the *nouns* from them - stack, pools, glitter, bows -
+without extracting the *verb*. The line that mattered was sitting in the guide the whole time:
+
+"If there are two pools of wax side by side, you should swipe left and right quickly to try and
+dunk all of your candles in both of the pools."
+
+Wax is a pool on the GROUND. Which candles get which colour depends on where each one was as
+the trailing stack snaked over it. So every candle needs its own recipe, and the player's line
+IS the decision. The previous build treated the whole tray at once, which measured as identical
+per-candle value across four play styles - the game had no input in it.
+
+Lesson for next time a game is being reproduced: **read the guide for the verbs, not the
+nouns.** A store page lists what is in a game; a strategy guide describes what the player is
+doing, and that is the thing you are actually rebuilding.
+
+Still unverified, and he should be asked: the upgrade list. "Same traps and upgrades" cannot be
+derived from two action screenshots and no source on the web lists them, so the shop is still
+our own - Bigger Batch, Earning Power, Steady Tray, Long Reach, Deeper Vats, Glitter Cannon,
+Press, Wrap. A screenshot of the reference's upgrade screen would settle it in one message.
