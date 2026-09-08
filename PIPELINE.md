@@ -118,9 +118,25 @@ the previous version stays up.
 Then check it on the phone. Expect the first open to show the old build; close it fully and
 reopen. The stamp in the menu is the source of truth.
 
-**Do not poll the live site to confirm a deploy.** CI already smoke-tested that exact
-artifact. Polling re-verifies what is verified and is the most expensive part of the cycle.
-Push, say it is pushed, move on.
+**Do not poll the live site to confirm a deploy — but DO confirm CI went green.** These are
+not the same thing, and conflating them cost a whole session: a smoke test failed, the deploy
+job was skipped, the live site stayed on the previous version, and Gideon spent his evening
+restarting a phone app that had nothing new to fetch. "Push and move on" means not
+re-verifying an artifact CI already tested; it never meant not looking at whether the gate
+passed. One call, no auth needed on a public repo:
+
+```bash
+curl -s "https://api.github.com/repos/<owner>/<repo>/actions/runs?per_page=3"   | python -c "import json,sys; [print(r['head_sha'][:7], r['status'], r['conclusion']) for r in json.load(sys.stdin)['workflow_runs']]"
+```
+
+**When it does fail, the logs need auth but the annotations do not.** `Sign in to view logs`
+on the web UI is a dead end; this returns the actual assertion text, and it is public:
+
+```bash
+curl -s "https://api.github.com/repos/<owner>/<repo>/check-runs/<job_id>/annotations"
+```
+
+Get `<job_id>` from `.../actions/runs/<run_id>/jobs`, which is also public.
 
 If something plays badly: `git revert <sha>` and push. Two minutes to the previous state.
 
@@ -268,6 +284,18 @@ projects: [{ name: 'chromium',
   `Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Select ProcessId, CommandLine` -
   the command line names the repo, which is what makes the collision obvious in seconds
   rather than after an hour of blaming your own change.
+- **"Wait on game state" is not enough on its own if the state is measured in GAME time.**
+  Coreward's heat test polled for a soak gauge to fill and passed everywhere except CI, where
+  a GPU-less runner falls back to a software rasteriser and the game crawls: thirty seconds of
+  wall clock bought 24.46% of the 25% the assertion wanted. Polling correctly on the right
+  quantity does not help when the quantity accrues in a clock you are not driving. **Anything
+  that accumulates over game time belongs on the headless tick seam**, where `advance(60)`
+  is sixty game-seconds on every machine. Rewriting that one test took it from 13.6 s and
+  machine-dependent to 2.8 s and deterministic.
+- **A poll timeout must be shorter than the test timeout, or it can never report.** Both were
+  30 s, so the test died before the poll could finish and the failure read "test timeout
+  exceeded" instead of naming the value it was waiting on. Set the suite timeout comfortably
+  above the longest poll.
 - **Wait on game state, never on wall-clock time.** The frame loop clamps its delta, so on
   a machine without a GPU the game advances in slow motion and any fixed sleep becomes a
   flake. Poll for the state you asserted to be *rendered*, not just set.
