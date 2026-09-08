@@ -95,7 +95,18 @@ second build matters.
 - **AAB export requires the Gradle build** in Godot — `gradle_build/use_gradle_build=true`.
   The exporter refuses otherwise, and the Gradle build is also the only way to set the
   target SDK. Keep the debug APK preset on the prebuilt template; it needs no Gradle and
-  exports in seconds.
+  exports in seconds, while the release preset pays ~300 MB of Gradle downloads on a cold
+  run. Cache `~/.gradle` in CI.
+- **`--install-android-build-template` only works alongside an export command.** On its own
+  it opens the editor and never returns.
+- **The release keystore comes from environment variables**, not editor settings:
+  `GODOT_ANDROID_KEYSTORE_RELEASE_PATH` / `_USER` / `_PASSWORD`. Godot falls back to editor
+  settings for the *debug* key only, so a release export without them fails with
+  "Could not find release keystore" — a message that reads like a missing file rather than
+  a missing setting.
+- **Verify the target SDK from `android/build/config.gradle`, not from the bundle.** An
+  AAB's manifest is protobuf rather than binary XML, so `aapt2 dump xmltree` cannot read it
+  and returns nothing — and a check that passes on an empty string is worse than no check.
 - **Target API 36 (Android 16)** for new apps and updates from 31 August 2026. Existing
   apps below API 35 become invisible to new users on newer devices. **This rises every
   year** — it is a recurring maintenance item, not a one-off.
