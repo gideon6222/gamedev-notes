@@ -305,6 +305,18 @@ not pointing along is the one that means "drifting".
 pass. Additive quads with a soft texture cost one draw call, and if the camera never rotates a
 quad in the XY plane always faces it — no billboarding needed.
 
+**A gradient sky in CSS and real post-processing are mutually exclusive, and that is the thing to
+decide first.** Rendering with `alpha: true` over a CSS gradient is free and looks great — until
+you want an `EffectComposer`, at which point the scene renders into an opaque render target and
+the sky it was compositing over goes black. Measured on Coreward: `UnrealBloomPass` at half
+resolution cost **0.096 ms/frame** (0.357 → 0.453, 27% of a very small number) and was never
+going to be the problem; the problem was that the sky vanished and the palette shifted — brown
+rock to grey, a cyan beam to green. `OutputPass` fixes the colour-space half and does nothing for
+the alpha; `RenderPass.clearAlpha = 0` does not rescue it either, because the bloom composite is
+additive and destroys alpha inside the chain. **If a game might ever want a post pass, put the
+sky in the scene from the start** — a fullscreen gradient quad is barely more code than the CSS
+and does not have to be unpicked later, along with everything calibrated on top of it.
+
 **Cel shading is a three-line texture, and ambient light is what kills it.** A `DataTexture` of
 four grey steps as `MeshToonMaterial.gradientMap`, with `NearestFilter` on *both* `minFilter` and
 `magFilter` or the bands smooth back into Lambert. Then turn the ambient down — it is the one
