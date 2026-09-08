@@ -157,7 +157,8 @@ limit worth thinking about.**
 | Save file, typical | **339 bytes** | ~5 MB `localStorage` | 0.007% of quota |
 | Save file, worst case | **12.5 KB** | ~5 MB | Every cell of a full planet dug |
 | Download, gzip | **147 KB** | — | 119 KB of that is three.js, cached across updates |
-| Draw calls, worst case | **50** | ~100 is the 2026 mobile guideline | Comfortable |
+| Draw calls, worst case | **60** | **~3,200** before missing 60 fps (measured) | 2% of the real ceiling |
+| Cost of one draw call | **5.0 us** | — | Linear from 79 to 2,519 calls |
 | Build | **4.1 s** | — | |
 | Golden tests | **1.2 s** for 116 | — | Run them constantly |
 
@@ -174,8 +175,9 @@ game ever does get near a limit, measure it and record the number here.
    that degrades a session *while it is being played*. Nothing in the current games has hit
    it; if a game ever feels like it slows down after a while, this is why.
 2. **Update size on mobile data**, which is why three.js is split into its own chunk.
-3. **Draw calls**, which instancing solves almost entirely. Coreward went 207 → 35 by
-   instancing terrain, and sits at 50 with far more content.
+3. **Draw calls** — and this one turned out to be much less of a constraint than the rule of
+   thumb says. Instancing solves it almost entirely regardless: Coreward went 207 → 35 by
+   instancing terrain, and sits at 60 with far more content.
 
 ### Budgets that exist, and what they are for
 
@@ -188,6 +190,30 @@ unexpectedly, not in the specific number.
 - **A draw-call budget** in the smoke test. Seed it to the game's genuine worst case, not to
   whatever a short scripted run reaches — measuring the easy case is how a budget quietly
   stops being one.
+
+  **Set it to catch instancing breaking, not to approximate a hardware ceiling.** The
+  "roughly 50 to 100 draw calls on mobile" figure that every guide repeats is off by more
+  than an order of magnitude for a game like this. Measured on Coreward by adding sub-pixel
+  meshes to the real worst-case scene and timing whole frames through the tick seam, so it
+  isolates call overhead from fill rate:
+
+  | calls | ms/frame | | calls | ms/frame |
+  |---|---|---|---|---|
+  | 79 | 0.64 | | 819 | 3.66 |
+  | 219 | 1.19 | | 1,519 | 7.27 |
+  | 419 | 1.88 | | 2,519 | 12.88 |
+
+  Linear at **5.0 us per call**. The game's 60 calls are 0.64 ms — under 4% of a 60 fps
+  frame — and it would take about **3,200** to miss 60 fps on a desktop. Phone driver
+  overhead is worse by some multiple, which still leaves the real ceiling in the high
+  hundreds at minimum. So budget for the REGRESSION (Coreward's 150 against a worst case of
+  60, where instancing breaking would put it in the hundreds), and stop treating a couple of
+  hundred draw calls as a problem worth designing around.
+
+  **Fill rate is the thing to watch on a phone instead**, because that is what a heavier
+  shader costs and what feeds thermal throttling. Coreward's move to PBR terrain cost
+  0.098 ms/frame at the same draw count — measurable, where a hundred extra draw calls would
+  not have been.
 
 ---
 

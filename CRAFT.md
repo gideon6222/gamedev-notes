@@ -410,9 +410,20 @@ High speed alone reads as fast-forward.
 
 ## Graphics that carry on a phone
 
-**Instancing is the whole game.** Coreward went from 207 draw calls to 35 by instancing terrain.
-Captain Run draws 26 vikings, 18 draugr, a boss, 420 loot chunks and all scenery in 42–55 calls.
-See `PIPELINE.md` for the measured budgets.
+**Instancing is the whole game** — but not for the reason usually given. Coreward went from 207
+draw calls to 35 by instancing terrain; Captain Run draws 26 vikings, 18 draugr, a boss, 420 loot
+chunks and all scenery in 42–55 calls. What instancing actually buys is that **the draw count
+stops being a function of how much content exists**, which is what keeps it from drifting as a
+game grows.
+
+**The "50 to 100 draw calls on mobile" rule of thumb is off by more than an order of magnitude,
+and it is worth knowing that before designing around it.** Measured on Coreward: 5.0 microseconds
+per call, linear from 79 to 2,519 calls, so about 3,200 calls to miss 60 fps on a desktop and the
+high hundreds at worst on a phone. The game uses 60. A budget set at that guideline is a
+regression detector wearing a hardware limit's clothes — useful, but do not let it talk you out of
+a feature. **Fill rate is the real cost on a phone**, because that is what a heavier shader
+charges and what feeds thermal throttling: Coreward's PBR terrain cost 0.098 ms/frame at an
+unchanged draw count, which is more than a hundred extra draw calls would have.
 
 **Instance the body parts, not the character.** One `InstancedMesh` per part — leg, torso, arm,
 head, helmet, weapon, shadow — with matrices recomputed each frame from a procedural animation
