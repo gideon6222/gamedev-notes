@@ -222,6 +222,24 @@ wearing a decision's clothes. The choice it was meant to create was real and wor
 how hard to swing, not just when - but it has to be a cost rather than a gate, and it has to
 be on the HUD.
 
+**A dominant strategy with no cost attached is not a mechanic, however good it feels.**
+Wrecking Crew's ball reaches further the faster it is swinging, and nothing anywhere charges
+for swinging flat out - so maximum swing is never wrong, and a bot that ignores the street
+entirely and waves the crane on the ball's own period scores level with one that reads the
+street and picks targets. The tell is not that the game is easy; it is that two completely
+different intentions produce the same number.
+
+**Check for it by asking what a wild version of the input costs**, and if the honest answer
+is "nothing", the mechanic is a rhythm rather than a decision. The fixes are all forms of
+making the sweep selective: targets worth different amounts, a cost per swing, a cap on
+contacts, or a reward that scales with how square the hit was. Density is NOT one of them -
+thinning the content made the aiming bot *worse*, because it started committing to things
+that were not there yet, and the waving bot's advantage grew.
+
+**Do not paper over one of these with a test that enshrines it.** Assert the thing that IS
+true and valuable, write the problem down where the next session will read it, and leave the
+assertion for when the fix lands.
+
 ---
 
 ## Legibility
@@ -325,6 +343,26 @@ part of the art, not a framing preference.
 **A marching grid reads better than a scatter.** A phyllotaxis spiral spread Captain Run's
 warband into an overlapping blob. Rows of six, alternate rows offset by half a space, leader
 out front and slightly larger: same footprint, legible silhouette, and you can count them.
+
+**A control the player cannot see themselves using is a control they cannot learn.** Wrecking
+Crew's first build drove the ball from the rig's lateral acceleration: aiming was the entire
+game and the only feedback on your aim was whether you hit something. Gideon's note after one
+session was to make the crane rotate instead - the same lag, the same lead, but with a boom
+visibly pointing where he had dragged. **Indirect control needs a visible intermediary**: the
+thing the input moves directly has to be on screen, so the lag reads as the tool trailing
+rather than as the game not responding.
+
+Two things make that work rather than merely look nicer. **Draw the intermediary and the
+trailing thing as separate objects** - the gap between the boom and the ball IS the lag, drawn,
+and it is the whole tutorial. And **give the machine a part that reads its own orientation from
+behind**: a counterweight opposite the boom is the only thing that says which way the turret is
+facing when the boom points away from the camera.
+
+**When the tool's dimensions change, every framing decision calibrated on the old ones is
+wrong.** Shortening the boom to a third of its length - which the design required, because "at
+rest the tool falls just short of the target" was the load-bearing number - compressed the whole
+machine toward the camera and put a two-metre ball across a quarter of a portrait screen. The
+camera had to go back nearly half as far again. Re-shoot after any change to a length.
 
 ---
 
@@ -923,6 +961,22 @@ assertion read the tool's position after the manoeuvre, found it 2.6 metres the 
 looked exactly like the physics being inverted. It had simply arrived half a swing late. The
 thing being asserted was only true for a moment - and that moment is the whole game - so the
 assertion has to be on the peak over the window, not on the end state.
+
+**A saturating value stops being a consequence and becomes a constant.** Wrecking Crew's ball
+swings further out the faster it travels, which is what makes reach a result of how hard you
+swung. With the gain set high and the cap low, the radius sat PINNED at its cap for most of
+every sweep - so the ball blanketed a band twice the width of the street, could not miss, and
+the mechanic silently became "the ball is always at maximum reach". **Any value clamped at the
+top of its range is only a mechanic in the part of the range it actually moves through**, so
+put the cap somewhere the value rarely gets to, and measure what fraction of the time it is
+binding rather than assuming.
+
+**When two policies score the same, that IS the finding - do not go looking for a third
+explanation first.** The instinct on seeing a reading bot lose to a blind one is to blame the
+bot, which was right once on this game and wrong the next time. What separated the two cases
+was cheap: sweeping the bot's one free parameter across eleven values took a minute and showed
+no setting anywhere beat the blind policy, which rules the bot out and points at the design.
+**Sweep the bot's parameter before touching the game's.**
 
 ---
 
