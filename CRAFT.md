@@ -669,3 +669,108 @@ with a single percentage ceiling broke when seams converted a third of all rock,
 was counting a rare-pocket overwrite and a wholesale category conversion as the same claim.
 Counted apart, with a ceiling each, both stay meaningful. A test whose failure message
 blames the wrong subsystem is worse than one that does not fire.
+
+## 2026-09-07 — Captain Run, a second game and the first one not built like Coreward
+
+Gideon sent a screenshot of a commercial viking crowd-runner and asked whether that level of
+graphics was reachable. It was, with no assets at all. Everything below came out of building
+it in one session on the five-file static stack.
+
+### Reproducing a mobile art style with zero assets
+
+**Cel shading is a three-line texture, and the thing that kills it is ambient light.** A
+`DataTexture` of four grey steps (0.36 / 0.62 / 0.84 / 1.0) as `MeshToonMaterial.gradientMap`,
+with `NearestFilter` on *both* `minFilter` and `magFilter` or the bands smooth back out and
+you have Lambert again. The first pass looked flat and I blamed the gradient; it was ambient
+at 1.15 washing every band into the same value. Ambient 0.72, hemisphere 0.55, directional
+2.6 is where the bands actually read. Ambient is the enemy of toon shading — it is the one
+light that reaches every surface equally, which is precisely the distinction banding exists
+to make.
+
+**An inverted-hull outline must be sized from the geometry, not scaled by a factor.** The
+first attempt multiplied every instance matrix by 1.08. On a 0.9-unit crate that is a
+0.036-unit edge; on a 0.075-unit axe haft it is 0.003. Both sub-pixel on a phone, so the game
+rendered with no visible outlines at all, and I spent a diagnostic pass proving the meshes
+were in the scene, visible, BackSide and correctly counted before realising the geometry was
+right and the *width* was the bug. The fix: treat the parameter as a world-unit thickness,
+read the geometry's own bounding box in the constructor, and derive a per-axis scale of
+`1 + 2*t/size`. Constant edge width on every object regardless of its size.
+
+**Prefer a scaled hull to a normal-pushed one when the geometry is boxes.** Pushing vertices
+along the normal gives constant thickness for free, but box normals are per-face and hard, so
+the corners split and the outline develops gaps. Scaling has no gaps. Save the normal push
+for smooth-shaded geometry.
+
+**Instance the body parts, not the character.** One `InstancedMesh` per part — leg, torso,
+belt, arm, head, beard, helmet, horn, haft, blade, shield, blob shadow — with matrices
+recomputed each frame from a procedural run cycle. 26 vikings, 18 draugr, a 3.3x boss, 420
+loot chunks and all scenery come to 42-55 draw calls, and crew size stops being a performance
+question at all. The boss is the draugr rig at 3.3x with a different `instanceColor`: a whole
+boss for zero extra draw calls.
+
+**`setColorAt` is what makes one layer look like many objects.** Per-instance colour over a
+white base material gives every viking its own cloak, beard and shield, and drives the axe
+blade colour straight from the weapon tier — all from a single mesh.
+
+### The bug worth generalising
+
+**Any subsystem written as reset -> push -> flush will eventually be missing its flush, and it
+fails completely silently.** The enemy layers were never flushed, so `count` stayed 0 and
+every draugr in the game was invisible — while still charging, still costing crew, still
+being killed. The crew was dying to nothing on screen and I read that as a balance problem
+and spent a tuning pass on it. Nothing errored, nothing looked broken, the frame rate was
+fine. What found it was comparing `mesh.count` against the entity list length. **If a render
+path has a count, assert that count against the model.** A subsystem that renders nothing and
+a subsystem that does not exist look identical from outside.
+
+### Working without a visible tab
+
+Coreward's notes already record that `requestAnimationFrame` does not fire in a background
+tab. The new part is what to do about it: **split the loop into `frame(now)`, which computes
+dt and calls rAF, and `tick(dt)`, which does everything else, then expose `tick` behind a
+`?debug` query param.** A whole run — 50 seconds, five gates, the boss, the death path — then
+compresses into `__CR.advance(56)` plus a screenshot, deterministically and faster than real
+time. Every balance number in this game was set that way. Ship the seam: it costs one `if`,
+and it is how the next session will test too.
+
+**Anything that undoes itself on the next animation frame will stick forever if the tab is
+hidden at that moment.** The white impact flash set opacity to 0.75 and cleared it from a rAF
+callback, so the boss-kill flash stayed at 0.75 over the camp screen and made the entire UI
+look washed out — a "the CSS is wrong" symptom with a scheduling cause. `setTimeout(..., 20)`
+instead. Rule: use rAF to *draw*, never to *undo*.
+
+**The localStorage writeback trap, confirmed a third time.** `localStorage.clear()` followed
+by a reload restored the old save again, because the outgoing page saves on
+`visibilitychange`. Freeze `Storage.prototype.setItem` on the outgoing page first. This has
+now cost time in three separate sessions; it is worth doing reflexively.
+
+### Runner design
+
+**An enemy that dies at maximum range is an enemy the player never sees.** With 22 units of
+attack range and a squad out-damaging a grunt twentyfold, every draugr evaporated at the
+horizon and combat was a number changing. Giving them a 6 u/s charge toward the crowd —
+against the player's 11 u/s — closes the gap in about a second, so they die at four or five
+units, in frame, in a spray of loot. Same damage, same difficulty, completely different game.
+**Where a fight resolves matters more than how long it takes.**
+
+**Two upside gates are a better decision than a good gate and a bad gate.** "+6" against "x2"
+has no correct answer — it depends on how many crew you have at that moment, which differs
+every run — so the player is genuinely choosing. Good-versus-bad is a reflex test. Keep a
+minority of punishing gates for tension, and never let a gate take the crew below 1: the run
+should be lost to a fight, not to a lane picked in half a second.
+
+**Cap the crowd at exactly the number you can render.** Crew caps at 26 because 26 is what
+the rig draws, so the HUD number is never a lie and losing crew is always visible. Gate
+overflow converts to gold with a "CREW FULL +240" popup, which turns the cap from a wasted
+pickup into a readable reward — and into the reason to buy the crew-limit upgrade.
+
+**A marching grid reads better than a scatter.** A phyllotaxis spiral spread the warband into
+an overlapping blob at any size that fit the road. Rows of six, alternate rows offset by half
+a space, captain out front and slightly larger: same footprint, legible silhouette, and you
+can count them.
+
+**Give the run-scoped resource and the persistent one different jobs.** Iron only ever fills
+the in-run forge bar (about four axe tiers a run, at every ascent), gold only ever buys
+permanent upgrades, runes only ever buy blessings. The forge bar is the minute-to-minute
+power fantasy and the camp is the session-to-session one, and neither can substitute for the
+other. Leftover iron converts to gold at the end so nothing is wasted.

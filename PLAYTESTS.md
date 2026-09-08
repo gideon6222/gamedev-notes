@@ -162,3 +162,47 @@ surface"
   the worst-case save is 12.5 KB. Recorded in the game's NOTES.md so it does not need
   answering twice.
 
+
+---
+
+## Captain Run — github.com/gideon6222/Captain_Run
+
+Live at https://gideon6222.github.io/Captain_Run/
+
+A viking crowd-runner. Drag to steer the warband up a mountain road; crates and draugr burst
+into gold, iron and runes; iron fills a forge bar that upgrades the axe mid-run; each ascent
+ends at a jotunn that is a pure DPS check, then a camp to spend gold.
+
+### 2026-09-07 — how it was asked for
+
+He sent a screenshot of a commercial viking runner: "can you make a phone game like this with
+a similar level of graphics? are there tools or resources that you could be using that would
+help?" and said the repo already existed.
+
+The honest answer about tools: the good CC0 libraries — Kenney, Quaternius, Poly Pizza,
+KayKit — all ship glTF/GLB, and the GitHub connector cannot push binary, so on the five-file
+stack those assets are unreachable until a game earns a build step the way Coreward did.
+Everything in the screenshot turned out to be reachable procedurally regardless: toon
+shading, hard outlines, chunky silhouettes, and a great deal of loot in the air.
+
+### 2026-09-07 — first build, NOT YET PLAYED
+
+Recorded so the next session knows exactly what is verified and what is not.
+
+**Verified** by driving the frame loop from a harness and screenshotting: the full 50-second
+ascent, all five gates, the forge climbing four axe tiers within a run, draugr charging and
+dying in frame, the jotunn fight and kill, the win path into the camp, the death path
+("CARRIED HOME · KEPT 60%"), buying from the shop, locked rows gating on ascent, the steering
+clamps, and 42-55 draw calls with the screen full.
+
+**Not verified at all**: how it feels. Nobody has touched it with a thumb. Specifically
+untested — the drag sensitivity (9.5 screen-widths to cross the road, a guess), whether the
+audio is pleasant or irritating on a phone speaker, whether the boss lasts long enough to
+feel like a fight, and every balance number past ascent 3, which is modelled rather than
+played.
+
+Ask him, in this order: does steering feel responsive or floaty; does the crowd growing feel
+good; is the jotunn a wall or a formality; and does the music annoy him. The last one because
+the Coreward score drew the only outright "I don't like" of that entire game, so the theme
+here is a written 8-note phrase on a slow-attack horn rather than random notes — and it is
+worth knowing whether that lesson actually transferred.
