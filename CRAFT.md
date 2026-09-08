@@ -554,6 +554,37 @@ Four things make that work rather than merely run:
   mining game is the entire find-the-ore mechanic. Clamping to 1 means every lighting value
   calibrated by eye against the old renderer stays the ceiling it was.
 
+**A flood has no notion of an edge, and a corner shadow is an edge.** Light that turns a corner
+in a flood arrives from that corner in every direction at once, so a tunnel crossing the
+player's path lights along its whole length, gently, when what should happen is that the corner
+throws a shadow into it. That is a question about straight lines from a point, so it wants a
+second solver: **fan a few hundred rays out from the light by grid DDA and record, per angle,
+how far light gets before something stops it.** One-dimensional, so it uploads as a 512-texel
+texture; a fragment is in shadow if it is further from the light than the occluder on its own
+bearing. Sharp by construction, exact for any geometry, and the wedge behind a corner widens
+with distance for free, because that is what a fan of rays does. It has to run every frame
+rather than on cell changes - the whole point is that the shadow moves as the player does - and
+a few thousand grid steps does not show up in a measurement.
+
+**Record the FAR side of the first wall the ray hits, not the near side.** A wall's face is the
+surface the light is falling ON and has to stay lit; shadow starts behind it. The near side
+puts every rock face in the game into its own shadow, which reads as "the lighting is broken"
+rather than as an off-by-one.
+
+**Combine a directional beam and an omnidirectional bounce with `max()`, never by multiplying
+two floors.** Multiplying "how much survives behind the player" by "how much survives in
+shadow" means anywhere that is both lands on the product - four per cent of four per cent,
+which is black. In Coreward that erased the shaft the player came down, which is the way home.
+One bounce term at about a fifth of the beam, gated by the same flood so it lights opened
+tunnels and never solid rock, and take whichever is larger.
+
+**A lighting multiplier scales LINEAR light and is then sRGB-encoded, so its dark end lifts
+enormously.** Six per cent of the light displays at roughly a third of full brightness. A field
+that is numerically correct therefore reads as a grey wash over everything, and every plausible
+suspect - lamp intensity, ambient, fog, the background layers - measures innocent in turn.
+Square the multiplier before applying it. This is not a fudge; the alternative is to keep every
+constant honest and then hand the result to a display that disagrees.
+
 **Rock must be relaxed but never expanded.** A wall next to a lit tunnel is lit; light stops
 there. Let rock pass light on and a one-cell wall leaks a third of the lamp into the chamber
 behind it, so every sealed pocket glows faintly and tells the player it is there before they have
@@ -1070,6 +1101,20 @@ invisible while still charging, still costing crew, still being killed. It read 
 problem and got a whole tuning pass. **If a render path has a count, assert that count against the
 model.** A subsystem that renders nothing and a subsystem that does not exist look identical from
 outside.
+
+**A uniform that is declared and never supplied is not an error, a warning, or a visible
+failure.** GLSL gives a missing sampler texture unit zero and a missing vector all zeroes, so
+the shader compiles, runs, and silently ignores whatever depended on it. Coreward's shadow fan
+was added to the shader source and to one material's hand-written uniform list but not to the
+other's, so the terrain rendered with no shadows at all while the light in the tunnels had
+them. **Half a feature working is the worst possible symptom**, because it reads as a tuning
+problem and sends you off measuring lamp intensities.
+
+Two rules from it: **pass uniforms by iterating one shared object, never by naming keys in more
+than one place** - a loop cannot forget - and **test it by pulling the `uniform ... name;`
+declarations out of the compiled shader and asserting the material supplies every one.**
+`renderer.properties.get(material).uniforms` against
+`gl.getShaderSource(program.fragmentShader)`. Nothing else can see it.
 
 **A material has exactly ONE `onBeforeCompile`, and assigning it is how you silently delete
 somebody else's shader.** Coreward patches stock three shaders in three places — world-space
