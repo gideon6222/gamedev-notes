@@ -97,6 +97,20 @@ answer — it depends on how many crew you have right now, which differs every r
 player is genuinely choosing. Good-versus-bad is a reflex test. Keep a minority of punishing
 gates for tension, and never let one take the player below the ability to continue.
 
+**Make a quality bonus a multiplier on quantity, not an amount added to it.** Wick pays for
+bulk wax and for craftsmanship - colours carried, and whether they contrast. As a flat bonus,
+craftsmanship was decisive on a small candle and a rounding error on a big one, so one of the
+two things the player was doing was always the wrong thing to think about. As a multiplier,
+doubling the wax always doubles the money and a well-made candle is always worth about twice a
+plain one. Both axes stay alive at every scale.
+
+**Keep the price spread on a "premium" resource narrow, or the choice collapses.** Wick's waxes
+started at up to 2.9x tallow, and the expensive-looking mistake genuinely scored highest:
+material value swamped every design bonus and the dip arch became "take the bigger number".
+Under 2x, the cheap contrasting wax and the pricey matching one are a real decision. **Any time
+a system is meant to compete with raw quantity, check it actually beats raw quantity** - with a
+test, at equal quantity.
+
 **Cap a visible resource at exactly the number you can render.** Captain Run caps crew at 26
 because 26 is what the rig draws, so the HUD number is never a lie and losing crew is always
 visible. Overflow converts to currency with a "CREW FULL +240" popup, which turns a wasted
@@ -133,6 +147,13 @@ maximum range, so combat was a number changing at the horizon. Giving them a cha
 closes the gap in about a second means they die in frame, in a spray of loot. Same damage,
 same difficulty, completely different game.
 
+**The best trap interaction is one hazard becoming the answer to another.** In Wick, water
+snuffs your wick and heat lamps melt your wax - and heat is what relights you. The thing you
+spend the whole run steering around is the thing you need the instant water takes your flame,
+and you pay for it in melted wax while you stand in it. Two hazards already in the game, one
+line of code, and the player discovers a rule rather than being told one. Look for this pair
+before adding a third hazard.
+
 **Interruption is a feature.** A commitment the player cannot back out of is a wall, not a
 decision. Coreward's drill ran a block to completion once started; letting go now stops it and
 the rock keeps its damage. The difference is between a wall you can probe and one you must
@@ -150,6 +171,14 @@ points, a jittered hexagon instead of a plane.
 
 **A hazard must not resemble a reward.** Hue alone is not enough separation, especially at
 phone size and especially for anything a colour-blind player might meet.
+
+**If code has to judge whether two colours "look different", it must weigh lightness, not only
+hue.** Wick scores adjacent wax layers as contrasting; the first version compared hue distance
+alone, and cream tallow against crimson - obviously two colours, one of them nearly white -
+came out as no contrast at all, because they sit 0.13 apart on the wheel. Either axis over a
+threshold is enough. The pleasant side effect is that a pale wax becomes genuinely useful as a
+*separator* between two saturated ones, which is how a real layered candle is banded. A unit
+test caught this before any of it was drawn.
 
 **The most valuable thing on screen must be the brightest thing on screen.** A first pass made
 Coreward's hazard glow harder than the payout, which points the eye at the thing you must not
@@ -187,6 +216,17 @@ can cross — and fade it once passed, or a moment becomes scenery.
 **Put a modifier where the thing is already named.** A planet trait rides on the name chip in
 the HUD, because that is the only always-visible place the planet is named. A modifier you must
 open a menu to remember is one you play without.
+
+**Derive the silhouette from the state, never store it alongside.** Wick's candle is a list of
+wax layers; its radius, height, lean and appraised value are all *functions* of that list, so
+the thing on screen cannot drift from the thing being scored. In any game whose premise is
+"protect the thing you can see", a score that disagrees with the picture is the one bug the
+player will never forgive - and the only way to make it impossible is to have one source.
+
+**Let damage reveal history.** Shaving Wick's outer ring exposes the colour underneath, so a
+hit is informative rather than only costly: you can read what you dipped in, and in what
+order, off your own body. Any stacked or layered resource can do this, and it converts damage
+feedback from a number into a picture.
 
 **A marching grid reads better than a scatter.** A phyllotaxis spiral spread Captain Run's
 warband into an overlapping blob. Rows of six, alternate rows offset by half a space, leader
@@ -368,6 +408,14 @@ displaced surface for free.
 its colour.** Two parallax layers were invisible even in pure red, because an opaque backdrop
 plane sat in front of them.
 
+**And check the defaults you did not set, not the properties you did.** Wick's gate labels were
+invisible; every property worth inspecting said they were fine - visible, positioned, textured,
+renderOrder above the curtain, a texture with 27,000 opaque pixels. A `PlaneGeometry` faces `+z`,
+that camera looks along `+z`, so the player only ever saw the back face and `FrontSide` culled
+it. Papering over it with `DoubleSide` then rendered the text mirrored, which is the same bug
+wearing a second symptom. Rotate the plane `Math.PI` about Y. **When something renders as
+nothing, enumerate what you never configured.**
+
 **Gradient skies for free.** Render with `alpha: true` and no scene background, then put a CSS
 gradient behind the canvas.
 
@@ -493,6 +541,23 @@ problem and got a whole tuning pass. **If a render path has a count, assert that
 model.** A subsystem that renders nothing and a subsystem that does not exist look identical from
 outside.
 
+**A chase camera behind the player, looking along +z, mirrors the x axis - and it will invert
+your controls.** Putting the camera at a *lower* z than everything it looks at is a 180-degree
+rotation about Y, so world +x projects to screen LEFT. Measured in Wick: world +2 lands at NDC
+-0.31. Mapping a rightward drag to increasing x - the obvious thing - therefore moves the
+avatar the wrong way.
+
+Captain Run shipped with this for its entire life and nobody noticed, which is the part worth
+remembering: **every test drove the steering seam in world coordinates, which is exactly the
+layer the bug lives under.** A test that says "steer(1.5) put x at 1.5" passes happily on
+inverted controls. The only thing that catches it is driving real pointer events and then
+asking where the avatar *is in the frame*, in normalised device coordinates. Every game with a
+chase camera needs that one test.
+
+Either move the player along -z so the camera keeps its default orientation, or flip the sign
+where the drag meets the world and comment it loudly. Do not "fix" it later by flipping
+something else as well.
+
 **Use `requestAnimationFrame` to draw, never to undo.** Anything that reverses itself on the next
 frame sticks forever if the tab is hidden at that moment. An impact flash cleared from a rAF
 callback stayed at 0.75 opacity over the whole UI — a "the CSS is wrong" symptom with a scheduling
@@ -511,6 +576,19 @@ first. Three sessions, three times.
 `0.09999999999999998`, and the golden baseline recorded a rate of 9.999999999999998%. True,
 useless, and exactly the kind of diff that trains you to re-record without reading — the one habit
 golden baselines cannot survive.
+
+**A hazard outside the steerable band is not a hazard.** Wick's road mesh is 7.6 wide and the
+thumb can only cross 5.0 of it; the first spawner placed blades across the full road width, so
+some could never be hit *or* dodged - drawn, in the level, and unable to interact with the
+player at all. Everything the player must reach or avoid goes through one `laneX` helper that
+places inside the steering clamp, and a unit test asserts its range. Same failure as an
+unreachable content band, same symptom: none.
+
+**Check the hitbox against the band, not just against the object.** A blade's disc plus a grown
+candle's own radius swept 1.29 of a 1.5-unit half-band, so a perfectly steered run lost about
+as much as one that never touched the screen and steering was decoration. The test that keeps
+it honest compares wax lost while dodging against wax lost standing still - a *measurement*,
+because the thing that matters is an interaction between three numbers living in three files.
 
 **Check that every content band is actually reachable**, in both directions. The hardest rock once
 started deeper than the first planet's core, so it could never be seen on the planet everyone

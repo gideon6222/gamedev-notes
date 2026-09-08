@@ -28,6 +28,13 @@ looked at while nothing else is happening. Coreward's landing pad qualifies. Tha
 description of a *situation*, not of an object — look for the situation in a new game rather
 than assuming "the pad".
 
+**The other rule that decides it: if the object's shape is gameplay state, it must be code.**
+Wick's candle cannot be a model under any circumstances - its radius is how much wax you have,
+its bands are what you dipped in and in what order, and a blade shaving one side has to expose
+the colour underneath. That is not a mesh with a skin, it is a data structure being drawn.
+Before asking how many pixels tall a thing is, ask whether the game changes its shape. If it
+does, the question is closed.
+
 ---
 
 ## Sources, ranked by usefulness to us
@@ -175,6 +182,13 @@ Things worth knowing about Web Audio, learned rather than looked up:
 | Game | Asset | Size | Verdict |
 |---|---|---|---|
 | Coreward | Chakra Petch, 2 weights, self-hosted | 20 KB | Clear win. Changed every screen |
+
+Checked again on 2026-09-07 for Wick, a candle game, and the sources are exactly as useful as
+the table above says: Google Fonts fetched cleanly (8 woff2 faces for a warm rounded family,
+~20 KB), **Poly Haven's model API has nothing candle-related beyond a lantern and a shelf** and
+is photoreal anyway, and **ambientCG returns `numberOfResults: 0` for wax**. Both APIs work;
+neither had anything to sell. The thing that made that game look finished was not an asset at
+all - it was making the avatar a real light source in a dark room.
 | Coreward | ambientCG Rock035, **normal map only**, 384², WebP | 46 KB | Clear win. Flat facets became rock |
 
 Both are things the player reads at full size, which is the rule at the top of this file doing

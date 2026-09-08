@@ -206,6 +206,33 @@ rather than values. "A hazard breaks faster than the rock around it." "A deeper 
 rarer than the one above it." "The Cooling Rig's mineral lives below the heat line." These
 catch design mistakes before a human sees them, and several have.
 
+### Two settings that have to be right per game, not copied
+
+**Give every game its own fixed preview port.** Every game copies its stack from the last, so
+every game inherited `vite preview` on 4173. Two suites running at once on this machine then
+fight over one port - and the failures do not look like a port conflict. Wick's suite produced
+a run of `ERR_CONNECTION_REFUSED` mid-suite when Coreward's server went away, which reads
+exactly like boot bugs, and briefly - with `reuseExistingServer: true` - *ran Wick's tests
+against Coreward* and reported that its debug seam did not exist. Coreward 4173, Wick 4179;
+pick a new number for the next one. It costs one line.
+
+Related: **`reuseExistingServer` should stay `false` everywhere.** It looks like a convenience
+for local iteration and it is really "attach to whatever answers on this port, and skip the
+build". A suite whose whole purpose is to test *this* artifact must never be allowed to test
+another one.
+
+**Put the test viewport AFTER the device spread.** `use: { ...devices['Desktop Chrome'] }`
+carries its own 1280x720 viewport, and a project's `use` overrides the top-level one - so a
+portrait size set at the top is silently discarded and every smoke test runs landscape on a
+desktop-shaped window. These are portrait-only phone games whose cameras solve field of view
+from the aspect ratio, so that is not cosmetic: the tests frame a picture the phone never
+renders. It went unnoticed in two games. Write it as:
+
+```js
+projects: [{ name: 'chromium',
+  use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } } }],
+```
+
 ### Rules that were learned the hard way
 
 - **Give every game its own preview port, and never a Vite default.** Coreward and Captain
@@ -254,6 +281,17 @@ catch design mistakes before a human sees them, and several have.
   Captain Run check summed `layer.count` on a *dict* of layers — `undefined` — so it would
   have reported zero for a healthy game and zero for a broken one. Anything a test reads out
   of the game should fail loudly when it is absent.
+- **Drive real input for anything about direction.** A seam that takes world coordinates -
+  `steer(1.5)` - cannot see inverted controls, because the inversion happens between the world
+  and the screen. Captain Run's steering was inverted for the whole life of the game with a
+  passing test suite. Dispatch real pointer events and assert where the avatar lands in
+  normalised device coordinates. See CRAFT.md for why a chase camera causes it.
+- **Set balance constants from a measurement through the debug seam, not from a guess.** Wick's
+  grade thresholds were first set by eye, and a run that never touched the screen graded FINE
+  while every competent run hit the ceiling. Three scripted runs - do nothing, dodge, dodge and
+  collect - took ten minutes to write and gave three real numbers to cut the grades against.
+  Keep the script long enough to use it again; delete it once the number is recorded, and put
+  the measurement in the comment beside the constant.
 - **Assert the state that distinguishes outcomes, not the panel that shows both.** The
   full-ascent test checked that the camp screen opened and matched `/CAMP/`, which is true
   of both `MOUNTAIN CAMP` (won) and `CARRIED HOME` (died). It passed for the whole of a

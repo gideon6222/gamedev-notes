@@ -254,3 +254,56 @@ were the best place to get them from and how to install them all on your end."
   pad. He asked for research and installation, so the reasoning was given rather than the
   absence being left silent. The rule that came out of it is in CRAFT.
 
+
+### 2026-09-07 - Captain Run becomes Wick, at his request
+
+Asked what to work on next, he redirected the whole game:
+
+"This was more of a base start of a game I would like to create. My girlfriend said that she
+played a game a long time ago that had similar mechanics to this but you are a candle. The
+point of the game is to collect additional layers of wax to make the best candle possible. As
+you run, you run into traps that can remove wax from you. I think there are additional traps
+as well. She thinks that once you reach the end of a level, you sell the candle and get more
+money depending on how nice your candle is. You spend that money to get upgrades. Can you
+research to see if you can find this game, model Captain Run off of it, and find assets you
+can use to make it look like a polished professional game. You have free reign to make
+improvements that you think will be fun or accurate to the game she is looking of."
+
+Two things worth keeping about how this arrived.
+
+**He described a complete game in one paragraph, secondhand, and every mechanic in it was
+load-bearing.** Layers rather than an amount, traps that take them, a *quality*-based payout
+rather than a score, and upgrades. That is a full loop, and the "how nice your candle is" is
+the part that makes it more than a collect-a-thon - it is what let the ending be an appraisal
+instead of a boss.
+
+**He asked me to find the source game, and no single title matches.** Candle Craft (Voodoo) is
+the layers-and-sell half; Gem Stack (MWM) is the run-and-protect half. Said so plainly rather
+than picking the nearest match and claiming it - the mechanics were unambiguous either way, so
+the missing title cost nothing.
+
+Also asked, again, for downloadable assets to make it look professional - the same ask as
+Coreward's session. The answer is again mostly no, and this time for a *structural* reason
+worth reusing: **the candle's shape is gameplay state.** Its radius is how much wax you have,
+its bands are what you dipped in and in what order, and a blade shaving one side has to expose
+the colour underneath. No imported mesh can do that. Told him so with the reasoning rather
+than leaving the absence silent, and spent the effort on the thing that does read as polish -
+the candle being a real light source in a dark room.
+
+### 2026-09-07 - Wick, first build, NOT YET PLAYED
+
+Same status as Captain Run's first build, and worth recording as carefully.
+
+**Verified** by driving the frame loop and screenshotting: dip arches adding rings, the
+stepped-tower silhouette, blades shaving and bending, heat melting evenly, water snuffing the
+wick and heat relighting it, a cold candle refusing droplets, the wick guttering and ending
+the run at 55%, reaching the bench and selling, the appraisal breakdown, the shop, the scent
+shelf, 32-43 draw calls, and the grades spreading PLAIN / GOOD / MASTERWORK across three
+scripted play styles.
+
+**Not verified at all**: how it feels. Ask, in this order - does the steering feel responsive
+now (it was genuinely inverted in Captain Run, so this is the first build of either game where
+a rightward drag moves the thing rightward); is the wick tense or stressful; is the appraisal
+screen satisfying or just a table; and does the music annoy him. The last one because the
+Coreward score drew the only outright "I don't like" of that game, and this one reuses its
+horn theme with the octave drop repointed at being snuffed.
