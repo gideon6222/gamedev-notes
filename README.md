@@ -48,4 +48,4 @@ precautions from when Claude could not run anything locally. That era is over.
 | Game | Repo | Live |
 |---|---|---|
 | Coreward | github.com/gideon6222/coreward | https://gideon6222.github.io/coreward/ |
-| Captain Run | github.com/gideon6222/Captain_Run | https://gideon6222.github.io/Captain_Run/ |
+| Captain Run | github.com/gideon6222/Captain_Run | https://gideon6222.github.io/Captain_Run/ — **Pages was never enabled on this repo** (`has_pages: false`, the URL 404s). The deploy workflow added 2026-09-07 turns it on with `configure-pages: enablement: true`; check the first run landed. |

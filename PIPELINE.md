@@ -207,6 +207,26 @@ catch design mistakes before a human sees them, and several have.
   way to know it regresses anything.
 - **Never re-record a golden baseline without reading the diff.** The whole value is in the
   reading.
+- **Hand the harness the clock before the first `advance()`.** Real rAF frames run between
+  page load and the moment a test takes over, and how many depends on how fast the machine
+  boots the bundle — so every recorded number quietly becomes a function of the test
+  runner's speed. Captain Run's golden "broke" when the build got *faster*. The seam is
+  `freeze()`: stop the rAF tick and restart the run, so `advance(n)` is exactly n seconds
+  from a clean start on any machine.
+- **`advance()` must not render every tick.** Measured on Captain Run: 0.28 ms per tick with
+  a real GPU, ~17 ms on the software rasteriser a headless browser falls back to. Forty
+  simulated seconds is 2,500 ticks — 0.7 s against 42 s, and the first version of that suite
+  took 3.3 minutes and timed out five of eight tests. Take a `draw` flag through `tick` and
+  render only the last frame of a run; nothing in `renderer.render()` feeds back into game
+  state, and drawing the last one keeps the draw-call count and every instance count honest.
+- **A test helper that reads the wrong property returns zero and passes vacuously.** A
+  Captain Run check summed `layer.count` on a *dict* of layers — `undefined` — so it would
+  have reported zero for a healthy game and zero for a broken one. Anything a test reads out
+  of the game should fail loudly when it is absent.
+- **Assert the state that distinguishes outcomes, not the panel that shows both.** The
+  full-ascent test checked that the camp screen opened and matched `/CAMP/`, which is true
+  of both `MOUNTAIN CAMP` (won) and `CARRIED HOME` (died). It passed for the whole of a
+  balance cliff where the run died every time.
 
 ---
 

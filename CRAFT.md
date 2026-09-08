@@ -371,6 +371,35 @@ subsystem is worse than one that does not fire.**
 **A new world feature must roll on its own seed offset.** If it consumes the roll the ore stream
 uses, every value at every depth shifts, and the diff is three lines.
 
+**Test the random source itself, not only what it produces.** Captain Run's seeded `hash` used
+signed right shifts, so `h ^ (h >> 16)` always cleared the top bit and it could never return above
+0.5 — measured maximum 0.499999 over 800,000 samples. Every spawn decision in the game went
+through it. Nothing errored. Three mechanics that were written, tuned and shipped had never once
+run: brutes needed `> 0.72`, punishing gates `> 0.68`, and the good gate swapping sides `> 0.5`.
+Everything placed with `(hash() - 0.5) * width` came out negative every time, pinning enemies and
+pickups to one half of the road. **A mechanic whose condition can never be true fails as absence
+— no error, nothing missing on screen, the game simply plays differently than it reads — which is
+the one failure mode playtesting cannot see.** Assert the range, assert the distribution, and add
+an end-to-end test that each mechanic *occurs in an actual run*. Both are three lines.
+
+Two follow-ons worth having in advance. **A 32-bit multiply needs `Math.imul`**: `x * 374761393`
+is ~2^62, past what a double holds exactly, so the low bits a later xor-shift mixes down are
+rounded away before use. And **balance tuned against a broken random source is tuned against a
+different game** — fixing the hash made Captain Run's first ascent unwinnable, and the two design
+bugs that surfaced underneath had been hidden by it for the whole life of the game.
+
+**Kill rate, not damage, is what a crowd runs out of.** One volley on one target is a hard cap on
+kills per second no matter how much damage each shot carries, and the overkill is invisible waste.
+Captain Run capped at 2.4 kills a second against spawns of up to five at once; fanning the same
+total damage across the nearest few cost nothing and multiplied the ceiling by five. Any time a
+"not enough damage" symptom survives a damage increase, check whether the real constraint is
+throughput.
+
+**Whatever the game tells the player to fight, the auto-attack must target.** Nearest-first looks
+obviously right and put every axe into trash while the boss the horn had just announced sat at
+full health, slamming on its own clock. Worse, it was self-reinforcing: damage scaled with warband
+size, so each hit cut the damage that would end the fight.
+
 **What you own and what you have done are different lists.** Coreward's relic check asked "do I
 already own this perk" — which answers yes for every planet past the eighth, where the perks
 repeat, so relics silently stopped existing. Any time a reward repeats, the "already collected"
