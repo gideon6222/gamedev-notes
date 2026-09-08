@@ -388,3 +388,24 @@ star ratings spreading 1/2/2/3 across four scripted play styles, and 45-65 draw 
 or sluggish; is the steering sensitivity right now the runway is wider; does the results
 screen land; and does the music annoy him. The last one because the Coreward score drew the
 only outright "I don't like" of that game.
+
+### 2026-09-07 - first real report on Candle Gift, and it was a blocker
+
+"When I get to the upgrade screen, it won't scroll down so I can't see all of the upgrades or
+close out of the menu to continue"
+
+Exactly the pattern in "Working with Gideon": he named the symptom precisely and it was
+structural, not cosmetic. The game was unplayable past level one and nothing on the desktop
+could show it - every automated check drove the game through the debug seam, and the shop had
+only ever been *clicked*, never scrolled.
+
+Two causes, both in PIPELINE.md now: `touch-action: none` on body (which a browser intersects
+up the whole ancestor chain, so it disables panning in every scroller under it), and the
+window-level steering handler calling preventDefault() on drags that started over the menu.
+
+The lasting fix is the third one though: the START button is now pinned to the bottom of the
+sheet. It had been the last element after eight upgrades, a changelog and a build stamp, which
+is what turned a scrolling bug into a dead end.
+
+Worth remembering for every game here: **the first thing he does with a new build is open the
+menus.** Both of the last two games' first reports were about a screen, not the gameplay.

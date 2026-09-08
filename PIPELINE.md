@@ -222,6 +222,43 @@ rather than values. "A hazard breaks faster than the rock around it." "A deeper 
 rarer than the one above it." "The Cooling Rig's mineral lives below the heat line." These
 catch design mistakes before a human sees them, and several have.
 
+### The two ways a phone game silently loses scrolling
+
+Both of these were shipped in Candle Gift and neither is visible on a desktop, in a test that
+does not use touch, or in a screenshot. They cost the player the whole game: the shop would
+not scroll, and the button that starts a level sits at the bottom of the shop.
+
+**`touch-action: none` belongs on the play area, never on `html`/`body`.** A browser decides
+what a touch may do by intersecting `touch-action` up the *entire ancestor chain*, so setting
+it on body disables panning inside every scroller underneath it - a menu, a shop, a changelog.
+Put it on the canvas container and the HUD instead:
+
+```css
+html, body { overscroll-behavior: none; }   /* no rubber-banding */
+#game, #hud, #pops { touch-action: none; }  /* no gestures over the game */
+.sheet { touch-action: pan-y; overscroll-behavior: contain; }
+```
+
+**A window-level drag handler will eat gestures meant for the UI.** These games listen for
+`touchmove` on `window` with `{passive:false}` and call `preventDefault()` so a steering drag
+does not scroll the page - which is right over the game and wrong over a menu. Bail out when
+the event started on UI:
+
+```js
+const onUI = (e) => !!(e.target?.closest?.('.modal'));
+function ptDown(e) { sfx.init(); if (onUI(e)) { dragId = null; return; } ... }
+function ptMove(e) { if (dragId === null || onUI(e)) return; ... }
+```
+
+`sfx.init()` still has to run on the gesture even when it was on a menu, because Chrome will
+not build an AudioContext outside one.
+
+**And do not let a control that leaves a screen depend on reaching the end of that screen.**
+The START button was the last element after eight upgrades, a changelog and a build stamp, so
+the scrolling bug was the difference between "awkward" and "the game cannot be continued".
+Pin it: `position: sticky; bottom: 0` inside the scroller. Cheap insurance against every
+future scrolling bug, not just this one.
+
 ### Two settings that have to be right per game, not copied
 
 **Give every game its own fixed preview port.** Every game copies its stack from the last, so
