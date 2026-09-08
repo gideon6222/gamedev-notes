@@ -402,6 +402,12 @@ projects: [{ name: 'chromium',
   30 s, so the test died before the poll could finish and the failure read "test timeout
   exceeded" instead of naming the value it was waiting on. Set the suite timeout comfortably
   above the longest poll.
+- **A stale `dist/` is a lying test, and it lies in the direction of "your fix did not work".**
+  Playwright runs the BUILT game. Fix a bug in `src/`, re-run one test, and it fails exactly as
+  before - so the natural next move is to doubt the fix and go looking for a second cause. The
+  same edit against the dev server was already correct. Rebuild before every e2e run that follows
+  a source change, and when a test disagrees with what the dev server plainly shows, check the
+  build before you check the code.
 - **Never start the smoke tests while a build is in flight.** A backgrounded `npm run build` was
   still writing `dist/` when Playwright started, and nine tests failed against a half-written
   bundle. It looks exactly like a real regression - a scatter of unrelated failures that all pass

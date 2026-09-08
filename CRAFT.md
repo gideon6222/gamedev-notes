@@ -524,6 +524,60 @@ three from failing CI, for what is four copies of two shapes. One `InstancedMesh
 stops the draw count moving with how upgraded the player is, which is otherwise a budget that
 fails only for veterans.
 
+**A point light does not know the rock is there, and on a 2.5D grid that is the difference
+between "the picture got darker" and "I can only see where my lamp reaches".** Coreward's lamp
+lit a side tunnel the player had never opened exactly as brightly as the shaft they were flying
+down, because falloff is a function of distance and nothing else. The fix is a **flood fill over
+the grid**: light travels through OPEN cells only, so what attenuates a cell is the length of the
+path along the tunnel rather than the straight line. A shaft lights all the way down; a branch is
+dim because the light went round a corner; unopened rock is black because there is no path to it.
+It costs a Dijkstra over a few hundred cells, run only when the ship changes cell or the terrain
+changes shape — microseconds, and no draw calls at all.
+
+Four things make that work rather than merely run:
+
+- **Store visibility, not brightness.** Per cell, keep `exp(-att * (pathLength - octileDistance))`
+  — how much LONGER the light's real path was than a clear run would have been. Open space then
+  comes out at exactly 1 and only geometry can darken anything. Subtracting Euclidean distance
+  instead of octile puts a permanent haze over open ground, because eight-way steps do not add up
+  to a straight line.
+- **Split the continuous half out.** The grid cannot move smoothly and the ship can, so distance
+  falloff belongs in the shader, evaluated per pixel from the ship's exact position. Leave it in
+  the grid and the pool of light steps a whole metre at a time as you fly.
+- **Upload it as a tiny texture and sample by world position.** 15×36 texels with `LinearFilter`
+  is 2 KB and interpolates, so light fades ACROSS a rock face instead of stepping at cell edges.
+  One `DataTexture`, one shared set of uniform objects wired into every material by reference, so
+  a per-frame position drives thirty materials with one write.
+- **Multiply `reflectedLight`, not the final colour, and clamp to at most 1.** Scaling
+  `directDiffuse`/`indirectDiffuse`/`directSpecular`/`indirectSpecular` after
+  `<lights_fragment_end>` leaves emissive alone, so ore keeps glowing in the dark — which in a
+  mining game is the entire find-the-ore mechanic. Clamping to 1 means every lighting value
+  calibrated by eye against the old renderer stays the ceiling it was.
+
+**Rock must be relaxed but never expanded.** A wall next to a lit tunnel is lit; light stops
+there. Let rock pass light on and a one-cell wall leaks a third of the lamp into the chamber
+behind it, so every sealed pocket glows faintly and tells the player it is there before they have
+dug to it. The fade INTO the mass is a separate pass that only ever writes to rock, so it cannot
+leak into open air either.
+
+**Lighting a surface is only half of "light fills the tunnel".** A dug cell contains no geometry,
+so there is nothing in it to light and the tunnel reads as an empty slot. One additive quad across
+the frame, sampling a second channel of the same texture that is non-zero only in OPEN cells,
+turns the void near the lamp into glow and leaves the far end black. One draw call, and it is the
+single change that made the feature read.
+
+**Delete the fake when the real thing arrives.** Coreward drew a volumetric cone from the drill
+as a stand-in for a headlight. Once light actually propagated, the cone was a triangle drawn where
+light was *supposed* to be — it passed through solid rock as happily as through air, and it
+contradicted the thing next to it. What survived was the one job it was uniquely good at: the
+Scanner upgrade having a silhouette. That moved to the size of the lamp's own glow.
+
+**Put the source glow BEHIND the character, not in front.** An additive quad centred on a lamp
+that sits in front of the ship washes straight over the hull, and the ship renders as a bright
+blob with no facets — the exact fault that render layers were added to fix, arriving by a
+different route. Behind it, the ship silhouettes against its own light, which is what a lamp on a
+machine actually looks like.
+
 **`setColorAt` is what makes one layer look like many objects.** Per-instance colour over a white
 base material gives every unit its own cloak and shield, and drives a weapon's colour straight
 from its tier — all from a single mesh.
@@ -666,6 +720,20 @@ thing being framed and the shot was mostly table corner. **Any end-of-run camera
 placement pass over everything near the finish** - and moving the camera *behind* the object
 rather than in front of it makes the scenery beyond the finish a backdrop instead of an
 obstruction.
+
+**A transformation is worth ten multipliers.** Candle Gift's stations felt like power-ups
+here and like machinery there, and the difference was one thing: its ROTATE station stands the
+whole batch up off the track into a tower, and its press stamps a visible cross-section. Ours
+awarded a number. **The test for a "satisfying" station is whether a screenshot taken before
+it and one taken after are obviously different pictures** - not whether the score went up. A
+multiplier is a fact about the scoreboard; a transformation is a fact about the thing the
+player has been steering for thirty seconds.
+
+Two corollaries that made it cheap. **Show the die, not just the press**: one mesh per shape,
+only the active one visible, and the machine standing over the track is literally the shape
+you get. And **a container needs a rim**: the wax pools were flat planes painted on the road
+and read as carpet; a box standing 0.4 proud with its wall in a darker shade of the same
+colour reads as a tank holding liquid, for one extra mesh.
 
 **A long-play video is worth ten store screenshots.** Candle Gift's eight official
 screenshots show the runway and almost none of the UI, and four rebuilds off them got the
@@ -988,6 +1056,24 @@ invisible while still charging, still costing crew, still being killed. It read 
 problem and got a whole tuning pass. **If a render path has a count, assert that count against the
 model.** A subsystem that renders nothing and a subsystem that does not exist look identical from
 outside.
+
+**A material has exactly ONE `onBeforeCompile`, and assigning it is how you silently delete
+somebody else's shader.** Coreward patches stock three shaders in three places — world-space
+displacement, world-space map UVs, and the propagated light. Each one wrote
+`m.onBeforeCompile = ...`, so applying two to the same material kept whichever went last and
+threw the other away. Nothing fails. The material compiles, renders, and is simply missing an
+effect. Route every injection through one `chainCompile(m, patch, tag)` that calls the previous
+handler first and appends its tag to `customProgramCacheKey`, and the order stops mattering.
+
+**And `Material.clone()` copies neither `onBeforeCompile` nor `customProgramCacheKey`.** A clone
+comes back as stock three with every injection gone. Coreward clones exactly one material — the
+block currently being drilled — so the symptom was one cell in the whole world lit differently
+from the rock it was cut out of. Found by eye, which is the expensive way.
+
+**The test that catches both reads the compiled shader back out of WebGL.**
+`gl.getShaderSource(program.fragmentShader)` on everything in `renderer.info.programs`, asserting
+the injected call is present in every program that carries the other injection. Asserting on the
+material proves nothing — the material is fine; it is the compile that lost it.
 
 **A chase camera behind the player, looking along +z, mirrors the x axis - and it will invert
 your controls.** Putting the camera at a *lower* z than everything it looks at is a 180-degree
