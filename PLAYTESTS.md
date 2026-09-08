@@ -162,7 +162,6 @@ surface"
   the worst-case save is 12.5 KB. Recorded in the game's NOTES.md so it does not need
   answering twice.
 
-<<<<<<< HEAD
 
 ---
 
@@ -207,7 +206,6 @@ good; is the jotunn a wall or a formality; and does the music annoy him. The las
 the Coreward score drew the only outright "I don't like" of that entire game, so the theme
 here is a written 8-note phrase on a slow-attack horn rather than random notes — and it is
 worth knowing whether that lesson actually transferred.
-=======
 ### 2026-09-07 - still exploring, six more asks
 
 "im still testing the new update but a couple changes I want to make."
@@ -249,4 +247,3 @@ were the best place to get them from and how to install them all on your end."
   pad. He asked for research and installation, so the reasoning was given rather than the
   absence being left silent. The rule that came out of it is in CRAFT.
 
->>>>>>> 2bd6861 (Third Coreward pass: taking the grid out of a grid game)

@@ -670,7 +670,6 @@ was counting a rare-pocket overwrite and a wholesale category conversion as the 
 Counted apart, with a ceiling each, both stay meaningful. A test whose failure message
 blames the wrong subsystem is worse than one that does not fire.
 
-<<<<<<< HEAD
 ## 2026-09-07 — Captain Run, a second game and the first one not built like Coreward
 
 Gideon sent a screenshot of a commercial viking crowd-runner and asked whether that level of
@@ -775,7 +774,6 @@ the in-run forge bar (about four axe tiers a run, at every ascent), gold only ev
 permanent upgrades, runes only ever buy blessings. The forge bar is the minute-to-minute
 power fantasy and the camp is the session-to-session one, and neither can substitute for the
 other. Leftover iron converts to gold at the end so nothing is wasted.
-=======
 ## 2026-09-07 — Coreward, third pass: taking a grid out of a grid game
 
 ### Movement
@@ -884,4 +882,3 @@ real structure, because it is the one object in the game that is stationary, clo
 camera, and looked at while nothing else is happening. That is the only place where surface
 detail earns its keep — and it is a description of a situation, not of an object, so it is
 the thing to look for in the next game rather than "the pad".
->>>>>>> 2bd6861 (Third Coreward pass: taking the grid out of a grid game)
