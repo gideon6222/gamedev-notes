@@ -752,6 +752,21 @@ placement pass over everything near the finish** - and moving the camera *behind
 rather than in front of it makes the scenery beyond the finish a backdrop instead of an
 obstruction.
 
+**Do not copy a monetisation mechanic into a game with no monetisation.** Candle Gift ends a
+run on a five-wedge multiplier fan, and the fan is a rewarded-video gamble: you watch an advert
+to spin it. Copied into a game with no adverts it became a wheel that always lands on the same
+wedge - a wheel-shaped lie, and a screen that takes an extra tap to say what a line of text
+already said. **Ask what a borrowed mechanic is *for* in the original before copying its
+shape**; if the answer is "to sell an impression", the shape is not the part worth having.
+
+**A liquid is made of motion and answers, not of texture.** Wax pools read as coloured carpet
+until they (a) scrolled their surface, (b) spread a ring wherever something entered them, and
+(c) had a ladle that slid across to stay above the thing being dipped. All three are a few
+lines. The tempting fix - a photoreal water normal map - would have given the surface relief
+and left it just as dead, and would have been the join that shows in the first frame. Worth
+knowing before reaching for an asset: **ambientCG has no `water`, `liquid` or `ripple`
+material at all**; the nearest hits are plaster and paint, which read as a rough wall.
+
 **A transformation is worth ten multipliers.** Candle Gift's stations felt like power-ups
 here and like machinery there, and the difference was one thing: its ROTATE station stands the
 whole batch up off the track into a tower, and its press stamps a visible cross-section. Ours
