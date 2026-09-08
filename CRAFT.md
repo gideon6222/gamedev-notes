@@ -832,6 +832,20 @@ and what a parts wall in a workshop looks like anyway.
 quietly clips it at the fold — an entire category looked like it held one item, and another looked
 like it did not exist.
 
+**Draw the control as the thing it controls.** Wrecking Crew's crane dial is a top-down picture
+of the machine: the tracks, the turret, a boom pointing where you have dragged, and - the part
+that earns it - a dot for the ball at its ACTUAL bearing, which is not where the boom is
+pointing. The gap between the two is the lag the whole game is built on, and putting it on the
+control means the player can read their own aim without looking up at the crane. A generic
+stick would have shown the input; this shows the *state*.
+
+Drive it from the same source the world uses (`sim.yaw`), never from the drawn object's
+transform, so the control and the thing it controls cannot disagree.
+
+**And an on-screen control should be absolute, not relative.** A relative mapping lets the
+thumb and the dial drift apart until the picture no longer says where the machine is pointing,
+which defeats the entire point of drawing it.
+
 ---
 
 ## Audio design

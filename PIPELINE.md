@@ -578,6 +578,34 @@ tools and platform-tools.
   goes through `freeze` and `advance`, the same second of the same street is captured every
   time, which makes two screenshots taken a week apart genuinely comparable.
 
+### `stretch/aspect = "expand"` means the base resolution is a LIE about height
+
+Godot's `canvas_items` stretch with `aspect = "expand"` keeps the base **width** and extends
+the **height** to the device's aspect. A project based on 1080x1920 renders into roughly
+1080x2340 on a 19.5:9 phone. So **any HUD element positioned against the literal number 1920
+lands hundreds of pixels above where it belongs**, and the player's report is "the buttons are
+about half an inch too high".
+
+It shipped with a second bug of identical origin: a hand-rolled hit test that scaled touches
+into a 1080x1920 space of its own, so the drawn control and the region that responded were in
+two different coordinate systems and disagreed with each other as well as with the screen.
+
+The fix is structural, not arithmetic:
+
+- One `Control` with `PRESET_FULL_RECT` inside the `CanvasLayer`, and **everything anchors to
+  that**. `PRESET_CENTER_BOTTOM` plus a negative `offset_bottom` puts a thumb control a fixed
+  distance from the real bottom edge at any aspect.
+- **Every interactive control handles its own input** via `_gui_input` and calls
+  `accept_event()`. Position and hit box are then the same object and cannot drift apart.
+  A manual `_unhandled_input` hit test is a second source of truth for where a button is.
+
+**No headless test can catch this**, which is the part worth remembering: a headless run uses
+the base viewport size, where the wrong layout and the right one are identical. Screenshots
+have to be taken at the PHONE's aspect (`--resolution 460x996` for this one, not 540x960), and
+the thing CI can assert is the *property* rather than the position - that the control resolves
+from the viewport edge, and that `mouse_filter` is `STOP` so a drag on it is not also a swipe
+somewhere else.
+
 ### Do not build a gameplay pendulum out of the physics server
 
 The obvious way to hang a wrecking ball in Godot is a `RigidBody3D` on a `PinJoint3D`. That
