@@ -484,6 +484,19 @@ Claude can drive a browser to check things visually. Two traps:
 
 ---
 
+## Do not juggle source files through the shell for a two-line experiment
+
+Swapping one line to check whether a test discriminates cost a whole source file: a `cp` from a
+backup path that did not exist truncated it to zero bytes, and the change in it had not been
+committed. The same session had already lost work to `git checkout -- <file>` on a file with
+uncommitted edits.
+
+Both were the same instinct - reach for the shell to make a quick reversible change - and
+neither was reversible. **Use the editing tools for source.** If an experiment genuinely needs a
+line swapped and swapped back, swap it with an edit, run, and swap it back with another edit:
+those are checked, they report what they changed, and they cannot empty a file. Commit before
+any experiment that touches a file you would mind losing.
+
 ## Never rewrite a source file through PowerShell
 
 `Get-Content -Raw` + `Set-Content -Encoding utf8` looks like a round trip and is not.

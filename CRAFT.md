@@ -619,6 +619,31 @@ surface the light is falling ON and has to stay lit; shadow starts behind it. Th
 puts every rock face in the game into its own shadow, which reads as "the lighting is broken"
 rather than as an off-by-one.
 
+**A shadow fan sampled by angle needs the FARTHEST CORNER of the cell it hits, not where the
+ray leaves it.** Per ray, the exit distance is exactly right - a point inside the cell is always
+between entry and exit. But the shader interpolates between the two nearest rays, and those may
+have clipped quite different parts of the wall or missed it, so parts of a cell come out beyond
+their own occluder and go dark. In Coreward that was thirteen per cent of every wall face, and
+on screen it is a hard diagonal cut across every single block in the frame - it reads as every
+rock casting a shadow on itself, which is what the playtester called it. The rule the fan
+exists to express is "the first wall is lit", and a wall is a whole cell.
+
+**The test for that has to interpolate the way the shader does, and assert a ratio.** A
+nearest-ray lookup cannot see the artefact at all, because the artefact only exists once two
+rays are blended; sampling cell centres cannot see it either, because a centre passes under
+both rules. Sample across a wall face, blend the two nearest rays, and assert the fraction of
+lit-face-in-shadow stays under a few per cent.
+
+**Give the soft, omnidirectional half of a light its own falloff.** Sharing the beam's pool
+means the ambient glow behind the player ends exactly where the beam does, with the same hard
+edge - which is the one thing the soft half must not do. Longer reach, much gentler curve.
+
+**Dim glowing things on a separate, gentler curve from surfaces.** Emissive and additive haloes
+exempted from the light field entirely become the loudest thing on screen at any depth, so a
+glowing pickup deep inside unlit geometry reads as clearly as one at arm's length; run through
+the same curve as a surface, they switch off and take a discovery mechanic with them. A square
+root over a small floor keeps the near ones bright and pushes the distant ones to a smudge.
+
 **Combine a directional beam and an omnidirectional bounce with `max()`, never by multiplying
 two floors.** Multiplying "how much survives behind the player" by "how much survives in
 shadow" means anywhere that is both lands on the product - four per cent of four per cent,
@@ -1199,6 +1224,12 @@ than one place** - a loop cannot forget - and **test it by pulling the `uniform 
 declarations out of the compiled shader and asserting the material supplies every one.**
 `renderer.properties.get(material).uniforms` against
 `gl.getShaderSource(program.fragmentShader)`. Nothing else can see it.
+
+**A threshold about how dark something LOOKS belongs on the post-gamma value, not on the field
+that feeds it.** Two of Coreward's lighting tests asserted on the raw light field, and both
+failed the moment the gradient was retuned to exactly what a playtest had asked for. A test
+that fails when the code becomes more correct is aimed at the wrong layer - and the fix is not
+to loosen the number, it is to assert in the units the person looking at the screen was using.
 
 **A material has exactly ONE `onBeforeCompile`, and assigning it is how you silently delete
 somebody else's shader.** Coreward patches stock three shaders in three places — world-space
