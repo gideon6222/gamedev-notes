@@ -412,6 +412,16 @@ projects: [{ name: 'chromium',
   still writing `dist/` when Playwright started, and nine tests failed against a half-written
   bundle. It looks exactly like a real regression - a scatter of unrelated failures that all pass
   in isolation - and it is worth recognising in one glance rather than bisecting.
+- **Wait on game state, never on wall-clock time - and that includes how long you HOLD an
+  input.** The obvious version of this rule is about polling. The version that actually cost a
+  deploy is about driving: a test that holds a d-pad for 600 ms delivers an unknown amount of
+  GAME time, because the loop clamps its delta, and how much depends on how heavy a frame
+  currently is. Coreward had one counting drill bursts; it passed for months and went red on a
+  commit that only touched lighting, because the extra per-frame cost under SwiftShader meant
+  thirty bursts no longer added up to 2.5 seconds of drilling. It failed claiming the drill was
+  throwing away progress, which was not true and pointed at code that was fine. Drive input
+  through the headless seam in fixed steps; hold a real control only in the tests whose subject
+  IS the wiring.
 - **Wait on game state, never on wall-clock time.** The frame loop clamps its delta, so on
   a machine without a GPU the game advances in slow motion and any fixed sleep becomes a
   flake. Poll for the state you asserted to be *rendered*, not just set.
@@ -483,6 +493,27 @@ Claude can drive a browser to check things visually. Two traps:
 - **Playwright composites properly.** When something needs real frames, that is the tool.
 
 ---
+
+## A CI check that cannot tell you the answer must say so, not say nothing
+
+"Push, say it is pushed, move on" only works if something actually confirms the run went
+green. A background poll loop did the confirming here, and it failed in the worst possible
+way: it burned the unauthenticated GitHub API's 60 requests an hour with a 15-second poll,
+started getting rate-limit JSON instead of run status, and its final report printed **nothing
+at all** and exited zero. Silence read as "still running", so a red build sat undeployed until
+the user asked why his phone had not updated.
+
+Three rules out of it:
+
+- **Poll a remote API at 30 seconds or slower**, and remember that a loop left running from an
+  earlier task is still spending the same budget. Sixty an hour is four polls a minute for one
+  minute.
+- **A verification step that cannot determine the answer must fail loudly.** `curl | python
+  2>/dev/null` returning an empty string is indistinguishable from "not finished" and from
+  "finished, green". Print the conclusion or print why you could not get it; never nothing.
+- **Do not report a push as done while the check is still in flight** unless the message says
+  plainly that it is, and then actually come back to it. The user should never be the one who
+  notices.
 
 ## Do not juggle source files through the shell for a two-line experiment
 
