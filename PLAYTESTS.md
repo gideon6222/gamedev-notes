@@ -1,7 +1,14 @@
 # PLAYTESTS.md
 
 What Gideon actually said about each game, in his words, dated. Complaints are the most
-valuable entries here. Append, never rewrite.
+valuable entries here.
+
+**Append, never rewrite.** This is the one file that stays chronological: it is evidence,
+and evidence does not get reorganised. `CRAFT.md` is where the conclusions drawn from it
+live, and that one *is* reorganised.
+
+Record a session's feedback when it arrives, not when the game is finished - the next game
+may start before this one ends.
 
 ---
 
