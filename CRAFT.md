@@ -617,6 +617,28 @@ somewhere you stand, with the goods on pedestals - costs one extra Scene and cam
 every material the game already has. The rule underneath: **if the player is meant to feel they
 are somewhere, the somewhere has to be geometry, not gradients.**
 
+**A 3D shop still needs labels, and their size is decided by the screen.** Coreward's cases are
+readable at a glance because each carries a canvas plate on its plinth - label text that belongs to
+the case and turns with it, rather than HTML hovering in front of the room. At that camera the
+visible width is ~3.5 world units across 375 CSS pixels, so a 0.66-unit plate is about 70 px:
+a six-character word and nothing more. That is why they read DRILL and THRUST, not "Drill Bit" and
+"Thrusters" - the full name goes in the detail card. **Measure the pixels the label will occupy
+before choosing the words.**
+
+**Say an availability state three ways, not one.** Coreward's cases carry it in a strip of light
+(colour), the plate's second line (text) and how far the alcove is shuttered (value), so it reads
+at a glance AND survives a colour-blind player. Four states: ready, short, sealed, maxed.
+
+**Dim the case, not the object, when the object's material is shared.** The parts in those cases
+are the same materials as the parts on the ship - tinting one to show "you cannot afford this"
+would have dimmed the same part bolted to the ship parked in the middle of the room. A smoked panel
+in front does the job and keeps the shared-object guarantee intact.
+
+**Order the states deliberately and test the ordering.** Sealed beats affordable: quoting a price
+for something no amount of money can buy is a lie, and the depth IS the price. Maxed beats
+affordability. And name the missing MINERAL ahead of the credits, because credits are what the loop
+pays constantly - a mineral the player has never seen is the thing actually stopping them.
+
 **Show the REAL object in the shop, not a preview of it.** Coreward reparents the actual ship into
 the station scene rather than building a copy, and the parts in the display cases are the same
 geometry and materials that get bolted to the hull. So "what changes in the shop" and "what
@@ -704,6 +726,15 @@ and silently retires the test.
 is not worth a test. Tunnelling at speed, catching on a corner, creeping into a block by leaning
 on it, wedging in a dead end, and frame-rate dependence are the five things that actually go
 wrong.
+
+**A test of a PRIORITY has to use the case where the priorities disagree.** Coreward's "a depth
+lock beats being able to pay" test used a rich player - and a rich player reads as sealed whether
+the depth check runs first or last, so it proved nothing about the ordering it was named after. It
+only surfaced because a mutation of that ordering was caught by a different test. The case that
+distinguishes them is broke-AND-sealed: one ordering says "sealed", the other says "you are short
+of money" and sends the player off to earn money for something money cannot buy. Same trap as
+"assert the two interpretations actually differ" — when a test is about which rule wins, construct
+the input where both rules apply.
 
 **Snapshot the pure functions before refactoring, then make the snapshots fail.** A golden test
 you have never seen fail is a test you do not know works.

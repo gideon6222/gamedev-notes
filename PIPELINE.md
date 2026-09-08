@@ -389,6 +389,10 @@ projects: [{ name: 'chromium',
   30 s, so the test died before the poll could finish and the failure read "test timeout
   exceeded" instead of naming the value it was waiting on. Set the suite timeout comfortably
   above the longest poll.
+- **Never start the smoke tests while a build is in flight.** A backgrounded `npm run build` was
+  still writing `dist/` when Playwright started, and nine tests failed against a half-written
+  bundle. It looks exactly like a real regression - a scatter of unrelated failures that all pass
+  in isolation - and it is worth recognising in one glance rather than bisecting.
 - **Wait on game state, never on wall-clock time.** The frame loop clamps its delta, so on
   a machine without a GPU the game advances in slow motion and any fixed sleep becomes a
   flake. Poll for the state you asserted to be *rendered*, not just set.
