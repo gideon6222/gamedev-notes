@@ -196,6 +196,12 @@ commit to blind, and it costs one number per cell.
 
 ## Legibility
 
+**A sphere reads as a bubble at any size.** It is the one shape with no orientation and no facets,
+so it cannot look machined however it is shaded. Coreward's cockpit was a sphere and it was most
+of what made the whole ship read as a toy; a four-segment wedge with a ridge and two angled panes
+fixed it in one line. The same logic runs through a model: prisms with hard corners catch a light
+on one face and not the next, cylinders do not.
+
 **Silhouette carries more than colour.** This has now been wrong in four different ways: a
 green gas pocket that looked like an emerald, a pink cache next to purple crystals,
 rectangular background slabs that read as UI panels, and a repainted drill nobody could see.
@@ -399,6 +405,13 @@ head, helmet, weapon, shadow — with matrices recomputed each frame from a proc
 cycle. Crowd size then stops being a performance question at all, and a boss is the same rig at
 3.3× with a different colour: a whole boss for zero extra draw calls.
 
+**Instance the bolt-on hardware too, not just the crowd.** Coreward's upgrade parts started as
+thirteen separate meshes and took the worst case from 55 draw calls to 67 against a budget of 70 —
+three from failing CI, for what is four copies of two shapes. One `InstancedMesh` per KIND with
+`count` as the lever is exactly the semantics an upgrade ladder wants (show the first n), and it
+stops the draw count moving with how upgraded the player is, which is otherwise a budget that
+fails only for veterans.
+
 **`setColorAt` is what makes one layer look like many objects.** Per-instance colour over a white
 base material gives every unit its own cloak and shield, and drives a weapon's colour straight
 from its tier — all from a single mesh.
@@ -436,6 +449,40 @@ the alpha; `RenderPass.clearAlpha = 0` does not rescue it either, because the bl
 additive and destroys alpha inside the chain. **If a game might ever want a post pass, put the
 sky in the scene from the start** — a fullscreen gradient quad is barely more code than the CSS
 and does not have to be unpicked later, along with everything calibrated on top of it.
+
+**Moving from Lambert to MeshStandardMaterial changes the SHAPE of the lighting, not just its
+values.** Standard adds a specular lobe, so every light now contributes a highlight as well as a
+diffuse term and the old intensities read as a bright plastic wash. Turning everything down is not
+the fix: **ambient has to fall away much faster**, because ambient is the one light that reaches
+every surface equally, which is the exact opposite of a lamp in a dark hole. Coreward went from a
+linear falloff to a squared one so the drop lands in the first third of the descent where it can
+be felt.
+
+**A metal with no environment map has no diffuse term at all** — a metal's colour comes entirely
+from what it reflects, so with nothing to reflect it is specular hotspots and black. Lowering
+metalness looks like the fix and is not; the fix is giving it something to reflect. A 64px canvas
+gradient standing in for "dark ground below, faint light above", run through `PMREMGenerator`,
+costs nothing and ships no bytes. Apply it **per material, not as `scene.environment`** — as a
+scene environment it lights the terrain too and puts back exactly the flat fill a darkness pass
+just removed.
+
+**And set `colorSpace` on it.** A canvas env map read as linear rather than sRGB comes back about
+four times too bright, which presents as "the metal is blown out" and sends you hunting through
+light intensities. The same rule catches normal and roughness maps from the other side: those are
+DATA, not colour, and must NOT be sRGB-decoded.
+
+**Do not light the player's vehicle with the gameplay light.** Coreward's lamp is a point light on
+the ship, so the ship sat four times closer to it than the rock it lit and rendered white whatever
+its hull was painted. The real problem was worse than the look: lamp range is an UPGRADE, so
+buying a Scanner level changed how the ship looked. Put the vehicle on its own layer with its own
+small key light, and its material reads the same at every depth and every upgrade level.
+
+**When a render looks wrong, measure it rather than staring at it.** Hide the object and see if
+the problem goes; `gl.readPixels` the actual pixel; recolour materials one at a time to find which
+mesh is which. Coreward's "white ship" was blamed on four different things in turn, and the mesh
+everything was pinned on turned out to be a small cap at the top while the pale mass was a
+different material entirely — whose values were ordinary mid-greys that only read as white against
+very dark rock.
 
 **Cel shading is a three-line texture, and ambient light is what kills it.** A `DataTexture` of
 four grey steps as `MeshToonMaterial.gradientMap`, with `NearestFilter` on *both* `minFilter` and
