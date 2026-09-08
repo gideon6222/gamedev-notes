@@ -337,3 +337,54 @@ want to do it if it has very little impact on the game running and is actually h
 Still nothing about the deep game. Four sessions now, every note about the first sixty metres and
 the surface. The tick seam exists partly because of this: he is never going to playtest 90 m, so
 that part has to be tested rather than played.
+
+### 2026-09-07 - the actual game, found
+
+He sent two screenshots of the game his girlfriend remembered, from a YouTube short:
+**Candle Gift** by Rollic Games. Worth recording that the first build was made from a verbal
+description alone and got the *loop* right and the *presentation* completely wrong - it had
+the player *being* a candle, in a dark workshop, when the real game is a bright factory line
+and the player is the production line.
+
+"can you make the visuals, mechanics, and gameplay look more like this? but an upgraded
+version with similar art style and better graphics. also changes the menus and upgrades to
+match. please research this actual game to see how other levels look and feel and how it
+works, then overhaul our version to match closely to this. We will continue to make changes
+to make it better than the one she remembers but I want it to start out very similar."
+
+Two things worth keeping about this.
+
+**A screenshot is worth more than any amount of description.** Everything that made the
+overhaul work came from the two images plus one line of a strategy guide: the purple runway
+in open sky, the hot-pink pill signs, the green banknotes, the red X barriers - and, in one
+frame, CANDLE on the left of a gantry and GLITTER on the right, which is the entire
+two-halves station design. Ask for a screenshot early when a game is being described from
+memory.
+
+**The most useful single sentence was in a strategy guide, not a store page:** "as your
+candle stack gets longer, you need to be aware of everything happening in front of you, and
+sometimes you need to start moving well before an obstacle is in reach". That is the trailing
+stack, and it is what the whole rebuild is now built on. Store descriptions say what a game
+contains; strategy guides say how it *feels* to play.
+
+Also, in his own words on the earlier session's failures - he corrected a wrong diagnosis:
+"Another Claude code chat was running tests on the Coreward game I am working on and cause
+the earlier issues with the live tests. It has moved it over to an unused port. If that was
+causing test issues, don't write those off as broken."
+
+He was right and the recorded cause was wrong. Two games sharing a preview port produced
+failures that looked like the game failing to boot, and one run that silently tested the
+*other* game. Ports are now per-game.
+
+### 2026-09-07 - Candle Gift, first build, NOT YET PLAYED
+
+**Verified** by driving the frame loop and screenshotting: the trailing tray lagging through
+a turn, obstacles clipping the tail of a tray the leader already cleared, all four station
+kinds firing, both halves of a gantry doing different things, gates growing the tray to its
+cap, banknotes and guarded banknote lines, the gift table lighting each candle in turn,
+star ratings spreading 1/2/2/3 across four scripted play styles, and 45-65 draw calls.
+
+**Not verified at all**: how it feels. Ask, in this order - does a full tray feel satisfying
+or sluggish; is the steering sensitivity right now the runway is wider; does the results
+screen land; and does the music annoy him. The last one because the Coreward score drew the
+only outright "I don't like" of that game.

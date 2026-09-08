@@ -92,6 +92,12 @@ limits small, price the consumable that answers an uncapped threat above the fir
 the upgrade that answers it, and make a full kit cost more than several rungs of the ladder.
 Otherwise stocking up quietly replaces deciding.
 
+**A station the player can pass through and get nothing from teaches them to stop reading the
+signs.** Candle Gift's level-1 press stamped PLAIN onto plain candles and announced "ALREADY
+PLAIN" - a gantry, a sign and a machine that was a dead beat until an upgrade several levels
+later. Floor every station at its first *real* effect and let upgrades climb from there. The
+same applies to any shop row, pickup or event whose lowest tier is a no-op.
+
 **Two upside gates beat a good gate and a bad gate.** "+6" against "×2" has no correct
 answer — it depends on how many crew you have right now, which differs every run — so the
 player is genuinely choosing. Good-versus-bad is a reflex test. Keep a minority of punishing
@@ -154,6 +160,15 @@ and you pay for it in melted wax while you stand in it. Two hazards already in t
 line of code, and the player discovers a rule rather than being told one. Look for this pair
 before adding a third hazard.
 
+**Make the thing you are protecting trail behind you, not cluster around you.** A crowd that
+follows the player exactly is all upside: obstacles only ever meet the front of it, so more
+units is strictly better and the size of the crowd is a number rather than a decision. Candle
+Gift's tray records where the leader has been and puts each row a fixed distance back *along
+that path*, so the back is still going where the front went a second ago. Swerve late and you
+clear the obstacle yourself and drag half your tray through it - which means growing the tray
+costs agility, and the player has to start steering well before an obstacle is in reach.
+Obstacles must then test **every** unit, not the leader, or none of it is real.
+
 **Interruption is a feature.** A commitment the player cannot back out of is a wall, not a
 decision. Coreward's drill ran a block to completion once started; letting go now stops it and
 the rock keeps its damage. The difference is between a wall you can probe and one you must
@@ -179,6 +194,13 @@ came out as no contrast at all, because they sit 0.13 apart on the wheel. Either
 threshold is enough. The pleasant side effect is that a pale wax becomes genuinely useful as a
 *separator* between two saturated ones, which is how a real layered candle is banded. A unit
 test caught this before any of it was drawn.
+
+**Separate the play space from the background by lightness, not by hue.** A themed level in
+Candle Gift shipped as a pink runway under a pink sky - different hues, similar lightness -
+and the track dissolved into the backdrop at about twenty units, which is exactly the
+distance the player steers by. There is now a unit test asserting a minimum lightness gap
+between every road and every sky it floats in, because "it looked fine in the editor" is a
+description of a close-up.
 
 **The most valuable thing on screen must be the brightest thing on screen.** A first pass made
 Coreward's hazard glow harder than the payout, which points the eye at the thing you must not
@@ -227,6 +249,24 @@ player will never forgive - and the only way to make it impossible is to have on
 hit is informative rather than only costly: you can read what you dipped in, and in what
 order, off your own body. Any stacked or layered resource can do this, and it converts damage
 feedback from a number into a picture.
+
+**When the accurate model and the readable model disagree, build the readable one.** Dipping a
+candle in wax makes concentric shells - and rendered that way the outermost shell hides every
+shell inside it, so five dips came out as a plain cream cylinder with a two-millimetre rim of
+colour at the base. Horizontal bands stacked up the candle are physically wrong and instantly
+legible: every dip visible at once, newest on top, and the HUD chips can be drawn in the same
+order so the two never need reconciling. Ask what the mechanic needs to *look* like before
+asking what it is.
+
+**A formation is only readable if it is more than one unit wide.** The same tray in single
+file showed the player one candle's worth of colour, because every candle hid behind the one
+in front. Three abreast costs nothing, still trails identically - it is the *row* that
+follows the path - and suddenly all the work the player did is on screen.
+
+**Horizontal detail needs a low camera; vertical detail needs a high one.** Bands running
+around a candle are only legible from the side, and the first pass looked down the runway
+from above, saw the tops, and rendered a three-colour tray as one colour. The camera angle is
+part of the art, not a framing preference.
 
 **A marching grid reads better than a scatter.** A phyllotaxis spiral spread Captain Run's
 warband into an overlapping blob. Rows of six, alternate rows offset by half a space, leader
@@ -487,6 +527,14 @@ used" as a value, with a note explaining what that implies - because a zero the 
 the single most valuable reading in the file: it means the ability does not need tuning, it needs
 deleting or rethinking. Cost is not the objection people expect: fifteen `+=` on a flat object per
 frame measured below the noise floor of the frame time itself.
+
+**If a system applies itself, the player is not playing it.** Candle Gift's stations first
+spanned the whole runway, so every tray got every treatment just by reaching the end - and
+four scripted play styles, from never touching the screen to playing well, produced an
+*identical* per-candle value. Everything downstream still worked; there was simply no input
+in it. Splitting each station into two halves across the track, one effect each, turned a
+fixed consequence into a chain of decisions. **Measure a mechanic across a bad run and a good
+run: if the number does not move, the mechanic is scenery.**
 
 **Test intent, not only values.** A snapshot of the tuning constants fixes the numbers but says
 nothing about what they are *for*. Assertions like "a hazard breaks faster than the rock around

@@ -334,6 +334,15 @@ projects: [{ name: 'chromium',
   and the screen. Captain Run's steering was inverted for the whole life of the game with a
   passing test suite. Dispatch real pointer events and assert where the avatar lands in
   normalised device coordinates. See CRAFT.md for why a chase camera causes it.
+- **Measure the spread before setting the thresholds, not after.** Star ratings and grades
+  are cut against a par, and the *gaps* between them have to match the real distance between
+  bad and good play. Candle Gift's first thresholds were bunched inside a 1.5x band while the
+  measured spread across four scripted play styles was 1.3x, so every one of them scored full
+  marks - including the run that never touched the screen. Script the extremes first, read
+  the ratio, then place the thresholds inside it.
+- **When every play style scores the same, fix the game, not the thresholds.** That flat
+  spread was the real finding: it meant the systems were applying themselves. Re-tuning par
+  would have hidden it.
 - **Set balance constants from a measurement through the debug seam, not from a guess.** Wick's
   grade thresholds were first set by eye, and a run that never touched the screen graded FINE
   while every competent run hit the ceiling. Three scripted runs - do nothing, dodge, dodge and
