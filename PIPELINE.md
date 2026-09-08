@@ -235,6 +235,26 @@ projects: [{ name: 'chromium',
 
 ### Rules that were learned the hard way
 
+- **`npm run preview` serves the service worker, so a driven browser can test the build BEFORE
+  the one you just made.** The PWA registers its worker on the first visit and then answers
+  navigations from cache, so a rebuild is one load behind - and unlike the phone, where this is
+  expected and the build stamp is checked, nothing prompts you to doubt it locally. It cost an
+  hour: a fix was verified as "still broken", diagnosed as a wrong diagnosis, and was actually
+  correct all along. **Check the hashed filename, not the behaviour**, and clear it before
+  trusting anything:
+  ```js
+  [...document.querySelectorAll('script[src]')].map(s => s.src.split('/').pop())
+  // then, to start clean:
+  for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+  for (const k of await caches.keys()) await caches.delete(k);
+  ```
+  A test suite is immune - Playwright gives each test a fresh context - which is exactly why the
+  suite disagreed with the browser and the browser was wrong.
+- **`git checkout -- <file>` reverts the WHOLE file, not the experiment you just made in it.**
+  Backing out a one-line "does the test still catch this" probe threw away every uncommitted
+  change in that file: a fix, seven telemetry hooks and a rewritten block. Committing before
+  probing is the cheap answer; failing that, patch the line back rather than reaching for the
+  file. Nothing warns, and the typecheck stayed green because what was lost was only additive.
 - **Give every game its own preview port, and never a Vite default.** Coreward and Captain
   Run both used 4173. With Playwright's `reuseExistingServer` on locally, a Coreward suite
   running while the sibling game's suite was running **adopted Captain Run's server** and

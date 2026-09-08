@@ -297,6 +297,28 @@ the camera feels, which is the one thing a desktop cannot verify. Instead every 
 a helper returning the exponential rate that covers the same fraction in one 60 fps frame, and
 the golden baseline records those fractions — so the file itself proves the feel did not move.
 
+**A correction must be assigned, not added, or it is a spring instead of an approach.** Coreward's
+lane pull did `v += laneVel(...)` on top of a velocity that was often already carrying the ship
+toward the line, so the pair overshot, got corrected, and overshot again. The player's word for
+that was "bouncy". Assigned, the value IS the exponential approach and overshoot is impossible by
+construction. Any time a smoothing term is added to an existing velocity rather than replacing it,
+it is a spring with no damping term and it will ring.
+
+**Never correct anything while the player is coasting.** The same pull ran with no input held, and
+the nearest snap target is as often behind the object as ahead of it - so releasing near a boundary
+dragged the ship *backwards* against its own momentum. A release must be drag and nothing else.
+Snap on the next input instead: the player said it themselves as "don't align until you change
+direction", and it costs nothing, because by the time the alignment matters they have pressed
+something.
+
+**A correction that writes position directly is invisible to collision, and therefore to every
+test.** Coreward's drill alignment set `g.px`/`g.pd` outright and aligned whichever axis did not
+match - which for a dig is always the axis of the cut, since the target cell is a step ahead. It
+drove the ship *into* the rock it was drilling, and nothing caught it for three sessions because a
+second bug (the coasting pull above) shoved it back out on release. **Two bugs can hide each
+other, and fixing the visible one is how the other surfaces** - so when a fix makes a *different*
+test fail, suspect a mask rather than a regression.
+
 **Exponential everywhere it matters, and keep the coast short.** Anything that reads as momentum
 also reads as the controls being late, on a game played with a thumb. Coreward reaches top speed
 in about a fifth of a second and coasts about three quarters of a cell. There is a test on the
@@ -451,6 +473,20 @@ happened, however good the particles are.
 ---
 
 ## Testing design, not just code
+
+**A metric is only useful if its denominator is the thing in question.** Coreward's run log
+reported "98.5% of blocks paid", which was true and worthless: plain dirt had started paying a
+token amount, so `value > 0` was true of nearly everything. Reusing the game's own existing
+threshold for "worth coming back for" turned it back into an answer. A ratio that is always ~100%
+is measuring the wrong set, not reporting good news.
+
+**Telemetry earns its place by reporting rates and ratios, not counters.** Nobody balances against
+"fuel burned"; they balance against "a full tank is 3m 21s of drilling", "31% drilling, 15% flying,
+53% still", and "25% of runs ended in a tow". And make an unused thing SAY it is unused - "never
+used" as a value, with a note explaining what that implies - because a zero the eye skips past is
+the single most valuable reading in the file: it means the ability does not need tuning, it needs
+deleting or rethinking. Cost is not the objection people expect: fifteen `+=` on a flat object per
+frame measured below the noise floor of the frame time itself.
 
 **Test intent, not only values.** A snapshot of the tuning constants fixes the numbers but says
 nothing about what they are *for*. Assertions like "a hazard breaks faster than the rock around

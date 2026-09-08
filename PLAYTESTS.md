@@ -307,3 +307,33 @@ a rightward drag moves the thing rightward); is the wick tense or stressful; is 
 screen satisfying or just a table; and does the music annoy him. The last one because the
 Coreward score drew the only outright "I don't like" of that game, and this one reuses its
 horn theme with the octave drop repointed at being snuffed.
+
+### 2026-09-07 - after lanes, the rock texture and the tick seam
+
+"The ship looks very bouncy when you change direction or stop. Can you find a smoother way to
+have it align with the grid, or not make it align until you change direction? I want it to ease
+into a stop."
+- Right again, and the proposed fix was again the correct one. Two faults, both introduced by the
+  lane pull the session before: it was `+=` onto an existing velocity, so it overshot and rang;
+  and it ran while COASTING, where the nearest lane is as often behind the ship as ahead, so
+  releasing near a boundary dragged the ship backwards against its own momentum. Assigning instead
+  of adding, and pulling only while a direction is held, is exactly "don't align until you change
+  direction".
+- Fixing it exposed a third fault that had been hiding behind it for three sessions: the drill
+  alignment wrote position directly, aligned the axis of the cut rather than the one across it,
+  and drove the ship *into* the rock it was drilling. The coasting pull had been ejecting it back
+  out on release - so "bouncy" was partly a jerk out of the wall after every single block.
+
+"is there a way for you to add some kind of log to see how fast certain things drain, if the cost
+is worth the benefit, or if certain abilities don't really seem to be necessary? ... I would only
+want to do it if it has very little impact on the game running and is actually helpful."
+- He set both acceptance criteria himself, and the second is the harder one. A counter dump would
+  have satisfied "a log" and answered nothing; what he asked for are three specific questions, so
+  the panel reports rates and ratios against them and says "never used" out loud when an ability
+  has not been fired. Cost measured at below the noise floor of the frame time.
+
+"Can you also move the directional buttons up slight?"
+
+Still nothing about the deep game. Four sessions now, every note about the first sixty metres and
+the surface. The tick seam exists partly because of this: he is never going to playtest 90 m, so
+that part has to be tested rather than played.
