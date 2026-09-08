@@ -774,6 +774,7 @@ the in-run forge bar (about four axe tiers a run, at every ascent), gold only ev
 permanent upgrades, runes only ever buy blessings. The forge bar is the minute-to-minute
 power fantasy and the camp is the session-to-session one, and neither can substitute for the
 other. Leftover iron converts to gold at the end so nothing is wasted.
+
 ## 2026-09-07 — Coreward, third pass: taking a grid out of a grid game
 
 ### Movement
