@@ -47,10 +47,28 @@ someone.
 
 ---
 
-## The stack
+## Two stacks now
 
-Verified working on Coreward. **This is the stack for every game**, from the first commit —
-see the section above for why there is no lighter option.
+**Web (PWA)** — Vite, TypeScript, three.js, GitHub Pages. Coreward and Candle Gift ship on
+it. Instant to iterate, zero cost, no store.
+
+**Native Android (Godot)** — for anything that wants a Play listing, Play Games Services,
+in-app purchases, real asset sizes or a performance ceiling that is the GPU rather than a
+WebView. Proven 2026-09-08 in `C:\dev\godot-template`.
+
+**The method is the same in both and is the thing that actually carries over**: a pure
+simulation core with no renderer in it, seeded determinism, a headless tick seam, a
+whole-run golden test, a size guard that fails in both directions, a build stamp, a
+changelog, and CI as the gate. Everything in `CRAFT.md` applies to both — it is about
+games, not about a language.
+
+Everything below in this section is the **web** stack. The Godot stack is at the end of
+this file.
+
+## The stack (web)
+
+Verified working on Coreward. **This is the stack for every web game**, from the first
+commit — see the section above for why there is no lighter option.
 
 | Piece | Choice | Why |
 |---|---|---|
@@ -428,3 +446,70 @@ Claude can drive a browser to check things visually. Two traps:
   a burst of them will advance frames — but for anything on a timer, extract the clock into
   a pure reducer and test it in milliseconds instead.
 - **Playwright composites properly.** When something needs real frames, that is the tool.
+
+---
+
+## Never rewrite a source file through PowerShell
+
+`Get-Content -Raw` + `Set-Content -Encoding utf8` looks like a round trip and is not.
+PowerShell 5.1 reads a file with **no BOM as ANSI**, so every non-ASCII byte is
+reinterpreted, then written back as UTF-8. A middle dot becomes `Â·`.
+
+This bit twice in one day, in two repos, and both times it looked correct in the diff:
+once turning `/\s+·/` into a regex that could never match, once corrupting a build stamp.
+Neither produced an error — the test just failed on a string that also looked right.
+
+- Use the **Edit/Write tools**, which understand encodings, for anything textual.
+- If a script genuinely must rewrite a file, read and write through
+  `[System.IO.File]::ReadAllText/WriteAllText` with an explicit
+  `New-Object System.Text.UTF8Encoding($false)`.
+- Better still, **keep files that a script rewrites ASCII-only**, so a re-encoding has
+  nothing to damage.
+
+---
+
+## The Godot stack (native Android)
+
+Proven end to end on 2026-09-08. `C:\dev\godot-template` is the copy-from repo; its
+`CLAUDE.md` has the toolchain paths and the full invariant list.
+
+| Piece | Choice |
+|---|---|
+| Engine | **Godot 4.7.2**, pinned exactly — CI uses `barichello/godot-ci:4.7.2` |
+| Language | **GDScript, statically typed** (`func f(x: int) -> float:`) |
+| Tests | `godot --headless --script res://test/run_tests.gd`, exits non-zero |
+| Smoke | a second SceneTree script that instantiates the real scene and plays it |
+| Size guard | GDScript, checks the APK against a recorded budget, both directions |
+| Deploy | CI → a signed APK attached to a GitHub Release |
+
+**Everything is portable and nothing needed admin.** The JDK install via `winget` hangs
+forever on a UAC prompt that cannot be shown; the Temurin **zip** from the Adoptium API
+unpacks to a user directory and works immediately. Same for the Android command-line
+tools and platform-tools.
+
+### Things the exporter will not tell you clearly
+
+- **Godot finds the SDK, JDK and keystore through editor settings, not environment
+  variables.** `%APPDATA%\Godot\editor_settings-4.7.tres`, keys under `export/android/`.
+  Setting `ANDROID_HOME` alone does nothing, and the error message talks about Editor
+  Settings without saying which file.
+- **`rendering/textures/vram_compression/import_etc2_astc=true` is required** for an
+  Android export, and **a `config/icon` is required** — both fail the export.
+- **`gradle_build/use_gradle_build=false`** uses the prebuilt template and needs no Gradle
+  at all. Turn it on only when a plugin or a custom target SDK demands it.
+- `sdkmanager` is deprecated in favour of an `android` CLI, and the old
+  `platforms;android-36` syntax fails through `sdkmanager.bat` (the batch file splits on
+  the semicolon) while working fine through `android.exe`.
+
+### Headless lifecycle, which is where the time actually goes
+
+- **`root.add_child(node)` inside `SceneTree._initialize()` does not run `_ready`** and
+  does not put the node in the tree until the first processed frame. The symptom is
+  hundreds of identical `Nonexistent function ... in base 'Nil'` errors and a run that
+  never terminates. Guard it with an idempotent `_ensure_booted()` called from `_ready`
+  *and* from every harness entry point — not with a rule about call order, which is
+  something every future test has to remember.
+- **`Node3D.look_at` errors when the node is not inside the tree**, which is that same
+  case. `Transform3D.looking_at` is pure maths and works anywhere. Prefer it always.
+- **`MultiMesh.visible_instance_count` is the flush** and is the number to assert a render
+  path against, exactly as `mesh.count` is in three.js.
