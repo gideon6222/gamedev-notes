@@ -218,6 +218,30 @@ a block in front of me" separately from moving. Now the collision reports the ce
 the ship, and that cell *is* what the drill points at. Two facts that could disagree became one
 fact that cannot.
 
+**That only works if the ship can be in exactly one cell - which off a grid it cannot.** The
+above shipped and was still wrong, because a ship of radius 0.34 sitting at 5.40 touches rows 5
+and 6 at once. The collision reported one; everything reconstructed from `Math.round()` reported
+the other. Both symptoms were named by the player in one sentence. The drill refusing to bite
+("not mining"): the stop test rebuilt the direction each frame, got a diagonal, and cancelled the
+cut on the frame after starting it - forever, because the collision kept re-reporting the same
+wall. And the ship snagging on the wall of the shaft it had just dug, which is a hard deadlock
+where it can neither move nor drill, reachable by ordinary play.
+
+**Fly along the grid, not on it and not off it.** Travel freely on the axis being pushed; be
+drawn continuously onto the centre line of the other. Momentum, acceleration and the coast are
+untouched - assert that with a test - and the wobble across the lane, which was doing nothing for
+feel, was the entire source of the ambiguity. This is what "on a grid but not stuck on one"
+actually means, and it is how every grid game that feels good has always worked.
+
+**Apply a correction as a velocity, not as a position.** The lane pull goes through the same
+collision as everything else, so it can never seat the ship inside rock: a blocked lane ejects it
+into the free one. A position write would have needed its own safety check, which is a second
+fact free to disagree with the first.
+
+**Store the fact; never re-derive it.** The dig's stop test now compares against the direction the
+cut *started* in, stored on the dig. Reconstructing it from position every frame was the bug.
+Anything reconstructed from a rounded continuous value is a fact you have chosen to let drift.
+
 **Store progress as a share, never as elapsed time.** With seconds, buying a better tool shrinks
 the total while the stored number stays put, so a job you had half finished silently becomes
 nearly finished — backwards from what an upgrade should do. When you write the test, assert that
@@ -262,6 +286,20 @@ from its tier — all from a single mesh.
 **Per-instance data can never fade across a boundary.** Learned twice on Coreward: seams between
 cells, then glow that stopped dead at a cell edge. If an effect has to be continuous across the
 world, it belongs in a shader keyed on world position, not in instance data.
+
+**Two rotations on one object compose in an order, and the default is rarely the one you
+want.** Coreward's ship carried its facing on `rotation.z` and its bank on `rotation.y`. Under
+three.js's default `XYZ` the facing composes first and the bank then turns the already-turned
+ship about the **world** vertical - a roll about the drill when pointing down, which is right,
+and a swing of the nose toward the camera when pointing sideways, which reads as the ship
+flipping out of the screen plane. `rotation.order = 'ZYX'` composes the other way, so the bank
+applies in the ship's own frame and the facing turns the result: a roll in every facing. One
+line, and it is worth checking the moment a second rotation is added to anything.
+
+**A bank must read off the lateral axis in the object's own frame.** The same bug had a second
+half: it was driven by `vx` regardless of which way the ship pointed, so flying left or right
+banked the ship for going *fast* rather than for going sideways. Whichever axis the object is
+not pointing along is the one that means "drifting".
 
 **Fake bloom with additive sprite halos.** Post-processing bloom costs fill rate, a library, and a
 pass. Additive quads with a soft texture cost one draw call, and if the camera never rotates a
@@ -345,6 +383,15 @@ inside that threat" have each caught a real design mistake before a human saw it
 returning the next clock is checkable in milliseconds; the alternative is sitting in the game for
 thirty-four seconds with a renderer attached. Doing this immediately found a real bug — a long
 frame armed a warning and fired on the same tick, then armed it again.
+
+**Every fixture agreeing on a convenient value is how a whole suite misses a bug.** 124 golden
+tests and 17 smoke tests ran through Coreward's flight for a session without touching a deadlock
+that ordinary play hits, because every one of them seeded the ship exactly on a cell centre and
+the bug only exists off one. The suite was not weak; it was *uniform*. When a value became
+continuous, no fixture noticed, because a fixture is written by someone who already knows the
+happy case. Ask what value every test happens to share, and write one that does not - and say in
+the test why the awkward number is awkward, or the next person tidies it back to the round one
+and silently retires the test.
 
 **Put collision in a pure module and test the failures, not the successes.** "Moves in open space"
 is not worth a test. Tunnelling at speed, catching on a corner, creeping into a block by leaning
