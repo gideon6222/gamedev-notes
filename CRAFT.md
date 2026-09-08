@@ -206,6 +206,22 @@ decision. Coreward's drill ran a block to completion once started; letting go no
 the rock keeps its damage. The difference is between a wall you can probe and one you must
 commit to blind, and it costs one number per cell.
 
+**A condition with no middle setting is not a mechanic, whichever way it lands.** Wrecking
+Crew's ball rises as it swings out, so the obvious rule was that it can only damage a
+building it is not sailing over - a big swing takes the tops off towers, a gentle one is
+needed to finish a stump. It sounded like the best idea in the design and it has exactly two
+behaviours. With buildings two floors and up it never fired once: a hidden condition that is
+always true, which is strictly worse than no condition, because it costs code and comprehension
+and buys nothing. With one-floor shopfronts in the mix it fired on nearly all of them, and the
+whole of the first street - the part that actually gets played - became immune to the only tool
+in the game. Measured: the aiming bot felled two floors in thirty seconds.
+
+The test for this before building it: **name the setting where the condition fires about half
+the time.** If the answer needs the rest of the game to be tuned around it, it is a wall
+wearing a decision's clothes. The choice it was meant to create was real and worth having -
+how hard to swing, not just when - but it has to be a cost rather than a gate, and it has to
+be on the HUD.
+
 ---
 
 ## Legibility
@@ -405,6 +421,39 @@ coast distance, because that single number is most of what "free to fly" feels l
 **Spline flight beats stepping between waypoints.** Moving along a Catmull-Rom curve with ease-in
 and ease-out, with the heading following the velocity, is what makes movement read as piloted.
 High speed alone reads as fast-forward.
+
+**Drive a tool from the player's ACCELERATION and you get indirect control for free.**
+Wrecking Crew's ball hangs on a boom and is a damped pendulum on a moving pivot: the only
+term the player controls is the pivot's lateral acceleration, so pushing the rig right
+throws the ball left and it arrives on the right about a quarter of a swing period later.
+The player never places the tool, they only ever push it. That single change turns "steer
+into the thing" into "decide now where the thing will be in a second", which is the skill
+every runner claims to have and almost none actually implements.
+
+Two things make it work rather than merely frustrate. **The lag has to be a feel constant,
+not physics.** Real gravity on a five-metre chain is a 4.5-second period, which is majestic
+and unplayable; the number is set from what a thumb can anticipate - about a second - and
+`sqrt(g/L)` is then solved for `g`. And **the correct technique has to be discoverable by
+accident**: a sloppy single swerve still just barely connects, while the timed version -
+load away from the target for a HALF period, then turn back - reaches 60% further. The
+beginner gets contact, the expert gets twice the contact.
+
+**If a tool is driven by acceleration, the rig that drives it cannot use a position lerp.**
+An exponential lerp on position has an acceleration that spikes on the frame the input
+changes and is zero for the rest of the move, so the tool gets kicked once and then hangs.
+Approach a target VELOCITY exponentially instead: the acceleration is smooth, bounded, and
+lasts as long as the drag is held, which is what lets a swing build. The cost is that `vx`
+lags its target, so the object overshoots slightly - 4% in the first build - and the fix is a
+faster velocity rate rather than a spring term.
+
+**A speed ladder outruns any tool whose lag is measured in seconds.** Speed compounding at 5%
+a street is invisible for four streets and then quietly removes the game: the window a target
+is aimable in shrinks by the same fraction every level while the swing takes exactly as long
+as it always did. By street 10 a building passed faster than the ball could be swung at it,
+and by street 20 at half that. A design test caught it - `window > lag`, at levels 1, 5, 10
+and 20 - and the fix was to cap speed and make later streets harder by growing the *targets*
+instead. **Any game with a charge time, a wind-up, a reload or a lag should assert that
+relationship at the top of its ladder, not just at the bottom.**
 
 ---
 
@@ -822,6 +871,37 @@ your reset touches all of it.**
 already own this perk" — which answers yes for every planet past the eighth, where the perks
 repeat, so relics silently stopped existing. Any time a reward repeats, the "already collected"
 test must key on the *event*.
+
+**If the policy that reads the level loses to the policy that ignores it, the bot is wrong
+before the game is.** Wrecking Crew's first aiming bot steered straight at the kerb it wanted
+to hit, and scored BELOW a bot that ignored the street entirely and weaved rail to rail on the
+pendulum's period. The instinct is to read that as "the game does not reward aiming" and go
+tune the game. It meant the bot had not been taught the technique the mechanic requires -
+here, that driving at the target throws the tool the other way. Teaching it took street one
+from 120 to 492 with no change to the game at all.
+
+So: **a bot that loses to a dumber bot is a bug report about the bot.** Fix it before
+touching a single constant, or a whole balance pass gets built on a measurement of the wrong
+thing.
+
+**A bot that only optimises will die, and a mean taken over dead runs measures how long the
+game lets you live rather than how well the mechanic works.** The same bot finished six streets
+out of six with no lives left, so every reading was of a game nobody had played to the end.
+Give the scripted player the survival job as well and let survival win where they disagree,
+which is also how a person plays.
+
+**Sweep a manoeuvre rather than reasoning about its timing.** "Turn back when the tool reaches
+its extreme" is the intuitive rule for a pendulum and it is wrong: it ignores that the vehicle
+has to travel too, and the vehicle's own trip is most of the amplitude. Swept across load
+times, a quarter-period load peaked at 4.19 and a half-period load at 6.76 - a 60% difference
+that no amount of thinking about pendulums produced. Ten lines of throwaway script, and the
+numbers went into the test's comment so the next person does not re-derive them.
+
+**A test that samples one instant is testing its own timing.** The first version of that
+assertion read the tool's position after the manoeuvre, found it 2.6 metres the wrong way, and
+looked exactly like the physics being inverted. It had simply arrived half a swing late. The
+thing being asserted was only true for a moment - and that moment is the whole game - so the
+assertion has to be on the peak over the window, not on the end state.
 
 ---
 

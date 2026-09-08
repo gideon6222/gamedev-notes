@@ -278,6 +278,19 @@ rather than values. "A hazard breaks faster than the rock around it." "A deeper 
 rarer than the one above it." "The Cooling Rig's mineral lives below the heat line." These
 catch design mistakes before a human sees them, and several have.
 
+**A golden over floats needs a tolerance, and `snappedf` does not give you one.** Snapping a
+double to 0.001 and pasting it into the source as a literal does not round-trip: the bits the
+literal parses to are not the bits the snap produced, so the recorded golden can never match
+the run it was recorded from. The failure prints as `expected -0.825, got -0.825`, which is
+the least informative message a test can produce and reads as a broken harness. Compare floats
+in the golden comparator with an epsilon a thousand times finer than the snap - a behaviour
+change would have to be smaller than a micron to hide in it.
+
+It pays for itself a second time in CI. **Goldens are recorded on one machine and checked on
+another**, here Windows against a Linux runner, and bit-identical IEEE arithmetic across two
+toolchains is something people assume rather than something that is promised. Without the
+tolerance the suite eventually becomes a platform detector.
+
 ### The two ways a phone game silently loses scrolling
 
 Both of these were shipped in Candle Gift and neither is visible on a desktop, in a test that
