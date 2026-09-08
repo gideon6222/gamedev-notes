@@ -117,6 +117,12 @@ Under 2x, the cheap contrasting wax and the pricey matching one are a real decis
 a system is meant to compete with raw quantity, check it actually beats raw quantity** - with a
 test, at equal quantity.
 
+**A progress gauge needs headroom past its top rating, or it stops measuring at the moment it
+matters.** Candle Gift's end-of-run gauge was scaled to 1.35x the par value while three stars is
+awarded at 1.15x - so every three-star run pegged the bar, and a merely good result and a great
+one were the same picture. The gauge exists to distinguish exactly those two. Scale full-height
+to roughly 1.5-2x the top threshold and let the best plausible run sit around two thirds.
+
 **Cap a visible resource at exactly the number you can render.** Captain Run caps crew at 26
 because 26 is what the rig draws, so the HUD number is never a lie and losing crew is always
 visible. Overflow converts to currency with a "CREW FULL +240" popup, which turns a wasted
@@ -125,6 +131,14 @@ pickup into a readable reward — and into the reason to buy the cap upgrade.
 ---
 
 ## Tension
+
+**A moving obstacle needs a provably reachable gap, computed rather than eyeballed.** Candle
+Gift's sweeper is a bar that slides across the lane, and it shipped at its drawn half-width plus
+the standard collision tolerance, swinging most of the steerable band: at every point in its
+swing it covered 61% of the lane, so the scripted good player lost half its slab to it every
+time. A static obstacle you can see is a decision; a moving one with no gap is a tax the player
+cannot tell apart from bad luck. **Write down the worst-case clearance - swing amplitude plus
+half-width plus tolerance against the steerable width - before tuning the frequency.**
 
 **Attrition gives you one question; a rhythm gives you a bet.** A slow drain charges for time
 and the answer is always "leave a bit sooner". A recurring, announced event makes the decision
@@ -546,6 +560,22 @@ nothing, enumerate what you never configured.**
 **Gradient skies for free.** Render with `alpha: true` and no scene background, then put a CSS
 gradient behind the canvas.
 
+**A prop placed relative to where the player stops has to clear where the camera goes when they
+stop.** Candle Gift's display table sat two units past the finish line, which was fine for the
+whole run and wrong for the one shot that matters: the end-of-run camera swings forward past that
+line to look back at the player object, so a six-metre slab ended up between the lens and the
+thing being framed and the shot was mostly table corner. **Any end-of-run camera move is a second
+placement pass over everything near the finish** - and moving the camera *behind* the object
+rather than in front of it makes the scenery beyond the finish a backdrop instead of an
+obstruction.
+
+**Decorative meshes that are not instanced cost the same as the thing they decorate.** Three shop
+fronts of seven meshes apiece took Candle Gift from 63 draw calls to 87 the moment they entered
+the frustum, and the extra four per front were an outline hull and a `+` built from two crossed
+boxes - both invisible at the distance they are ever seen from. Baking the `+` into a 64px canvas
+texture and dropping the hull cost nothing visible and gave back twelve calls. **Count the meshes
+in a decorative group before you place three of them; detail below a few pixels is pure cost.**
+
 **A panel over the game is a pop-up however you style it.** Leaving half the world visible behind
 a shop says "you are still out there". Hide the game entirely, give the screen a window that looks
 out on where the player actually is, and put the exit at the bottom where a door would be.
@@ -673,6 +703,23 @@ throughput.
 obviously right and put every axe into trash while the boss the horn had just announced sat at
 full health, slamming on its own clock. Worse, it was self-reinforcing: damage scaled with warband
 size, so each hit cut the damage that would end the fight.
+
+**A bot is a definition of "playing well", so it has to live in the repo.** Candle Gift picks
+`par` - the number the star rating and the end-of-run gauge are both drawn from - by running four
+scripted policies over a level and choosing the value that separates them. One pass measured with
+an ad-hoc policy typed into the browser console, whose lookahead was a few units longer than the
+one committed in `e2e`; it scored 64,606 where the committed bot scores 39,134, and par went in
+44% too high. Nobody could have caught that by reading the number. **Measure balance with the bot
+anybody can re-run, name it in the comment beside the constant, and pin the ratings it produces in
+a test** - otherwise the constant is not measured, it is remembered.
+
+**Restarting the run is not restarting the game.** Candle Gift's `freeze()` restarts the level in
+place but leaves `S.level` alone, and every layout decision is keyed on `hash(chunk, salt + level)`
+- so the headline test, comparing a weaving policy against a gathering one back to back, was
+comparing two *completely different runways*. Not "one slightly harder": level 2 happens to be a
+bad draw, where the same bot brings home 14 candles instead of 29. Any A/B over a procedural world
+has to reset the seed inputs, not just the position. **Ask what the seed is keyed on, and check
+your reset touches all of it.**
 
 **What you own and what you have done are different lists.** Coreward's relic check asked "do I
 already own this perk" — which answers yes for every planet past the eighth, where the perks
