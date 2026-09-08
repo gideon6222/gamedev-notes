@@ -158,6 +158,14 @@ second build matters.
 - **Verify the target SDK from `android/build/config.gradle`, not from the bundle.** An
   AAB's manifest is protobuf rather than binary XML, so `aapt2 dump xmltree` cannot read it
   and returns nothing — and a check that passes on an empty string is worse than no check.
+- **`GRADLE_OPTS=-Dorg.gradle.daemon=false`, or the export never exits.** Godot writes a
+  valid bundle and then waits on the Gradle daemon Gradle forked behind it. Measured: 0%
+  CPU for eight minutes with the AAB already on disk. With the daemon off, exit 0. In CI
+  that is a job burning until the timeout with nothing wrong.
+- **Verify the artifact, not the exit code.** This export has returned -1 having produced a
+  perfectly good bundle, and returned 0 having produced nothing at all. Assert the file
+  exists, is a plausible size, and passes `jarsigner -verify`. An exit code is a proxy; the
+  bundle is the thing.
 - **Target API 36 (Android 16)** for new apps and updates from 31 August 2026. Existing
   apps below API 35 become invisible to new users on newer devices. **This rises every
   year** — it is a recurring maintenance item, not a one-off.
