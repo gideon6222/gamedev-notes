@@ -13,6 +13,21 @@ played on a Galaxy S26 Ultra, installed to the home screen as PWAs.
 | **`ASSETS.md`** | Where to get things we did not make, how to shrink them, and when not to bother | Rewrite in place |
 | **`PLAYTESTS.md`** | What Gideon actually said, dated, in his words | **Append only** — it is evidence |
 
+## No game is a one-off
+
+Every game is built to be added to indefinitely, so every one gets the full stack from the
+first commit — git, Vite, TypeScript, CI, a size guard, a golden test, `CLAUDE.md`,
+`NOTES.md`, a build stamp and a changelog. `PIPELINE.md` has the list. There is no "start
+simple and migrate later": that migration then has to happen around a game you are trying not
+to break.
+
+## How this reaches every session
+
+`~/.claude/CLAUDE.md` points at this repo and loads in **every** Claude Code session on this
+machine, in every project. Each game repo also has its own `CLAUDE.md` pointing here, which
+loads when a session runs in or under that directory. A session already running when these
+files change will not see them until it restarts.
+
 ## The one rule
 
 **Write what you learn in the same commit as the change that taught it.** Not at the end of a

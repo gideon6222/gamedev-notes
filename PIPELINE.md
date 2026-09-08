@@ -19,23 +19,38 @@ build step", "relative paths only, no tooling" — were written when Claude coul
 files through the GitHub connector and could not run anything. **They were precautions, not
 design choices, and they are no longer binding.**
 
-They are still a legitimate *option*, and that distinction matters: Captain Run was built in
-one session on the plain static stack and it was the right call for a game of that size.
-Pick by the game, not by a limitation:
-
-- **Plain static, no build** — one-session games, a single mechanic, no tests worth writing.
-  Fastest path from idea to phone.
-- **The full stack below** — anything that will be returned to. The moment a game has a
-  second session, the golden tests and the size guard start paying for themselves.
-
 If a rule anywhere else reads like a precaution against not being able to run something, it
 is from that era. Delete it.
+
+## Every game is built to be continued
+
+**There are no one-off games.** Gideon does not make them, and nothing here should offer the
+option. A game that starts without the build, the tests and the size guard is a game whose
+second session begins with a migration — and that migration is strictly more work than
+setting it up on day one, because by then there is a game to avoid breaking while you do it.
+
+So: **the full stack below, from the first commit, for everything.** Even a prototype. Even
+something that looks like an afternoon.
+
+Concretely, before any game logic is written:
+
+- `git init`, a GitHub remote, and a first commit
+- Vite + TypeScript + the pinned three.js
+- `CLAUDE.md`, so the next session and every other chat picks up this repo
+- `NOTES.md`, so decisions have somewhere to go
+- The CI workflow, the size guard, and a golden test that asserts *something*
+- A build stamp, a version number and a changelog
+
+That list is about twenty minutes copied from the previous game. The cost of skipping it is
+paid later, with interest, by whoever comes back to the game — which is always going to be
+someone.
 
 ---
 
 ## The stack
 
-Verified working on Coreward, and the default for a new game unless there is a reason:
+Verified working on Coreward. **This is the stack for every game**, from the first commit —
+see the section above for why there is no lighter option.
 
 | Piece | Choice | Why |
 |---|---|---|

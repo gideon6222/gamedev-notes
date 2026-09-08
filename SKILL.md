@@ -57,11 +57,14 @@ not need a document, he needs to know what he is getting.
 
 ## Build
 
-Pick the stack by the game, not by a limitation — see `PIPELINE.md`. A one-session game can be
-plain static files; anything that will be returned to should have the build, the tests and the
-size guard from the start.
+**Set the game up to be continued, before writing any game logic.** Every game gets the full
+stack — git, Vite, TypeScript, CI, the size guard, a golden test, `CLAUDE.md`, `NOTES.md`, a
+build stamp and a changelog. There are no one-off games here, so there is no "start simple and
+migrate later": that trade always loses, because the migration then has to happen around a game
+you are trying not to break. See `PIPELINE.md` for the list; it is twenty minutes copied from
+the last game.
 
-Non-negotiables regardless of stack:
+And regardless of what the game is:
 
 - **Touch controls sized for a thumb**, bottom of the screen, safe-area aware.
 - **An on-screen error overlay**, registered in `<head>`. He has no console.
