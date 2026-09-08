@@ -22,6 +22,57 @@ That is a two-week wall standing between "the game is finished" and "the game is
 published", and it can be served **while the game is still being built**. Start it early
 with whatever is playable.
 
+It is a **one-time, account-level gate** — passed once, for the first app, and every game
+after that publishes straight to production. Worth knowing before deciding how much effort
+to spend avoiding it.
+
+### Google does not provide testers, and there is no way to ask
+
+There is no pool, no matching service, and no request mechanism. Twelve real Google
+accounts, joined through your opt-in link, on real Android devices. Emulators, duplicate
+accounts and bots do not count.
+
+**The bigger trap is not finding twelve people — it is keeping them.** A tester who opts
+out restarts *their own* 14 days, so recruit fifteen to twenty and expect churn. The clock
+is the thing that bites.
+
+**And since 2026 the review checks that the testing was real.** The production access
+questionnaire asks what you learned from the test, and reviewers cross-reference tester
+account age, activity history, IP addresses, device fingerprints and session lengths.
+Twelve dormant installs fail. What passes is evidence of a feedback loop: testers played
+it, said something, and you shipped an update during the test that acted on it.
+
+That makes the cheap Fiverr and Telegram "12 testers for $10" services actively dangerous —
+they deliver accounts that opt in and never play, which is the exact pattern the review is
+built to detect, and the downside is account termination rather than a rejection. Tester
+*exchange* communities, where you genuinely test other people's apps in return, are
+allowed — Google does not restrict how you find testers — but the quality varies and the
+churn is high.
+
+**For a game this is an easier problem than it is for most apps.** The rule is asking for
+twelve people who will actually play the thing for two weeks, and a game people might
+enjoy is exactly what that is easiest to find. Friends and family who would have played it
+anyway are the intended answer.
+
+### The way around it: an organization account
+
+**Organization accounts are exempt from the closed-testing requirement entirely.** They
+publish straight to production.
+
+The cost is paperwork: a legal business entity and a **D-U-N-S number** from Dun &
+Bradstreet. A **sole trader qualifies** — no limited company needed — and the D-U-N-S
+number is **free** on the standard timeline. Budget roughly three to five weeks end to end,
+most of it waiting.
+
+It also changes what appears on the store listing: apps publish under the business name
+rather than a personal one.
+
+**Which to choose.** The gate is one-time, so for a hobby account the twelve testers are
+usually less total effort than four weeks of business registration — and the testers are
+people who wanted to play the game anyway. Take the organization route if you want to
+publish under a studio name, or if waiting two weeks at the end is worse than waiting four
+weeks at the start.
+
 **2. Developer verification.** KYC identity check, plus registering package names and
 signing keys. Required now for Play *and* for sideloading. Enforcement began 30 September
 2026 in Brazil, Indonesia, Singapore and Thailand, with the rest following through 2027.
