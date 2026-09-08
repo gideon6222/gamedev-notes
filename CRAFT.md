@@ -629,6 +629,27 @@ placement pass over everything near the finish** - and moving the camera *behind
 rather than in front of it makes the scenery beyond the finish a backdrop instead of an
 obstruction.
 
+**A long-play video is worth ten store screenshots.** Candle Gift's eight official
+screenshots show the runway and almost none of the UI, and four rebuilds off them got the
+world closer and closer while every *screen* stayed wrong. One four-minute "levels 1-6"
+walkthrough showed the home screen, the end-of-run ruler and the reward screen in one pass -
+and showed that the reference has **no upgrade screen at all**, which no amount of staring at
+screenshots would ever have revealed. **Search for the longest playthrough, not the prettiest
+capture**, and note that these disappear: one of the three found for this game was already
+gone a day later.
+
+**Absence is the hardest thing to observe, and the most valuable.** The finding that moved
+this game most was not a feature to add, it was a screen that was not there: no stat-upgrade
+list anywhere in six levels. Our version opened one after every level. When comparing against
+a reference, list what it does *not* have as deliberately as what it does - a screen you
+invented is invisible to you precisely because you built it on purpose.
+
+**A HUD is a claim about what the player should be thinking about.** The reference shows
+three things: settings, level, money. This build had grown a candle counter, a live value, a
+colour-chip readout and a progress bar - each individually justifiable, and together the main
+reason a screenshot of it did not look like a screenshot of the thing it was copying. Adding
+a readout is the cheapest change in a game and the easiest to keep adding.
+
 **Magnify the reference before you model from it.** Three passes at Candle Gift's obstacles
 were built from store screenshots viewed at page size, and all three came out as generic
 shapes - a red box, beads on a string. Cropping the same images into a canvas at 4x with
