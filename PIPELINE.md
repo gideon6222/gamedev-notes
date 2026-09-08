@@ -184,6 +184,18 @@ stats, pathfinding, curves. They run in a second and they catch balance and cont
 They **cannot** catch a wiring bug: a module split once dropped
 `requestAnimationFrame(frame)` and every golden test passed.
 
+**The headless tick seam is what makes the deep game testable at all, and it is worth
+retrofitting.** Coreward went three sessions with its deep content untested for one reason:
+reaching 85 m meant holding a d-pad in a real browser for as long as it would actually take
+to fly there, and a test that costs a minute of wall clock never gets written. Splitting
+`frame(now)` (asks the time, calls rAF) from `tick(dt, draw)` (does the work) and exposing
+the second behind `?debug` measured **51x real time** - twenty simulated seconds in 396 ms -
+and made the first end-to-end proof that tremors fire take 2.6 seconds. Measured per tick on
+a real GPU: **0.239 ms simulating, 0.534 ms drawing**, so the "only draw the last step" rule
+is a 69% saving before you even reach a software rasteriser. Expose the state objects too:
+a test that reads the HUD asserts on a rounded string, and `DEPTH 0 m` is true at both 0.0
+and 0.49.
+
 **Smoke tests** (Playwright, against the production build). The load-bearing assertion is
 "the frame loop advances". Then: a WebGL context exists, digging and selling work, every
 panel opens, the audio graph builds on a real gesture, draw calls are in budget, the stamp
@@ -196,6 +208,19 @@ catch design mistakes before a human sees them, and several have.
 
 ### Rules that were learned the hard way
 
+- **Give every game its own preview port, and never a Vite default.** Coreward and Captain
+  Run both used 4173. With Playwright's `reuseExistingServer` on locally, a Coreward suite
+  running while the sibling game's suite was running **adopted Captain Run's server** and
+  tested a different game's build - then failed halfway through with
+  `ERR_CONNECTION_REFUSED` when that run finished and tore the server down. It presents
+  exactly like flake: single tests pass, the full suite fails, and a different set fails each
+  time. Several games are built on this machine at once, sometimes literally at the same
+  moment, so this is a standing hazard rather than a one-off. Pick a number no default will
+  land on (Coreward: 4319 for tests, 4318 for the interactive preview, deliberately
+  different so opening the game to look at it cannot disturb a run). Diagnose it with
+  `Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Select ProcessId, CommandLine` -
+  the command line names the repo, which is what makes the collision obvious in seconds
+  rather than after an hour of blaming your own change.
 - **Wait on game state, never on wall-clock time.** The frame loop clamps its delta, so on
   a machine without a GPU the game advances in slow motion and any fixed sleep becomes a
   flake. Poll for the state you asserted to be *rendered*, not just set.
