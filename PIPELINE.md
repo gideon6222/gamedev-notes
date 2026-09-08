@@ -106,6 +106,12 @@ cheap: stack, deploy, the file map, and the invariants that are not obvious from
 
 ## Shipping
 
+**Enabling Pages is a one-time manual step, and a workflow cannot do it.** Settings → Pages
+→ Source = "GitHub Actions". `actions/configure-pages` with `enablement: true` is refused
+with `Resource not accessible by integration` on the create-a-pages-site endpoint, whatever
+the workflow's `permissions:` block says. Captain Run sat with `has_pages: false` and a live
+URL in three different files that had never served anything.
+
 **Push straight to `main`.** CI is the gate. A build that fails any step cannot deploy, so
 the previous version stays up.
 
