@@ -330,6 +330,24 @@ black reads as "this is as far as the light reaches" — the same picture, oppos
 reads as a grey wash. Holding the middle mostly clear and falling off hard in the last third reads
 as light running out.
 
+**A normal map is how a photographed texture gets into a stylised game.** It carries no colour,
+so the hand-tuned palette survives intact and every surface gains relief. Take the normal map out
+of a CC0 PBR set and leave the colour map behind - that half is style-neutral, and the other half
+is the join that shows in the first frame. Coreward's flat-shaded facets went from folded paper
+to rock for 46 KB.
+
+**Sample it on world position, for the same reason as the displacement below.** Mapped to each
+cube's own UVs the detail restarts at every cell and the wall reads as a stack of identical
+boxes. In three.js `vNormalMapUv` is an ordinary varying, so overwriting it with world XY in the
+vertex shader is the entire change and everything downstream is stock.
+
+**Expect to need a far higher `normalScale` than usual over flat shading, and measure it rather
+than reasoning about it.** At 0.45 Coreward's was invisible; at 3.0 it read clearly with the
+facets completely intact. Spreading one tile over several cells is what does it - only the
+texture's low-frequency component survives, so the value that looks "wrong" is the correct one.
+Check it lit by a moving lamp, not on a static screenshot of a flat-lit surface: the whole effect
+is in how light rakes across it.
+
 **Displacement keyed on world position is what makes stacked boxes read as rock.** Per-cell
 displacement makes neighbours disagree at the seam. `flatShading` then derives normals from the
 displaced surface for free.

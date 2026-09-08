@@ -85,13 +85,41 @@ curl -s "https://api.polyhaven.com/files/Barrel_01"      # download URLs, per re
 Photoreal, so the wrong register for anything stylised — but it is the one 3D source that
 can be scripted end to end, and its textures are useful regardless of art style.
 
-### Verified: ambientCG
+### Verified: ambientCG, end to end
+
+CC0 PBR textures, no key, and the one source that goes from search to a shipped file without
+a browser. This is the whole pipeline, run on 2026-09-07 to put real rock into Coreward:
 
 ```bash
-curl -s "https://ambientcg.com/api/v2/full_json?limit=1"
+# 1. search (displayData gives you tags to choose on)
+curl -s "https://ambientcg.com/api/v2/full_json?type=Material&q=rock&limit=40&include=displayData"
+
+# 2. the download is one zip of the whole PBR set - 9 MB at 1K-JPG
+curl -sL "https://ambientcg.com/get?file=Rock035_1K-JPG.zip" -o r.zip && unzip -q r.zip -d r
+
+# 3. take the ONE map you want and shrink it. three.js wants NormalGL, not NormalDX
+npx sharp-cli -i r/Rock035_1K-JPG_NormalGL.jpg -o out.webp resize 384 384 -- webp -q 70
 ```
 
-CC0 PBR textures, no key. Good when a procedural texture has stopped being convincing.
+**Take the normal map and leave the colour map.** This is the rule that lets a photographed
+texture into a stylised game at all: a normal map carries no colour, so every surface keeps the
+hand-tuned palette it already had and gains relief. The colour map from the same download would
+drop a photograph into the middle of a flat-shaded low-poly world, which is the join that shows
+in the first frame. Half of a photoreal asset is style-neutral; ship that half.
+
+**Size it from physical pixels, not from what the download offers.** On an S26 Ultra at a pixel
+ratio capped to 2 a Coreward cell is about 118 physical pixels. Tiling one texture across four
+cells means it is displayed at roughly 470 px, so **384 x 384 is native** and 1K is three
+quarters of a megabyte thrown away. Measured WebP sizes for that normal map: 256 q82 **26 KB**,
+384 q70 **45 KB**, 512 q70 **84 KB**. Do this arithmetic before downloading, not after.
+
+**A normal map is already compressed; gzip does nothing.** Coreward's code and HTML gzip to
+161 KB and the 46 KB texture is 46 KB on the wire - a 29% bigger download for the largest
+surface in the game. That is worth knowing before adding the second one.
+
+**`sharp` is the tool and it does not need to be a repo dependency.** The conversion is run by
+hand once; install it in a scratch directory, commit the output. Windows has no ImageMagick, and
+`C:\Windows\system32\convert` is a disk utility that will happily not be what you meant.
 
 ---
 
@@ -147,7 +175,9 @@ Things worth knowing about Web Audio, learned rather than looked up:
 | Game | Asset | Size | Verdict |
 |---|---|---|---|
 | Coreward | Chakra Petch, 2 weights, self-hosted | 20 KB | Clear win. Changed every screen |
+| Coreward | ambientCG Rock035, **normal map only**, 384², WebP | 46 KB | Clear win. Flat facets became rock |
 
-That is the whole list, and it is not an accident. Procedural generation plus flat-shaded
+Both are things the player reads at full size, which is the rule at the top of this file doing
+its job. Nothing modelled has ever been worth importing. Procedural generation plus flat-shaded
 low-poly has carried two games to a finish. The right question is never "what can I import"
 but "what is the player looking at long enough to notice".
