@@ -11,6 +11,7 @@ played on a Galaxy S26 Ultra, installed to the home screen as PWAs.
 | **`PIPELINE.md`** | The stack, how to ship, and the **measured** limits. Start here to find out what is actually constrained | Rewrite in place |
 | **`CRAFT.md`** | What makes a game good. Organised by topic, not by date | Edit the right section |
 | **`ASSETS.md`** | Where to get things we did not make, how to shrink them, and when not to bother | Rewrite in place |
+| **`PLAY.md`** | Getting a game onto the Google Play Store: the accounts, the keys, the paperwork and the two waiting periods. Mostly not code | Rewrite in place |
 | **`PLAYTESTS.md`** | What Gideon actually said, dated, in his words | **Append only** — it is evidence |
 
 ## No game is a one-off

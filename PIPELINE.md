@@ -235,6 +235,18 @@ unexpectedly, not in the specific number.
 
 ---
 
+## A test script that lists files by hand will silently stop running them
+
+Candle Gift's `npm test` named its six unit-test files one by one. A seventh file was added,
+`npm test` reported **65 passing**, and nine new tests had simply never run - no error, no
+skip, nothing to notice unless you happen to know what the total should be. Point the runner
+at a pattern (`node --test test/*.test.mjs`) so adding a file is enough.
+
+The general shape: **any list of things to run that is maintained by hand fails silently in
+the safe-looking direction.** It never breaks the build, it just quietly covers less. Worth
+checking anywhere a config enumerates files - test globs, workbox precache patterns, the
+entry points a bundler is told about.
+
 ## Testing, and what each layer is for
 
 Three layers, each catching something the others cannot:
