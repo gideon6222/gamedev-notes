@@ -463,3 +463,69 @@ So, like, when you upgrade thrusters and starts to change the way they look, it 
 way that they look when you're actually playing the game."
 - The right instinct, and it turned into the design of the whole shop: show the real ship and the
   real parts rather than a preview, so the two cannot disagree.
+
+### 2026-09-08 - Wrecking Crew, and the genre was the problem
+
+Three shapes in one day. Worth recording all three of his notes, because each one was a
+correct structural diagnosis rather than a matter of degree - the pattern in "Working with
+Gideon" holding for a fourth session.
+
+**On the first build (a lane runner with a fixed forward-pointing boom):**
+
+"i think it would be more fun if the main goal was to rotate the crane part to hit the
+buildings, especially as we add things to aim for. we would still be able to swipe to move
+as well and have occasional obstacles to dodge but much less and would be more of an
+additional thing to pay attention to rather than a main objective."
+
+- Right, and the reason is worth keeping: aiming WAS the whole game and you could not see
+  yourself aim. The ball was driven by the rig's lateral acceleration, so the only feedback
+  on your aim was whether you hit something. Making the turret slew bought the one thing
+  that mattered immediately - a bot that never touches the crane now scores exactly zero,
+  where the equivalent bot on the old scheme scored 138 against the aimer's 268, because a
+  ball driven by the vehicle's own movement swings into things by accident.
+
+**Also, the same message:** "the game froze here" with a screenshot.
+
+- The screenshot named the cause on its own. "BEST 582 on street 1" is only written when a
+  street FINISHES, so the run had reached the end, `over` went true, and nothing existed to
+  start street 2. A known gap in NOTES.md shipped as a hard stop. The lesson is in CRAFT
+  now: every test in the suite played a level and read the state at the END, which is the
+  exact instant the freeze began. The suite was not weak, it was uniform.
+
+**On the second build (the crane runner):**
+
+"The button icons don't line up with where you need to press on the screen. The icons are
+about .5 inches too high."
+
+- One cause, two symptoms, both mine. `stretch/aspect = "expand"` keeps the base WIDTH and
+  extends the HEIGHT, so his screen's canvas is ~1080x2340 while the project base is
+  1080x1920 - and the pads were laid out against the literal 1920. Separately the hit test
+  scaled touches into a space of its own, so the drawn control and the region that responded
+  disagreed with each other too. No headless test could catch it: the base size is exactly
+  where the wrong layout and the right one agree.
+
+"I think I would prefer having what looks like a joystick for the actually wrecking ball
+machine on the screen that you move to rotate the boom, then if you swipe below it, it moves
+the machine the direction you swipe."
+
+- Built as described, and it turned out better than a generic stick: the dial draws the
+  machine from above, with the boom where you pointed it AND a dot for the ball where it
+  actually is. The gap between those two is the lag the whole game is about, and it is now
+  readable without looking up at the crane.
+
+**And the one that changed the game:**
+
+"One thing that shows me though is that there isn't really a risk or reward yet. Can you
+think of a way to have the buildings we are destroying be necessary? Like it unblocks a
+path, or we are breaking beams inside a much larger building to collapse it? I think my may
+complaint is I want to focus on the breaking part and don't know if this forward lane style
+game is the best option."
+
+- The most valuable note anyone has given on this project. It was not a balance problem and
+  I had been treating it as one: in a runner the buildings are scenery you pass, passing is
+  free, and no tuning makes optional destruction necessary. His own suggestion - breaking
+  beams inside a larger building to collapse it - is now the game. One condemned building per
+  site, a fixed number of swings, columns at the base, and a lean that puts it on the block
+  next door if you work along one side.
+- Worth noting for next time: **he proposed the fix and the fix was right, twice in one
+  session.** The pattern is now four sessions old and has not failed once.
