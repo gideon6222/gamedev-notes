@@ -580,6 +580,26 @@ placement pass over everything near the finish** - and moving the camera *behind
 rather than in front of it makes the scenery beyond the finish a backdrop instead of an
 obstruction.
 
+**Magnify the reference before you model from it.** Three passes at Candle Gift's obstacles
+were built from store screenshots viewed at page size, and all three came out as generic
+shapes - a red box, beads on a string. Cropping the same images into a canvas at 4x with
+`imageSmoothingEnabled = false` showed a rimmed panel with a recessed face, interlocking
+diamonds on a shaft anchored to a post *outside* the rail, and a navy arrowhead that says
+which way the moving one is going. Those details are 40 pixels wide in the source and they
+are the entire difference between "similar" and "the same game". **If you are modelling from
+an image, the crop is the research step, not the glance.**
+
+**Every hazard in one colour family.** Candle Gift makes everything that costs you candles
+coral - panel, spikes, sweeper - so "this hurts" is one thing the player learns once and then
+reads at distance, in peripheral vision, at speed. Variety belongs in the silhouette and the
+behaviour, not the palette.
+
+**An obstacle anchored to the edge of the track guarantees its own gap.** The reference's
+spiked roller stands on a post outside the rail and reaches part way across; there is always
+somewhere to be. Deriving the collision box from that anchor - centre and half-width computed
+from the side and the reach - also means the hit box cannot drift away from the drawing,
+which is the usual way a fair obstacle becomes an unfair one.
+
 **Decorative meshes that are not instanced cost the same as the thing they decorate.** Three shop
 fronts of seven meshes apiece took Candle Gift from 63 draw calls to 87 the moment they entered
 the frustum, and the extra four per front were an outline hull and a `+` built from two crossed
@@ -714,6 +734,22 @@ throughput.
 obviously right and put every axe into trash while the boss the horn had just announced sat at
 full health, slamming on its own clock. Worse, it was self-reinforcing: damage scaled with warband
 size, so each hit cut the damage that would end the fight.
+
+**Calibrate against several procedural levels, never one.** Candle Gift's four scripted
+policies swing 25% from level to level on layout luck alone - its "dodge hazards only" bot
+scores 18,158 on level one and 1,350 on level five, where dodging is worse than doing
+nothing. A `par` set from level one put the best policy on three stars there and two
+everywhere else, and nothing about that was visible from the level-one numbers, which looked
+clean and well separated. Take the mean over five or six seeds, and keep the single-level
+numbers as a regression test that says in its own comment that it is not the calibration.
+
+**Removing an obstacle kind means removing its share of the danger, not redistributing it.**
+Deleting Candle Gift's saw and backfilling its spawn slot with a third barrier kept the
+runway exactly as busy and cost the weaving bot a fifth of its score - with the same number
+of candles lost. The damage was not to what the player *had*, it was to what they had *time
+to do*: in a game whose skill lives in a second system, every second spent dodging is a
+second not spent weaving. **When two systems compete for the same seconds, measure the one
+you care about after changing the other.**
 
 **A bot is a definition of "playing well", so it has to live in the repo.** Candle Gift picks
 `par` - the number the star rating and the end-of-run gauge are both drawn from - by running four
