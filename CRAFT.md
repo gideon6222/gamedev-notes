@@ -701,6 +701,22 @@ blob with no facets — the exact fault that render layers were added to fix, ar
 different route. Behind it, the ship silhouettes against its own light, which is what a lamp on a
 machine actually looks like.
 
+**A HUD sitting on a textured world needs a material of its own.** Translucent fills with soft
+corners are a clean overlay and the wrong one over photographed rock: the controls end up the
+only part of the screen made of nothing. One plate does it - a rolled-steel gradient, a small
+hard corner, a bright top edge and a dark bottom one, and a generated grain over the top. Draw
+the grain as fine speckle plus a coarse mottle plus a HORIZONTAL STREAK; the streak is what
+gives it a rolling direction, and without it noise reads as television static rather than as
+metal. Sixty-four pixels, tiled, built once at boot from a deterministic hash so screenshots
+stay comparable - zero bytes shipped.
+
+**Grain wants to be felt, not seen.** The first pass was three times too strong, and the tell
+is simple: you notice the texture before you notice the panel.
+
+**A pressed control should read as pushed IN, not lit up.** Coreward's d-pad flooded cyan on
+touch, which made it the loudest thing on screen at exactly the moment a thumb was covering it.
+Inverting the bevel and dropping it a pixel says the same thing and gets out of the way.
+
 **`setColorAt` is what makes one layer look like many objects.** Per-instance colour over a white
 base material gives every unit its own cloak and shield, and drives a weapon's colour straight
 from its tier — all from a single mesh.
@@ -1249,6 +1265,28 @@ that feeds it.** Two of Coreward's lighting tests asserted on the raw light fiel
 failed the moment the gradient was retuned to exactly what a playtest had asked for. A test
 that fails when the code becomes more correct is aimed at the wrong layer - and the fix is not
 to loosen the number, it is to assert in the units the person looking at the screen was using.
+
+**`Object3D.layers` does not stop a light from reaching an object.** Layers decide what a
+CAMERA draws. three.js collects a scene's lights once and hands all of them to every lit
+material - there is no per-object light filtering in the forward renderer. Coreward put its
+ship on its own layer specifically so the world's lamp would not reach it, and the comment
+saying so survived three versions while a point light of intensity 44 sat on the ship lighting
+it. The hull rendered pure white however dark it was painted.
+
+**Excluding a light from an object means a second render pass**: draw the world with the
+camera's layers excluding the object, then draw the object alone with that light's intensity
+set to zero and `autoClear` off so the depth buffer survives. It costs no extra draw calls -
+the same objects are drawn either way. Set `renderer.info.autoReset = false` and reset by hand
+at the top of the frame, or every draw-call budget test silently starts measuring only the last
+pass.
+
+**A metal gets its colour almost entirely from its environment map.** A high-metalness material
+has essentially no diffuse term, so with a dark albedo the environment IS the visible
+brightness - and a `CanvasTexture` used as one defaults to `NoColorSpace`, which decodes an
+sRGB gradient about two and a half times too bright. The symptom is an object that will not
+respond to being repainted. **If adjusting the obvious parameter changes nothing at all, stop
+adjusting it: that is the signature of a constant term drowning the one you are moving, and the
+next move is to measure, not to tune harder.**
 
 **A material has exactly ONE `onBeforeCompile`, and assigning it is how you silently delete
 somebody else's shader.** Coreward patches stock three shaders in three places — world-space
