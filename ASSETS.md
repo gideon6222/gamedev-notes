@@ -23,10 +23,40 @@ correct, cost nothing, and was **completely invisible** at play scale; it had to
 with a change to the *number* of sparks to read at all. Before importing a model, ask how
 many pixels tall it will be. Under about sixty, the answer is usually to model it.
 
+**And the inverse, which was missing and cost real time.** Over about two hundred pixels and
+permanently on screen, **import — and modelling it is what now needs justifying.** The rule
+above was written with only one threshold and only one bias ("usually to model it"), which
+reads as a default rather than as a question. It is not a default. It is a measurement, and
+it points both ways.
+
+Checked against Stillwater on 2026-09-09, after Gideon asked whether the rule had a valid
+reason or needed correcting. **The rule was right; the application was wrong.** A bucket in
+the bottom of a boat you are sitting in is about four hundred pixels tall. The rule already
+said import it. Nobody ever estimated the number — "model in code" was reached for as a
+habit, and the tell is exactly that: *if you cannot say roughly how many pixels tall the
+thing will be, you have not applied this rule, you have skipped it.*
+
 **The exception worth naming:** an object that is stationary, close to the camera, and
 looked at while nothing else is happening. Coreward's landing pad qualifies. That is a
 description of a *situation*, not of an object — look for the situation in a new game rather
-than assuming "the pad".
+than assuming "the pad". **A first-person interior is that situation permanently**, for every
+object in it: Stillwater's boat is on screen in every frame the game ever renders.
+
+### NEVER SHIP AN INTERACTION POINT WITH NO GEOMETRY
+
+The worst placeholder found in three games. Stillwater had a livewell, a bait box and a lamp
+that could all be looked at and used, and **none of them existed as geometry** - the player
+pointed at empty air and got a prompt back. It survived a reachability test that swept the
+entire look range, because that tests the AIM and not the picture.
+
+Two rules out of it, both cheap:
+
+- Assert that every interactable has **visible** mesh within arm's reach of its point. Visible
+  matters: the first version of that test counted hidden meshes, which let a lamp that is
+  switched off until it is bought stand in for one that is there.
+- **If the game names a thing, the thing exists.** Hiding the unbought lantern immediately
+  re-created the same bug in the other direction - the hint said "a bracket where a lamp would
+  go" and there was no bracket either.
 
 **The other rule that decides it: if the object's shape is gameplay state, it must be code.**
 Wick's candle cannot be a model under any circumstances - its radius is how much wax you have,
@@ -90,6 +120,27 @@ Deterministic, no licensing, no runtime cost, and the pitch jitter that stops a
 repeated sound becoming a machine happens at playback.
 
 ---
+
+## Match the pack's STYLE before its licence
+
+Kenney, Quaternius and KayKit are all CC0, all excellent, and all **stylised low-poly** -
+and all three would be wrong in a game lit by a photographic HDRI over PBR timber. One of
+their props next to Stillwater's plank normals reads as a different game leaking in.
+
+For a photoreal game the CC0 shortlist is short: **Poly Haven** (521 models, 994 HDRIs,
+real-world scale, PBR) and **ambientCG** (materials). Use the stylised packs when the game
+is stylised - which is most games, and is why they are named first everywhere else.
+
+**Poly Haven models come as glTF plus a `textures/` folder**, and the API's `include` map
+gives the relative paths. Preserve that layout or Godot imports a white model **with no
+error at all** - the texture reference simply does not resolve. Fetch pattern:
+
+```
+https://api.polyhaven.com/files/<id>   ->  .gltf.1k.gltf  {url, include{rel: {url}}}
+```
+
+Measured: four props (bucket, crate, lantern, lifebuoy) at 1k came to 8.25 MB of source,
+and the VRAM-compression settings in the HDRI section above apply to their textures too.
 
 ## Sources, ranked by usefulness to us
 
