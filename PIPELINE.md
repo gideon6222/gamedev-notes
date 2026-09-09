@@ -531,6 +531,23 @@ stopped, whatever you call yourself is the frame; if it is running, it will over
 the next tick and your change may never be visible. The control tells you which world you are
 in without having to reason about it.
 
+### Attribute a rendering artefact to a LAYER before trying to fix it
+
+Five playtest rounds went into "there is a circle of light around the ship", and four
+different causes were found and correctly fixed before the fifth one was the real one. Every
+one of those rounds started by reasoning about which term in the shader could produce the
+shape, and every one of them cost an afternoon.
+
+The move that actually settled it took one call: hide the additive fog quad and re-render.
+The artefact vanished and the terrain kept its lighting, which said the fault was in the air
+volume and not in the shadows, the flood, the filtering or the terrain shader — ruling out
+four modules at once. Only then was it worth asking which term.
+
+So: when something looks wrong on screen, the first question is **which draw call is putting
+those pixels there**, not which line of maths is wrong. Toggle `.visible` on each candidate
+layer in turn. It is one call per layer and it partitions the search space; reasoning about
+the shader does not partition anything.
+
 ---
 
 ## A CI check that cannot tell you the answer must say so, not say nothing
