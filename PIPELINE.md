@@ -603,6 +603,44 @@ stitched into a grid - found four separate bugs in its first run that three indi
 chosen screenshots had missed. Same seam as the tests (freeze, then advance), so cell *n* is
 the same moment every time and two sheets a week apart are comparable.
 
+## Testing a Godot UI from a headless harness: three things that fail silently
+
+Driving real controls from a test is worth the trouble - it is the difference between asserting
+a button WORKS and asserting a button EXISTS - but three separate things stop it working and
+none of them reports an error.
+
+**`Viewport.push_input(event)` does nothing for the GUI unless you pass `in_local_coords = true`.**
+Without it the position is transformed by the viewport's canvas transform and the click lands
+nowhere. Measured on a bare `Button` under the root: zero presses without the flag, one with.
+This is the dangerous one, because **a click that hits nothing is not an error** - the test goes
+green having proved nothing, and it looks like a passing UI test forever.
+
+**Control layout is only resolved during a frame.** A `SceneTree` harness that does all its work
+in `_initialize()` never runs one, so every `Control` keeps a zero-size rect at the origin and
+every click misses. Let three frames pass first, and **assert the rects are non-zero before
+anything that depends on them** - that assertion is what tells you which of these two problems
+you have.
+
+**A new `class_name` is invisible until the project is re-imported**, and the failure mode is a
+*hang with no output* rather than a parse error you can read. `godot --headless --import` after
+adding one; CI usually does it already as its first step, so this only bites on the desk.
+
+### One writer for a UI phase
+
+A phase enum with `_show_screens()` called next to each assignment worked in four places out of
+five. The fifth was the test seam - it set the phase directly and left the previous screen drawn
+over the entire game. Make a `_set_phase()` that assigns AND recomputes every screen's
+visibility from the phase, and make it the only writer. Then a screen cannot be left up by a
+transition nobody thought about, and the recompute-from-state shape means adding a screen does
+not mean auditing every existing transition.
+
+### Restarting a level owes it the save
+
+Sim-level `restart()` naturally zeroes per-run state - cash, position, the batch. Progress lives
+somewhere else. Anything that restarts a level for a gameplay reason (buying a pre-run boost, a
+retry button) has to push the save back in afterwards, or it silently deletes progress as a side
+effect of something that looks unrelated. The bug reads as "the shop does not work".
+
 ## Four Godot traps that fail silently, and one that reads as a hang
 
 All five cost time on the first game written straight into the template rather than grown
