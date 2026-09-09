@@ -302,6 +302,36 @@ scenery; if the safe option simply scores more, there was never a decision.
 
 ## Legibility
 
+**DO NOT INVENT A SYMBOL FOR SOMETHING YOU CAN SHOW.** Stillwater's first hooking minigame was a
+marker sweeping a bar with a green zone: a perfectly good arcade mechanic, and completely
+abstract. Gideon replaced it in one sentence - *"can you make the initial hook portion of the
+mini game just watching the rod or bobber pull down. make it look like a fish is nibbling on the
+bait"* - and he was right, because **a float being pulled under IS the timing cue.** Drawing a
+second, invented representation of it above the horizon asks the player to learn a symbol for
+something already in front of them, and the symbol is worse: it carries no fiction, teaches
+nothing about the world, and has to be explained.
+
+The test before adding any HUD element: *is there something in the world that already does
+this?* A bar is right when the quantity has no physical form - tension in a line, a resource, a
+timer. It is wrong the moment the game contains the thing itself.
+
+**A cue that teases before it commits is a judgement; a cue that fires once is a reaction test.**
+That is the whole difference between Animal Crossing's fishing and Stardew's or Zelda's, and it
+is worth knowing which one you are building. The fish nibbles two or three times - shallow, brief
+dips that pop straight back - and then takes the bait properly, deeper and held. Striking on a
+tease loses it. The player is not being asked *how fast*, they are being asked *is this the one*,
+which is a far better question and survives repetition much longer.
+
+**Draw the difference in TWO dimensions, or the read fails.** A tease and a take differ in depth
+AND duration - 0.34 against 1.0, 0.26 s against 0.4-0.85 s. Either alone is a knife-edge; both
+together are obvious at a glance and stay obvious at distance, in motion, on a small screen.
+There is a test asserting each gap independently, because a tuning pass that closes one of them
+silently turns a judgement back into a coin flip.
+
+**And vary the count, or the player stops looking.** A fixed number of teases is a metronome:
+two bites and they are counting rather than watching, which defeats the entire mechanic while
+appearing to work perfectly.
+
 **A sphere reads as a bubble at any size.** It is the one shape with no orientation and no facets,
 so it cannot look machined however it is shaded. Coreward's cockpit was a sphere and it was most
 of what made the whole ship read as a toy; a four-segment wedge with a ridge and two angled panes
@@ -1386,6 +1416,21 @@ memory every frame - the tap rhythm re-initialised, the interval never elapsed, 
 **never tapped at all**. Six tests and most of a smoke suite failed at once with "correct play
 landed nothing", which reads as a broken game rather than a broken caller. Grep for the call
 sites the moment a policy gains state.
+
+**CONSTANTS THAT SHARE A FORMULA MOVE TOGETHER, and a test on the DERIVED quantity is what
+catches it.** Stillwater's tap kick was halved on request, to make each tap a finer step. Taps
+per second is `decay x tension / kick`, so halving the kick alone would have doubled the tapping
+rate into a dexterity test - that much was foreseen, and the decay was halved with it. What was
+not foreseen is that the same decay *also* sets where a fish's run settles, `run_pull / decay`,
+so the change quietly moved a run's resting tension from below the safe band to the top of it and
+made every run unsurvivable however it was played.
+
+Two rules out of it. **Before changing a constant, grep for every formula it appears in** - it is
+usually more than one, and the second one is the one that bites. And **put the test on the
+derived quantity rather than on the constants**, because the derived quantity is what the player
+feels: a test asserting "the band is holdable at a human tapping rate" and one asserting "a run
+left alone settles below the band" both failed the instant the decay moved, and named exactly
+what had gone.
 
 **Difficulty is usually the PRODUCT of two fields, and neither one tells you where a thing
 sits.** Raising the bluegill's run chance while leaving its "busyness" high made the *tutorial*

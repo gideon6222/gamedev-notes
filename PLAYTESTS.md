@@ -783,3 +783,29 @@ was a sign error that had been shipping for weeks and that nobody had put into w
 **Read the mechanism half of a report as seriously as the symptom half.** Twice now he has
 supplied the cause and I have treated it as a description of the symptom.
 
+
+### 2026-09-09 - the nibble, and four fixes in one message
+
+"can you make the initial hook portion of the mini game just watching the rod or bobber pull
+down. make it look like a fish is nibbling on the bait and pulling on the line. try to use
+other games as reference for it. the first tap sets the hook, then it pulls up the bar to tap
+and reel in the fish. can you make the taps move the bar in smaller increments as well? when
+you cast the rod should pull back, then fling forward but still be angled up. when you cast
+currently, it pulls back a little then angles all the way into the water before returning."
+
+- **The most useful of the four is the first, and it is a design principle rather than a
+  request.** The sweep bar was a perfectly good arcade mechanic and completely abstract: a
+  float being pulled under IS the timing cue, so drawing an invented representation of it above
+  the horizon asked him to learn a symbol for something already in front of him. Now in CRAFT
+  as *do not invent a symbol for something you can show*.
+- "try to use other games as reference for it" - he asks for research explicitly now, second
+  time running. Animal Crossing was the right one: teases before the take, which makes it a
+  judgement rather than a reaction test.
+- "it can just be a fun challenging mini game feel" from the previous round and "make it look
+  like a fish is nibbling" here are the same instinct twice: **he wants the fiction and the
+  mechanic to be the same object.**
+- The cast note is the third precise animation description he has given, and the third that was
+  directly implementable. "still be angled up" became a constant.
+
+Six sessions now. Every mechanism he has proposed has been the right one, and the last three
+notes have each named a fault I could not see in my own screenshot.
