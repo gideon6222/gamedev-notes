@@ -725,6 +725,21 @@ tools and platform-tools.
   **Real work pins one core - CPU seconds track elapsed seconds. A parse that has gone
   quadratic does not: 147 CPU-seconds against 16 elapsed minutes is about 15%, and that ratio
   is the tell.** Anything well under 100% means the file is broken, not the code slow.
+- **NEVER put backslash escapes in a Python heredoc through the Bash tool.** `
+` and `	`
+  arrive collapsed, so a generated GDScript string literal becomes a real newline and the
+  file is silently mangled - and a `replace()` without an `assert` next to it fails quietly
+  and looks like it worked. This has now cost time three times. Write the script to a file
+  with the Write tool and run it; put an `assert pattern in text` beside every replace.
+- **A hand-edit that has broken twice is a tool that has not been written yet.** The golden
+  re-record was a manual copy-paste and it left a stray `]` on two separate occasions. The
+  recorder now rewrites the file itself and refuses to save one whose top-level bracket
+  count is wrong. Two other things surfaced while writing it, both general: Godot eats a
+  leading `--` even after the `--` separator, so a user flag has to be a bare word; and
+  search a source file LINE BASED, not for `"
+]
+"`, or the first Windows tool to touch it
+  breaks the match and the error message sends you looking at brackets instead of newlines.
 - **Splice a re-recorded golden by finding the const's real end, not by appending a bracket.**
   The stray `]` above came from replacing `s[a:b]` with a block that had its own `]` added
   back on. After any script rewrites a source file, `grep -n '^\]' file.gd` costs nothing and

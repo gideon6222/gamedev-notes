@@ -1415,6 +1415,57 @@ passes for an arc that moves half a decibel.
 
 ---
 
+## Feel is layered, and the layers are ORDERED
+
+Swink's definition - "real-time control of virtual objects in a simulated space,
+with interactions emphasised by polish" - is a sequence, not a list. Stillwater
+was reported as "clunky" while having a working simulation, a real sky, generated
+audio and a film grade, because all of that is the THIRD layer sitting on almost
+no first layer: the world did not move and the player held down one finger.
+
+**Before adding polish, ask what the player controls continuously.** If the
+answer is "nothing", no amount of juice will fix it, and every hour spent on
+juice makes the game look better in screenshots and feel the same in the hand.
+
+The survey (arxiv 2011.09201) splits the work three ways and it is a good
+checklist: **physicality** (tuning what moves), **amplification** (juicing the
+events), **support** (streamlining - the invisible forgiveness; Celeste's
+controller is 5,400 lines of it).
+
+Specific things that transferred:
+
+- **An idle world reads as a screenshot.** Floating the boat on the same wave
+  function the water shader uses was the single biggest change - and generating
+  the shader's GLSL from one GDScript array is what stops the two drifting. Two
+  copies of a wave definition means a boat rocking slightly out of time with its
+  own water, which reads as broken in a way nobody can name.
+- **One finger, three verbs, discriminated by MOVEMENT not time.** Drag looks,
+  still-hold charges, tap taps. Time cannot work when one of the verbs is itself
+  a long press.
+- **Fire the channels together.** Particles, shake, audio and haptics as one
+  event with four channels. Any one alone reads as thin, and the survey is
+  explicit that they work synergistically.
+- **Keep it medium.** Kao's study found medium juiciness beat both extremes on
+  motivation, playtime AND performance. Two degrees of shake decaying in a third
+  of a second, not ten.
+- **Hit-stop freezes the PICTURE, never the rules.** Scale the presentation
+  delta, leave the simulation's clock alone, and a whole-run golden test stays
+  valid through the whole feature.
+
+## An action with no affordance is an action that does not exist
+
+Stillwater could always reel in - tapping during a wait called `reel_in` - and
+the playtest report was "there is not option to pull the line back in or
+recast". Nothing on screen said so, and that same tap set the hook during a
+nibble. **A verb hidden behind a gesture that already means something else is not
+a verb the player has.**
+
+The fix is an action button whose caption is DERIVED from the state by the same
+function that performs it, so the label and the behaviour are one decision. Two
+places computing that is a button that lies the first time a state is added.
+
+---
+
 ## Testing design, not just code
 
 **MEASURE A CLAIM IN THE PART OF THE GAME THE CLAIM IS ABOUT.** Stillwater's policy harness
@@ -1443,6 +1494,23 @@ Two smaller forms of the same thing:
   disagreed at exactly the depth the starting spot's full cast lands on every single time.
   Neither convention was wrong; comparing them there was. State the invariant where it is
   unambiguous - statically over the table - instead.
+
+**"IT FEELS CLUNKY" IS THE MOST VALUABLE PLAYTEST NOTE AND THE LEAST ACTIONABLE**,
+because nothing in it can be failed. Some of feel is taste and needs a person; a
+useful amount of it is objective and can be a test. Five that earned their place:
+
+| claim | assertion |
+|---|---|
+| affordance | every state names a visible action, and the caption matches what the control does |
+| dead time | from any state, pressing the one visible control leads back to playing |
+| latency | every input is answered within two frames - research puts consistent performance inside ~50 ms |
+| liveness | two samples of the world a second apart are never identical |
+| discrimination | one gesture never fires another gesture's verb, in both directions |
+
+The last one **failed on its first run and found a real bug**: cancelling a
+charged cast called the function that THROWS it, so looking around threw a line
+every time. Feel tests find feel bugs, which no amount of simulation testing
+will.
 
 **A PERFECT BOT WINNING IS NOT EVIDENCE ABOUT DIFFICULTY.** It is a fact about perfect bots.
 This is the most expensive testing lesson here so far, because the probe printed the answer a
