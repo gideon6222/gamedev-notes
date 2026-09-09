@@ -556,8 +556,32 @@ Neither produced an error — the test just failed on a string that also looked 
 
 ## The Godot stack (native Android)
 
-Proven end to end on 2026-09-08. `C:\dev\godot-template` is the copy-from repo; its
-`CLAUDE.md` has the toolchain paths and the full invariant list.
+**This is where new games start.** Proven end to end on 2026-09-08, and a first real game -
+Wrecking Crew - has been through it since. `C:\dev\godot-template` is the copy-from repo;
+its `CLAUDE.md` has the toolchain paths, the copy-and-rename steps and the full invariant
+list, and **it should be read before writing any game code**.
+
+Starting a new one, in full:
+
+```powershell
+Copy-Item -Recurse C:\dev\godot-template C:\dev\<game>
+Remove-Item -Recurse -Force C:\dev\<game>\.git, C:\dev\<game>\.godot, `
+    C:\dev\<game>ndroid, C:\dev\<game>uild
+```
+
+Then `git init`; rename in `project.godot`, `export_presets.cfg` (unique name, package name
+and BOTH export paths), `README.md`, `CLAUDE.md` and `scripts/check_size.gd`; reset
+`changelog.gd` to 0.1.0; ask Gideon for an empty public repo and push. **Set
+`ANDROID_DEBUG_KEYSTORE_B64` as a repository secret** from `C:\dev	oolchain\debug.keystore`
+straight away, or every CI build is signed by a different throwaway key and Android refuses to
+update the installed app.
+
+What the template already carries, so it does not have to be rebuilt: a pure simulation core,
+a hand-written test harness with a float tolerance, scripted policies and a balance probe, a
+whole-run golden, a smoke test that boots the real scene, a deterministic screenshot tool, an
+APK size guard that fails in both directions, CI, a build stamp and a changelog. A fresh copy
+passes its own gate before a line of game code is written - check that first, because a
+failing copy means something in the template drifted.
 
 | Piece | Choice |
 |---|---|
