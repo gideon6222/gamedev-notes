@@ -229,6 +229,30 @@ Things worth knowing about Web Audio, learned rather than looked up:
   depth, the danger layer has to bypass it, because the moment it needs to be heard is
   exactly the moment everything else is being darkened.
 
+**On Godot, generate at BUILD time and commit the WAVs.** The web stack synthesises at
+runtime because Web Audio does the arithmetic in C++; GDScript does it in GDScript, at about
+a million samples a second. Stillwater's four music beds alone are four million samples,
+which is four seconds of a black screen on the phone. A `SceneTree` script that writes
+16-bit mono WAVs by hand is thirty lines, runs headless, and is deterministic - same seed,
+same bytes - so re-running it and getting a diff means something actually changed.
+
+Two measurements from doing it:
+
+- **22050 Hz mono is enough** for water, wind, wood and low sine tones, and it halves a
+  library that would otherwise be most of the APK. Nineteen sounds, including three
+  eight-second ambience loops and four sixteen-second music beds, came to 4.0 MB.
+- **That 4 MB cost +3% APK, not +14%.** Godot compresses WAVs on export: 27.80 MB against a
+  26.98 MB budget, inside tolerance without a re-record. Do not pre-emptively downsample or
+  trim loops to protect a size budget that is not actually under threat.
+
+**Generated also beats downloaded on COHERENCE, which is the argument that matters.** A
+fishing game needs about twenty sounds that belong to each other - the reel click and the
+drag buzz are the same mechanism, the calm pad and the deep pad are the same chord - and an
+asset pack gives you twenty that belong to twenty other games. Generated, the whole set
+shares one key, one sample rate and one family of envelopes and is coherent by construction.
+It also turns the brief into a parameter: "happy but eerie, then worse" is a detune value
+rather than a second shopping trip.
+
 ---
 
 ## Search the libraries before deciding a game is unservable — the hit rate is per-SUBJECT

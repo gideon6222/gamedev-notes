@@ -298,6 +298,33 @@ changing. **The claim is not "the safe option scores higher". It is "the reckles
 never actually works."** If a player who ignores the threat can still finish, the threat is
 scenery; if the safe option simply scores more, there was never a decision.
 
+### One difficulty knob that swamps the others is a design bug, not a tuning problem
+
+Stillwater's twenty-six species had three fight fields, and measuring them showed the whole
+table fitted `win ~ 1.06 - 1.15 * run_chance`. Stamina and haul only set how LONG a fight
+ran. So "harder" and "runs more often" were the same statement - and tuning the tutorial
+water to be winnable therefore tuned the runs out of it. A player could finish the entire
+first act without ever seeing the mechanic the fight is built on.
+
+**Split frequency from severity.** How OFTEN the dangerous thing happens teaches it; how much
+it HURTS punishes it, and they must be separate numbers. The tutorial then runs constantly at
+a third of the strength, the endgame runs less often for much more, and difficulty rises
+without the mechanic disappearing from the place it is supposed to be learned.
+
+Two traps in doing it:
+
+- **Check the new knob is a dial and not a cliff.** The first split scaled both the instant
+  spike and the sustained pressure by the same factor, and every fish below 0.85 was landed
+  every time while everything above it was a coin flip - the spike decided the fight in one
+  frame and nothing after it mattered. Compressing the spike against the knob while leaving
+  the sustained pull alone turned it into a gradient, and made the better mechanic besides:
+  a strong enemy should mean "hold this off for the whole encounter", not "one instant
+  decided it".
+- **Give the knob an arithmetic ceiling and assert it.** Past some value the pressure parks
+  the gauge outside the safe band on its own and no play survives - that is a coin flip
+  wearing a skill mechanic's clothes. The bound is derivable (`SAFE_HI * decay / pull`), so
+  it is a test, not a matter of taste.
+
 ---
 
 ## Legibility
@@ -1363,9 +1390,59 @@ as something else in the room.
 **Sound is one of the three feedback channels.** An action with no sound reads as not having
 happened, however good the particles are.
 
+**A MOOD ARC IS A CROSSFADE ON A GAMEPLAY QUANTITY, NEVER A PLAYLIST.** Stillwater is meant
+to go from pleasant to unpleasant over hours. The version that works runs four beds
+continuously from the first second to the last - all one key, all one loop length - and
+changes only their levels. A game that switches to Creepy Track 2 at forty metres has told
+the player it is trying to frighten them, and being told is the end of it.
+
+Two things make it work, and both are worth copying:
+
+- **Drive it off a number the game already has**, not a story flag or an act counter.
+  Stillwater uses DEPTH, which is what the whole game is about. The immediate reward is that
+  the arc runs BACKWARDS for free: go and fish the shallows after the deep water and the
+  cheerful layer comes back, and discovering it still exists is a stranger feeling than
+  losing it was. No flag-based system gives you that, because a flag only counts forwards.
+- **The layer that LEAVES does more work than any layer that arrives.** The bells are most of
+  the first hour and gone by the halfway point, and nothing replaces them. An absence is the
+  loudest thing you can put in a score, and it costs no assets.
+
+**Assert the arc.** "The music changes" is a design claim, and a mix built by ear satisfies it
+on the day and silently stops satisfying it the next time a level is nudged - a soundtrack
+that quietly stopped changing is an inaudible regression. Drive the mixer at the depths the
+game actually produces and assert monotonicity AND a real span at each end; monotonic alone
+passes for an arc that moves half a decibel.
+
 ---
 
 ## Testing design, not just code
+
+**MEASURE A CLAIM IN THE PART OF THE GAME THE CLAIM IS ABOUT.** Stillwater's policy harness
+could only ever play from the default starting state, so every assertion in the suite was
+secretly an assertion about five tutorial fish. "Ignoring the warning costs you fish" was
+being tested in the one area deliberately built so that it does NOT - and when that area was
+made gentler the test failed, correctly, and looked exactly like a regression in the game. It
+was a regression in the measurement.
+
+The fix is to let the harness start anywhere - a spot, a level, a loadout - and then make each
+claim where it is supposed to hold. The tutorial got its own weaker claim in the same pass:
+a missed warning there costs TIME, not progress, so the opening can be forgiving without
+teaching the player that the warning is decoration. **A forgiving tutorial that makes a
+mechanic entirely free is training the player to ignore it, and the next area then punishes a
+habit the game itself taught.**
+
+Two smaller forms of the same thing:
+
+- **A test whose expectation is wrong looks identical to a bug.** Asserting that better line
+  reached deeper failed, because the starting bay has a bottom and no line finds a fifth metre
+  in four metres of water. Better line does not deepen the water you are in, it lets you GO
+  somewhere deeper - two halves of one gate, and a test expecting either to work alone is
+  testing a game that was not built.
+- **Do not compare two functions at a boundary they use different conventions for.** Band
+  lookup was half-open (`min <= d < max`), species lookup inclusive at both ends, and they
+  disagreed at exactly the depth the starting spot's full cast lands on every single time.
+  Neither convention was wrong; comparing them there was. State the invariant where it is
+  unambiguous - statically over the table - instead.
 
 **A PERFECT BOT WINNING IS NOT EVIDENCE ABOUT DIFFICULTY.** It is a fact about perfect bots.
 This is the most expensive testing lesson here so far, because the probe printed the answer a
@@ -1858,6 +1935,25 @@ whether a valuable strike still lands heavy, whether the flight still reads as f
 
 **Ship, then check.** Push to `main`, say it is pushed, and let him test on the phone. Do not gate
 on a preview or poll the live site.
+
+## "Unavailable" and "not a control" must not look the same
+
+A shop drew everything untappable in the same dead grey, so the motor you had just bought
+looked exactly like the one you could not afford - it said "fitted" in the visual language of
+"no". The same styling had been reused for the logbook, which meant every entry in the
+collection, the game's main long-term reward, was rendered as a disabled button.
+
+**Enabled/disabled is one axis; control/content is another.** A row that does nothing when
+tapped can be an achievement, a record, a heading or a refusal, and only the last of those is
+grey. Two booleans, not one.
+
+Worth noting how it was found: **the tests all passed.** They asserted that the rooms opened,
+filled, and closed, which they did. Screenshotting each screen and looking at it caught this,
+a logbook that could never show a fish under a kilo, and a map printing the same true useless
+sentence five times - none of which any assertion was ever going to state. **Take a picture of
+every screen you build, once, and look at it.**
+
+---
 
 ## Making an artefact less visible is not fixing it, and it costs you everywhere else
 

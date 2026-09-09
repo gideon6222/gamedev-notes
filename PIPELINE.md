@@ -729,6 +729,18 @@ tools and platform-tools.
   The stray `]` above came from replacing `s[a:b]` with a block that had its own `]` added
   back on. After any script rewrites a source file, `grep -n '^\]' file.gd` costs nothing and
   catches exactly this - and the count of top-level closers should be one per const.
+- **Start audio playback from `_ready`, never `_enter_tree` or straight after `add_child`.**
+  A node added during `SceneTree._initialize` reports `is_inside_tree()` as true immediately,
+  so guarding on that flag looks correct and still produces one "Playback can only happen
+  when a node is inside the scene tree" error per player per run. The flag is set before the
+  tree is actually running; `_ready` is deferred to the first PROCESSED frame, which is what
+  playback really requires. It also hands the headless tests what they want for free - they
+  process no frames, so nothing plays, while the mixer is still fully built and its levels
+  still assertable.
+- **Free the scene the smoke test built, before quitting.** Otherwise the run ends with
+  "N resources still in use at exit" - anything a node still caches. Harmless in itself and
+  worth removing anyway: a gate that always prints an error is a gate whose errors nobody
+  reads.
 - **Drive the picture with a screenshot script, which is the Godot equivalent of driving a
   browser.** A `SceneTree` script that instantiates the real scene, calls `freeze()`, advances
   through the same seam the tests use, waits about five frames and saves
