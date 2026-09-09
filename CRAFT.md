@@ -99,6 +99,25 @@ reached" is the cheapest structural progression available, and it should be *sho
 hidden: a row that says "Sealed until 90 m" is a reason to go deeper. A hidden row is nothing
 at all.
 
+**Show the NEXT locked thing, not all of them.** Corrected on 2026-09-09, after Gideon asked
+for future upgrades to be hidden and the rule above said not to. He was right and so was the
+rule — about different things. "Sealed until 90 m" when your best is 78 m is a reason to go
+deeper. The identical row when your best is 12 m cannot be planned toward, is five rungs away,
+and is one of *five* such rows crowding a phone screen; his word for the result was
+"cluttered". The rule was written when Coreward had ten upgrades and two gates, and it stopped
+being true at fifteen and six — quietly, because it was being applied rather than measured.
+
+The corrected form keeps the whole benefit: **everything unlocked, plus exactly one teaser,
+and the teaser is the shallowest thing still out of reach.** There is always precisely one
+visible reason to go deeper, which is what the rule was defending, and the other four stop
+being furniture. A test asserts both halves — at most one sealed row, and never zero while
+something is still gated.
+
+The general shape, worth more than the specific fix: **a rule about how much to show is a
+rule about a RATIO, and it silently expires when the content count changes.** When a list
+doubles, re-derive the rules that were written against its old length rather than reapplying
+them.
+
 **Two gates on one thing means one of them is decoration.** Coreward's laser was gated at 90 m
 of depth *and* by a material available from 22 m. A test now asserts every gated upgrade's
 material lives within 30 m of its unlock depth, and it caught this before a human did.
