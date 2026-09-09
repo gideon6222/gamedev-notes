@@ -603,6 +603,78 @@ stitched into a grid - found four separate bugs in its first run that three indi
 chosen screenshots had missed. Same seam as the tests (freeze, then advance), so cell *n* is
 the same moment every time and two sheets a week apart are comparable.
 
+## A Godot ScrollContainer does not scroll from a finger
+
+Measured against content taller than its view, pushing one event kind at a time:
+
+| Event | resulting `scroll_vertical` |
+|---|---|
+| mouse wheel | 50 |
+| `InputEventPanGesture` | 400 |
+| `InputEventScreenDrag` | **0** |
+
+`emulate_mouse_from_touch` does not save it either, because a mouse *drag* is not a wheel. So a
+shop list, an inventory, any scrolling panel is completely immobile on the phone, and nothing
+about it looks wrong in the editor or in a screenshot. Translate the drag by hand:
+
+```gdscript
+func _on_drag(event: InputEvent) -> void:
+    if event is InputEventScreenDrag:
+        scroll.scroll_vertical -= int(event.relative.y)
+        scroll.accept_event()
+```
+
+And the rows inside it need `MOUSE_FILTER_IGNORE`. A `Control` defaults to `STOP`, containers
+included, so every row swallows the gesture and the list moves only when the finger happens to
+land in a gap between two of them.
+
+## Shrink the view on purpose to test a scrolling list
+
+Seven rows fit on a phone, so at its real size there was nothing to scroll and the test passed
+having exercised nothing - a green light that would go out the day an eighth row was added,
+which is exactly when it would matter. The test now sets the container's height to something too
+small, asserts the content really does overflow, drags, and puts it back.
+
+Asserting a behaviour the current content cannot reach is the same failure as a threshold that
+never moves: it looks like coverage and is not.
+
+## An engine error is a test failure, even when every assertion passes
+
+A suite printed `Playback can only happen when a node is inside the scene tree` and reported
+itself green in the same breath. Make the runner script fail on any `ERROR:` line, not just on
+failed assertions. An error nobody has to act on is an error everyone learns to scroll past,
+and the next one under it is the real one.
+
+## A test must not depend on what the case before it left on disk
+
+A check asserted that sound starts on, and it was false - an earlier case in the same suite had
+written a preferences file with the sound off, and the scene had read it at boot. Deleting the
+file was not enough, because the scene was still holding the old value in memory.
+
+Reset both: the file AND whatever the object under test loaded from it. A check that depends on
+ordering fails in isolation or passes in the wrong order, and either way it is not testing what
+its name says.
+
+## Synthesise short sounds rather than shipping files, and give them arguments
+
+Eight percussive blips as `AudioStreamWAV`s built from sine waves at boot: no folder to keep in
+step with the code that names them, and a rename that misses one is silence, which nothing
+reports.
+
+The real return is that **a sound that is a function can take arguments.** A dip pitched by how
+many colours the candle already wears turns weaving through four pools into a rising figure
+rather than four identical clicks - not something a fixed sample does without a folder of
+variants.
+
+Build them as `AudioStreamWAV` rather than pushing an `AudioStreamGenerator` every frame: the
+generator wants a filled buffer on a deadline and drops out when a frame runs long, which on a
+phone is exactly when the interesting things are happening. Use a round-robin pool of players,
+or one restarted player cuts its own tail off every time two things happen at once.
+
+**Give the settings panel nothing to switch that does not exist.** A switch for a feature that
+is not there is worse than one fewer switch: the player turns it off, nothing changes, and now
+they do not trust the other one either. If there is a music toggle, there has to be music.
+
 ## Testing a Godot UI from a headless harness: three things that fail silently
 
 Driving real controls from a test is worth the trouble - it is the difference between asserting
