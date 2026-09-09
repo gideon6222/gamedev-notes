@@ -502,6 +502,38 @@ projects: [{ name: 'chromium',
 
 ---
 
+## Four Godot traps that fail silently, and one that reads as a hang
+
+All five cost time on the first game written straight into the template rather than grown
+from it. None of them fails the build.
+
+**`MultiMesh.use_colors` must be set BEFORE `instance_count`.** Godot refuses to toggle it
+once the buffer exists - "Instance count must be 0 to toggle whether colors are used" - and
+the result is a runtime error that leaves every instance untinted while the game runs on. Set
+it in the helper that builds the MultiMesh, before anything else touches it.
+
+**`Basis.scaled()` scales the WORLD axes, not the mesh's own.** A cylinder rotated ninety
+degrees about Z has its axis along world X, so it must be scaled `(length, radius, radius)` -
+writing `(radius, length, radius)` because that is how the mesh was authored draws a heap of
+overlapping boxes. **It looks like a layout bug and it is a transform one**, which is what
+makes it expensive: the search starts in the wrong file.
+
+**`TorusMesh` has no arc parameter.** There is no way to make a quarter-circle from one, so a
+"curved lamp-post arm" built out of it is a complete ring lying flat across the track. Build a
+curve from a post and a leaning boom, or from three boxes.
+
+**Cull scenery against the CAMERA, not the player.** A chase camera sits ten to fifteen metres
+behind, so anything culled at the player's own position is still several metres in FRONT of
+the lens - and a signpost a metre from the camera fills the bottom of the screen. Keep the
+camera's z in a field and cull against that.
+
+**Walking a path once per follower is quadratic, and it reads as a hang.** A trailing formation
+where each member samples back along a recorded path costs (members x samples) a frame: thirty
+followers walking ninety samples is 2,700 steps, invisible in a game playing one level and
+ruinous in a suite playing twenty. A pure test suite went from about two seconds to over five
+minutes, which looks like an infinite loop rather than like slow code. The distances are
+monotonic, so **one backward walk can emit every follower as it crosses each threshold.**
+
 ## Driving the browser
 
 Claude can drive a browser to check things visually. Two traps:

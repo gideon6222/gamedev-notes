@@ -2004,6 +2004,28 @@ whether a valuable strike still lands heavy, whether the flight still reads as f
 **Ship, then check.** Push to `main`, say it is pushed, and let him test on the phone. Do not gate
 on a preview or poll the live site.
 
+## A rewrite is the right call when a game keeps inheriting a shape it never wanted
+
+Candle Gift ran to seven versions on the web stack and kept feeling wrong in ways that were
+hard to name. The reason was structural: it had started life as a viking crowd-runner and been
+reshaped twice, so its HUD, its upgrade screen, its obstacle set and its input model were all
+answers to a different game's questions. Each pass fixed one of them and the next pass found
+another.
+
+**Rewriting it went faster than the last two revision passes did**, and the reason is worth
+keeping: everything expensive to learn was already written down. `REFERENCE.md` - eight store
+screenshots, two walkthrough videos with the timestamp of every finding, and the method for
+pulling frames out of one - carried over unchanged, because it is research rather than code.
+The new build reached parity in one session and passed the old one on structure immediately.
+
+So the test for "rewrite or revise" is not how much code there is. It is **whether the thing
+being fixed is a decision or an inheritance.** A decision can be revised. An inheritance keeps
+coming back, because it is in the shape rather than in the lines.
+
+And the thing that makes a rewrite cheap is having separated the research from the
+implementation before you needed to. Write the observed record as its own file, in its own
+words, with sources and timestamps - not as comments next to the code that acts on it.
+
 ## "Unavailable" and "not a control" must not look the same
 
 A shop drew everything untappable in the same dead grey, so the motor you had just bought
