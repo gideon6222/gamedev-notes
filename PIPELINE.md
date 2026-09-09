@@ -567,6 +567,12 @@ Three rules out of it:
 - **A verification step that cannot determine the answer must fail loudly.** `curl | python
   2>/dev/null` returning an empty string is indistinguishable from "not finished" and from
   "finished, green". Print the conclusion or print why you could not get it; never nothing.
+- **`gh` is not installed on this PC.** A poll loop built on it never errors — the shell
+  reports "command not found" on stderr, the loop swallows it, and every iteration looks like
+  "not finished yet". Use `curl -s
+  https://api.github.com/repos/<owner>/<repo>/actions/runs?per_page=3` and read
+  `workflow_runs[].head_sha / status / conclusion`; unauthenticated is fine for a public repo.
+  This is the rule above biting a second time, in a form that looks nothing like the first.
 - **Do not report a push as done while the check is still in flight** unless the message says
   plainly that it is, and then actually come back to it. The user should never be the one who
   notices.
