@@ -512,6 +512,25 @@ Claude can drive a browser to check things visually. Two traps:
   a pure reducer and test it in milliseconds instead.
 - **Playwright composites properly.** When something needs real frames, that is the tool.
 
+### A null A/B is worthless until you have proved the screen can change
+
+Toggling one uniform, screenshotting twice and getting two identical images feels like a
+result. It is not one — not until a **positive control** has shown that the path from the
+change to the pixels actually works. Set something to a value that cannot possibly look the
+same (a global gain to 0.02, so the frame goes near black), screenshot, and confirm it
+changed. Only then does "no difference" mean "this is not the cause".
+
+Cost of skipping it: two rounds of chasing a rendering artefact were spent on A/Bs that came
+back identical, which was read as "not the cause" for one of them and as "the render is not
+reaching the screen" for the other. Both readings were guesses. The control took one call and
+settled it — the path was fine, so the null results were real, which immediately ruled out a
+whole family of hypotheses instead of leaving them open.
+
+The same rule covers the manual-render trap underneath it: if the page's own `rAF` is
+stopped, whatever you call yourself is the frame; if it is running, it will overwrite you on
+the next tick and your change may never be visible. The control tells you which world you are
+in without having to reason about it.
+
 ---
 
 ## A CI check that cannot tell you the answer must say so, not say nothing
