@@ -502,6 +502,51 @@ projects: [{ name: 'chromium',
 
 ---
 
+## Inverted-hull outlines do not work on a Godot MultiMesh. Use a fresnel rim.
+
+The standard toon outline - the same mesh grown along its normals, drawn front-face-culled,
+so only the sliver outside the silhouette survives - works on a `MeshInstance3D` and does not
+work on a `MultiMeshInstance3D` in Godot 4.7. The hull draws OVER the object, so every
+instanced thing in the game comes out as a solid black silhouette.
+
+It was tried as a `next_pass`, as a second `MultiMeshInstance3D` sharing the same MultiMesh
+resource, with `CULL_FRONT`, with `CULL_DISABLED`, with depth writing off, at both render
+priorities, and **with the hull shrunk six centimetres INSIDE the object**. That last one is
+the measurement that settles it: geometry entirely inside a solid object still drew over it,
+so this is not a grow-direction problem or a draw-order problem, and no amount of tuning the
+hull will fix it.
+
+**A fresnel rim in the material does the same job for one dot product**, works on a MultiMesh,
+and needs no second buffer to keep in step:
+
+```glsl
+float face = abs(dot(normalize(NORMAL), normalize(VIEW)));
+float e = smoothstep(ink_width, ink_width * 0.35, face);
+ALBEDO = mix(base, ink, e);
+```
+
+It is not identical - it cannot hold an even line width, and it darkens a flat face seen
+edge-on, so anything thin and grazing (road stripes, decals) wants `ink_width = 0`. Write the
+threshold so that **zero means no line**: expressed the other way round, as a smoothstep whose
+two edges meet at zero width, it returns 1 everywhere and ink the entire surface.
+
+Why it matters at all: a pale object on a pale ground has no edge without one. A cream candle
+lying on a white runway rendered as a faint grey smear indistinguishable from a shadow, and
+the batch - the thing the whole game is about - was the least legible object on screen.
+
+## Screenshot a whole level as a contact sheet, not a second at a time
+
+A single screenshot answers "does this moment look right" and costs an entire engine start, so
+judging a level through one means guessing in advance which second to look at. Most of what is
+wrong with a runner is only visible as a SEQUENCE: a prop that pops in, a sign that sweeps
+through the middle of the frame, a pool that ends before the batch is out of it. None of that
+can be seen in a frame chosen before you knew what was wrong.
+
+One script that freezes, advances in fixed steps, and captures twelve frames across a level -
+stitched into a grid - found four separate bugs in its first run that three individually
+chosen screenshots had missed. Same seam as the tests (freeze, then advance), so cell *n* is
+the same moment every time and two sheets a week apart are comparable.
+
 ## Four Godot traps that fail silently, and one that reads as a hang
 
 All five cost time on the first game written straight into the template rather than grown
@@ -533,6 +578,20 @@ followers walking ninety samples is 2,700 steps, invisible in a game playing one
 ruinous in a suite playing twenty. A pure test suite went from about two seconds to over five
 minutes, which looks like an infinite loop rather than like slow code. The distances are
 monotonic, so **one backward walk can emit every follower as it crosses each threshold.**
+
+## Normalise line endings on day one, and commit a `.gitattributes`
+
+A file with CRLF in some blocks and LF in others defeats every exact-match edit, and the
+failure is silent in the worst way: the search string is visibly identical to the file when
+printed, so the natural conclusion is that the anchor text is wrong and the next twenty minutes
+go into rewriting a correct anchor. `cat -A` shows `$` for both, and only `repr()` of the raw
+bytes shows `
+`.
+
+It happens without anyone choosing it: editors, tooling and generated files disagree, so a file
+ends up mixed within itself. Run one pass over the repo converting to LF and commit
+`* text=auto eol=lf` **before** the first session that does bulk edits, not after the third one
+that loses time to it.
 
 ## Driving the browser
 
