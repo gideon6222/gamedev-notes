@@ -1259,17 +1259,36 @@ So the test before combining a control with its readout is **how often is it rea
 well the two go together:
 
 - **Glanced at** - combine them. The dial is right and stays right.
-- **Watched continuously** - separate them, and prefer putting the instrument in the WORLD
-  rather than somewhere else on the HUD. Stillwater deleted the meter and made the rod's bend
-  the tension: it is in the upper half of the frame where no hand goes, it is the actual object
-  rather than a picture of one, and the input became a relative drag anywhere on the screen -
-  which has no fixed track, so there is nothing left for a thumb to cover.
+- **Watched continuously** - separate them. Put the readout at one end of the screen and the
+  input at the other.
 
-**When an instrument is the only one you have, it has to deform, not just move.** That rod was
-first drawn as a single stick rotated by the load, and the silhouette barely changed - 40% and
-60% look the same when a straight line tilts. Five chained segments, each taking a share of the
-angle weighted toward the tip, reads as a rod under strain at a glance. Weight the shares
-unevenly, or an even share bends it into a circular arc and it reads as a bow.
+**SEPARATE means separate, not DELETE - and the next note said so.** Stillwater's answer to the
+thumb-on-the-meter complaint was to remove the meter entirely and let the rod's bend be the only
+instrument. The following playtest: *"it is not very intuitive to tell what you are supposed to
+do... I think having visual on screen queues or gauges would be a good addition."* Both notes
+were right, and the second one says the first fix over-shot. **The answer to a gauge in the
+wrong place is to move the gauge.** Deleting a readout removes the fault and the function
+together, and "the world is the instrument" is a lovely idea that still has to be legible to
+somebody who has played for ninety seconds.
+
+**What actually resolves it is choosing an input with no position.** Gauges at the top and a
+TAP anywhere is only possible because a tap carries no positional information - so the thing you
+look at and the thing you touch can sit at opposite ends of the screen with nothing to
+negotiate. A drag or a stick forces them back together, because a drag needs somewhere to be.
+**If a readout and a control are fighting over the same space, change the verb rather than the
+layout.**
+
+**When an instrument is the only one you have, it has to deform, not just move.** A rod drawn as
+a single stick rotated by the load barely changes silhouette - 40% and 60% look the same when a
+straight line tilts. Five chained segments, each taking a share of the angle weighted toward the
+tip, reads as a rod under strain at a glance. Weight the shares unevenly, or an even share bends
+it into a circular arc and it reads as a bow.
+
+**And keep separate motions in separate code.** The same rod both SWINGS (a cast: the whole thing
+rotates back, then forward, staying straight) and BENDS (a fish: it curves forward under load).
+One variable drove both, so loading a cast curved the rod as though something were already on
+the line - "the rod bends back then flicks forward which isnt how it should work". Two physical
+motions that share a number will eventually be shown doing each other's job.
 
 ---
 
@@ -1321,6 +1340,30 @@ Two corollaries worth having:
 - **A tell longer than human reaction time makes a mechanic free.** Stillwater's warning was
   0.42 s against a 0.30 s reaction, so the "late" player was never actually late. That is only
   visible with a latency model; with the perfect bot both numbers score the same.
+
+**MODEL THE INPUT DEVICE, NOT JUST THE DECISION.** The sharper version of all of the above, and
+it cost a whole tuning session to find. Stillwater's third fight is tapping to hold a needle in
+a band, and the first bots for it tapped whenever the needle was below their aim point,
+re-evaluated every frame. That controller **automatically stops tapping during a run** - because
+a run pushes the needle up - so the game's one moment of danger solved itself, and the bot that
+watched the warning, the bot that ignored it, and the human model all scored an identical 100%.
+Three different players, one number, and it looked like a balance problem.
+
+Nobody taps by sampling sixty times a second. A person settles into a RATE and corrects it a few
+times a second, which means they are still tapping for a moment after something changes. Once
+the bots held a tap interval and adjusted it on a ~0.3 s cadence, the warning became worth
+something and the spread appeared immediately.
+
+The general rule: **when the input is a rhythm, the model has to have a rhythm; when it is a
+position, it has to have a hand that wanders.** A bang-bang controller is a model of a decision,
+not of a player, and it will make any mechanic whose difficulty lives in *timing* look free.
+
+**And when the model needs memory, every caller has to hold it.** Godot evaluates a `{}` default
+argument per call, so a caller that forgets the state dict silently hands the bot an empty
+memory every frame - the tap rhythm re-initialised, the interval never elapsed, and the bot
+**never tapped at all**. Six tests and most of a smoke suite failed at once with "correct play
+landed nothing", which reads as a broken game rather than a broken caller. Grep for the call
+sites the moment a policy gains state.
 
 **Difficulty is usually the PRODUCT of two fields, and neither one tells you where a thing
 sits.** Raising the bluegill's run chance while leaving its "busyness" high made the *tutorial*

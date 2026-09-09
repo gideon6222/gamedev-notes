@@ -678,3 +678,32 @@ make a version that fits with the theme of our game?"
 Third time now that a note of his has been a correct structural diagnosis rather than a matter
 of degree, and the first time one of them was already sitting in a table I had generated,
 written down, and misread.
+
+### 2026-09-09 - M1 again, the second fight
+
+"im sure we can work on it later but the rod bends back then flicks forward which isnt how it
+should work. the rod should be straight initially lift the rod up and back, then swing it
+forward. once the fish bites, the rod should bend forward since it is now under pressure."
+
+- A precise description of a real bug, including the fix. One variable drove both motions, so
+  `charge` fed the same bend the fight uses. Note the shape again: he described what the object
+  should DO, in order, and that was the implementation.
+
+"as far as the fishing mechanics, it is not very intuitive to tell what you are supposed to do.
+it doesnt need to be realistic fishing mechanics. it can just be a fun challenging mini game
+feel, like tapping to keep the pressure on without breaking the line. or a combination of two
+different mini games, like one to hook the fish and one to reel it in. in either case, I think
+having visual on screen queues or gauges would be a good addition"
+
+- **The most useful correction so far, because it corrects the previous correction.** His note
+  on the FIRST fight was that his thumb covered the gauge; I deleted the gauge. This says that
+  went too far — the answer to a readout in the wrong place is to move it, not remove it.
+- "it doesnt need to be realistic" is worth keeping as a standing permission. The second fight
+  was pump / give / hold-steady because that is what fishing actually is, and the realism bought
+  nothing except three things to infer from a bent stick.
+- He proposed the mechanism twice over: tapping to hold pressure, and two minigames. Built as
+  described. **Five sessions now, and every time he has proposed a mechanism it has been the
+  right one.**
+- Worth noting he opened with "im sure we can work on it later" about the rod — he flags what he
+  considers low priority. The rod was a ten-minute fix and the mechanic was a rewrite, so the
+  ordering he offered was correct.
