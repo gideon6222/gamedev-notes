@@ -412,6 +412,13 @@ projects: [{ name: 'chromium',
   still writing `dist/` when Playwright started, and nine tests failed against a half-written
   bundle. It looks exactly like a real regression - a scatter of unrelated failures that all pass
   in isolation - and it is worth recognising in one glance rather than bisecting.
+- **Assert on the reading, not on how the view currently draws it.** A UI restyle in Coreward
+  broke three e2e assertions at once, and all three had the same shape: they read a bar's
+  `style.width` or the label's `innerText`. None of them was wrong about the game - they were
+  wrong about the DOM. Read the number the player can see (the printed percentage, the drawn
+  fraction of an arc) and the assertion survives the redesign. Bonus trap: `innerText` throws
+  "Node is not an HTMLElement" on an SVG `<text>`, which reads like a broken selector rather
+  than a changed element type - `textContent` works on both.
 - **Wait on game state, never on wall-clock time - and that includes how long you HOLD an
   input.** The obvious version of this rule is about polling. The version that actually cost a
   deploy is about driving: a test that holds a d-pad for 600 ms delivers an unknown amount of

@@ -782,6 +782,29 @@ blob with no facets — the exact fault that render layers were added to fix, ar
 different route. Behind it, the ship silhouettes against its own light, which is what a lamp on a
 machine actually looks like.
 
+**Where a readout sits matters more than what it looks like.** Coreward's fuel, hull and cargo
+were bars along the top of the screen. They got a full instrument restyle - segments, ghost
+cells, scanlines, numbers - and were still wrong, because the top of the screen is the one place
+you are not looking while playing. Moving them to the corner beside the thumb that is already
+there did more than any amount of paint. **If a restyle does not fix a "feels out of place"
+note, the problem is placement, not surface.**
+
+**For analog gauges in the DOM, use SVG and `pathLength="100"`.** It renormalises a path so its
+length is exactly 100 regardless of the real geometry, so "show 62 per cent" is
+`stroke-dasharray: 62 100` and nothing needs to know the radius. Needles are one transform
+each. It stays crisp at any pixel density with no redraw, and the drawn fraction is directly
+readable from a test - which is what lets an assertion follow a value from a bar to a dial
+without becoming a lie.
+
+**Generate tick marks, never hand-place them.** Thirty lines of SVG is thirty chances to be half
+a degree out, and every one has to be redone for the second dial. The geometry is four lines of
+trigonometry.
+
+**Give a needle mass.** Easing it toward its reading instead of snapping is most of what
+separates an analog gauge from a bar with a pointer on it. Damp each one to what it shows: a
+fuel needle only ever falls slowly, a load needle is chasing something that changes in a tenth
+of a second.
+
 **A HUD sitting on a textured world needs a material of its own.** Translucent fills with soft
 corners are a clean overlay and the wrong one over photographed rock: the controls end up the
 only part of the screen made of nothing. One plate does it - a rolled-steel gradient, a small
@@ -940,6 +963,31 @@ thing being framed and the shot was mostly table corner. **Any end-of-run camera
 placement pass over everything near the finish** - and moving the camera *behind* the object
 rather than in front of it makes the scenery beyond the finish a backdrop instead of an
 obstruction.
+
+**A transformation that can be dodged is a power-up; make it a wall.** Candle Gift's ROTATE
+stands the whole batch upright, and while it was an ordinary station occupying one half of the
+track it was optional and could fire twice a level - so the press downstream was stamping
+candles that might still be lying on their sides, and the biggest moment in a run was
+something a player could miss entirely. Spanning the full track turned it into a section
+boundary: a level is now "wax while you lie flat" then "machines while you stand", and every
+station after the wall can assume the form it needs. **If a change is big enough to divide a
+level into before and after, place it so it cannot be missed.**
+
+**Starting the player with one of the thing they collect changes what the game is about.**
+Candle Gift began runs with eight candles, and the first thirty seconds were free - nothing
+picked up mattered and losing three was an inconvenience. At one, the first loose candle is the
+most valuable object in the game. Two consequences worth knowing before doing it: flat damage
+has to be capped as a *fraction* of what you hold, or the first hazard ends the run before the
+player has touched anything; and **the value of defensive play collapses** - measured, a bot
+that only dodges now scores what a bot that does nothing scores, because the candles it saved
+are ones it never picked up. That second one is a real design fact, not a bug, and it is worth
+leaving in the numbers rather than massaging out.
+
+**Frustum culling will not save you from something dead ahead.** Twelve shop-front meshes 200
+units down a narrow lane were inside the frustum for the whole middle of a level and cost
+twelve draw calls where the peak is. One `visible =` line on the group gave them all back.
+**Distance is not culling**; if a thing only matters for the last seconds of a run, switch it
+off for the rest.
 
 **Do not copy a monetisation mechanic into a game with no monetisation.** Candle Gift ends a
 run on a five-wedge multiplier fan, and the fan is a rewarded-video gamble: you watch an advert
