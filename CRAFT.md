@@ -1843,3 +1843,35 @@ recorded per whole block, so one lamp quantised into a cone per block. Read the 
 of a report as seriously as the symptom half.
 
 ---
+
+## Ambient particles must be anchored in the world, not to the camera or the player
+
+Coreward had a drifting dust field for months that nobody believed was dust. The instinct is
+to blame the count or the sprite, and both were fine. The problem was one line: the point
+cloud was positioned on the ship every frame, with a slow rotation on top.
+
+A cloud that travels with you cannot move past you. You can fly a hundred metres down a shaft
+and the same motes are in the same places on screen — so the eye reads it as a texture on the
+lens, which is exactly what it is. Rotation does not help; it just makes the lens texture
+spin.
+
+The fix is to leave the motes standing still and wrap them around the player: keep a box of
+world positions, and when a mote falls out of one side, add the box width to put it back on
+the other. It costs a modulo per mote per frame and it is the entire difference between dust
+and dirt on the screen. Motes now rise past you as you dive, which is the only cue that
+mattered.
+
+Two things that compound it, both cheap:
+
+- **Light them with the same light model as the world**, on a harder curve than surfaces get.
+  A mote outside the beam should be almost invisible and a mote inside it a bright speck. That
+  contrast is what makes a beam look like a volume with something in it. A flat-lit mote field
+  is noise over the picture.
+- **Put them behind the terrain**, so a mote only ever shows down a space that is actually
+  open. In front, they read as specks on the lens over solid rock — the same failure in a
+  different costume.
+
+And fade them out wherever the beam is not the light source (daylight, a lit interior), or you
+get specks hanging in a bright scene. Dust you can see needs a dark room and a beam.
+
+---
