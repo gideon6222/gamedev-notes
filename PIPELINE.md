@@ -22,6 +22,19 @@ design choices, and they are no longer binding.**
 If a rule anywhere else reads like a precaution against not being able to run something, it
 is from that era. Delete it.
 
+### Several games run at once, and this repo is shared between them
+
+**Never `git add -A` in `gamedev-notes`.** Two sessions were writing to it on 2026-09-09 —
+Coreward's lighting work and Stillwater's first playable build — and a blanket add in one of
+them swept up the other's half-finished edits and committed them under an unrelated message.
+Nothing was lost that time, but the lesson generalises badly: a shared repo with two writers
+means `-A` commits somebody else's work-in-progress, possibly mid-sentence, and the commit
+message then describes the wrong change.
+
+Stage the files you actually edited, by name. And when a commit here comes back "nothing to
+commit, working tree clean" on changes you know you just made, look at the log before
+re-doing them — they are probably already in, inside someone else's commit.
+
 ## Every game is built to be continued
 
 **There are no one-off games.** Gideon does not make them, and nothing here should offer the
