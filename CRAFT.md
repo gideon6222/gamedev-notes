@@ -770,6 +770,22 @@ the frame, sampling a second channel of the same texture that is non-zero only i
 turns the void near the lamp into glow and leaves the far end black. One draw call, and it is the
 single change that made the feature read.
 
+**A per-cell mask sampled with LinearFilter bleeds a FULL CELL in every direction, and on a
+one-cell feature that is a blob rather than a shape.** Coreward stored "is this cell open" as one
+texel per cell; a one-cell-wide tunnel is therefore a single 255 surrounded by zeroes, and
+bilinear filtering ramps that to zero only at the neighbouring texel's CENTRE. The tunnel glow
+painted three cells wide and read as a circle of light bleeding through solid rock. It took
+three rounds of playtest notes because two other things were genuinely making a circle too.
+
+The fix is to keep **brightness and shape in separate channels** - one channel for the eased
+light value, one hard 0/255 bit for openness - and re-normalise the filter's own ramp in the
+shader: `smoothstep(0.5, 0.98, mask)`. Bilinear leaves exactly 0.5 at a cell boundary and 1.0 at
+a cell centre, so that maps the glow precisely inside the cell. Sharpening a combined value
+instead would crush every dim tunnel to black, because "dim" and "outside" are the same number.
+
+**And the process half: when a symptom survives two correct fixes, stop fixing and start
+measuring.** Printing fifteen numbers out of the buffer ended a three-round hunt in one call.
+
 **When you replace the reason for a workaround, delete the workaround in the same commit.**
 Coreward bled a tunnel's glow half a cell onto the rock around it, to stop wall bulges reading
 as unlit chips inside a lit shaft. A version later the real fix landed - the glow quad moved in
