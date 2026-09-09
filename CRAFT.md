@@ -1920,3 +1920,34 @@ And fade them out wherever the beam is not the light source (daylight, a lit int
 get specks hanging in a bright scene. Dust you can see needs a dark room and a beam.
 
 ---
+
+## A test that asserts a literal instead of the property fails for the wrong reason
+
+Coreward's shop test read `expect(bays).toBe(10)` with the message *"every upgrade needs a
+case to stand in"*. Those are two different claims. When the shop went from ten upgrades to
+fifteen, the test failed — correctly, by luck — and the obvious repair was to change the 10 to
+a 15, which would have left it asserting nothing again the next time.
+
+The property was one line away: `expect(bays).toBe(upgradeCount)`. Now it catches the real
+fault, which is an upgrade with no case — an upgrade nobody can buy, invisible, with no error
+anywhere.
+
+**Where a test's message states a property, assert that property.** A literal is only right
+when the number itself is the thing being pinned (a golden baseline, a calibrated constant).
+The tell is exactly this: read the assertion and its message aloud, and if the message is more
+general than the code, the code is the weaker test.
+
+Two others in the same session that were worth the same treatment:
+
+- A snapshot grid mapped block ids to characters through a lookup with no fallback, so an id
+  missing from the legend silently became the string `"undefined"`. One missing id was
+  harmless; the second made two different blocks indistinguishable, and the golden would have
+  passed through the exact change it exists to catch. It throws by name now.
+- A layout list was indexed with `i % SLOTS.length`, which cannot go out of range and
+  therefore cannot fail. It stacked four display cases inside four others. A hard length check
+  at module load turns a silent wrap into a boot error on the first run after the change.
+
+The common shape: **a construct that cannot fail is not safe, it is untested.** Modulo,
+`|| fallback`, and clamps all quietly convert "wrong" into "plausible".
+
+---
