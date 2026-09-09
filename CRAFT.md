@@ -770,6 +770,18 @@ the frame, sampling a second channel of the same texture that is non-zero only i
 turns the void near the lamp into glow and leaves the far end black. One draw call, and it is the
 single change that made the feature read.
 
+**Store a per-cell light field at several texels per cell, not one.** With one texel per cell,
+bilinear filtering interpolates between cell CENTRES, so every boundary in the lighting is a
+soft ramp a whole cell wide - a single surface ends up half lit with a rounded edge curving
+across it, and the player reads the shape of the grid instead of the shape of the world. Fill
+each cell with a 3x3 block of identical texels and the filter has nothing to interpolate until
+the one-texel seam at a cell edge: a third-of-a-cell transition, sitting exactly where the
+world's own edges are. The solve stays per cell; it is a fill loop and a slightly bigger upload.
+
+**The one-toggle diagnosis: switch the texture to NearestFilter.** If the blobs vanish and are
+replaced by hard rectangles, the problem is the sampling resolution and not the data. That test
+takes ten seconds and settles an argument that reasoning about screenshots will not.
+
 **A per-cell mask sampled with LinearFilter bleeds a FULL CELL in every direction, and on a
 one-cell feature that is a blob rather than a shape.** Coreward stored "is this cell open" as one
 texel per cell; a one-cell-wide tunnel is therefore a single 255 surrounded by zeroes, and
@@ -943,6 +955,43 @@ every instance by 1.08 gives a 0.036-unit edge on a large object and 0.003 on a 
 sub-pixel. Treat the parameter as a world-unit thickness, read the geometry's bounding box, and
 derive a per-axis scale of `1 + 2*t/size`. Prefer a scaled hull to a normal-pushed one when the
 geometry is boxes: hard per-face normals split at the corners and the outline develops gaps.
+
+**Portrait's HORIZONTAL cone is tiny, and scenery has to be laid out for it rather than for the
+number in the fov field.** A 58 degree *vertical* field at a 0.46 aspect is only about 28 degrees
+horizontal, so ten metres ahead of the camera the frame is roughly five metres wide, total.
+Stillwater's first build scattered reeds five to ten metres either side of the boat and **every
+single one was off the edge of the screen** - the lake rendered as an empty grey plane whose only
+landmarks were outside the picture, which reads as "the world is unfinished" rather than as a
+framing error. The fix is not to drag them closer, which puts weeds around a boat in open water;
+it is to place them where the cone has actually widened, far enough ahead that the frame has
+spread to reach them. Coreward hit the same arithmetic from the other end when its shop had to be
+racked vertically. **Compute the visible width at the distance a thing actually sits, before
+choosing where to put it.**
+
+**Put the sun AHEAD of the camera for anything wet.** A specular streak is the path sun →
+surface → eye, so a sun behind the player lights the water perfectly and it throws nothing back:
+Stillwater's lake rendered as wet concrete for two builds with a correctly configured light.
+Turning the sun to the far side of the water was the single change that made it read as a lake,
+and it is worth checking before touching a roughness value.
+
+**Depth fog repaints the sky, because the sky is at infinity.** Godot's `fog_sky_affect` defaults
+to 1.0, so a fog that looks right on the water covers the entire sky in the fog colour - and a
+flat cream wall where a dawn gradient should be reads as a *missing skybox*, which sends you into
+the sky material hunting a fault that is not there. Drop it to about 0.2. The general form: **any
+effect applied "by distance" hits the background hardest, so check the background first when
+tuning one.**
+
+**A prop that occludes the thing the game is about is a bug, not a look.** A bow block on
+Stillwater's rowboat sat exactly in front of the float at a short cast - hiding the one object the
+player watches for the whole cast. Easy to miss, because a screenshot at any other moment shows it
+standing harmlessly in open water.
+
+**Draw a first-person vehicle as an EDGE, not as a surface.** Two builds put a solid hull under a
+camera sitting in it, and its lit top face became the brightest object on screen and a third of a
+portrait frame - a picture of a plank. What a person in a boat actually sees is the gunwale running
+away on both sides and converging ahead, with water between. Three thin meshes, the same read, and
+it *frames* the subject instead of covering it. Seat the camera at seated height too: 1.78 m is a
+person standing up in a rowboat, and it puts every part of the boat too far below to read.
 
 **Fog is not distance in a 2.5D game.** `FogExp2` measures distance from the *camera*, and a
 camera twenty units back looking at a flat plane is equidistant from everything in it. Turning fog
@@ -1443,6 +1492,11 @@ than one place** - a loop cannot forget - and **test it by pulling the `uniform 
 declarations out of the compiled shader and asserting the material supplies every one.**
 `renderer.properties.get(material).uniforms` against
 `gl.getShaderSource(program.fragmentShader)`. Nothing else can see it.
+
+**A test that hard-codes a layout it did not choose breaks every time the layout moves, and it
+breaks without saying why.** Coreward's lighting test indexed a texture as one texel per cell;
+the day that became three texels per cell it failed with a number, not a reason. Derive the
+shape from the artefact under test - `image.width / knownColumns` - rather than restating it.
 
 **A threshold about how dark something LOOKS belongs on the post-gamma value, not on the field
 that feeds it.** Two of Coreward's lighting tests asserted on the raw light field, and both

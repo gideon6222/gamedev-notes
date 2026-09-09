@@ -641,10 +641,18 @@ tools and platform-tools.
   `var b := Basis.from_euler(c.ang)` is a parse error, and the message names the variable
   rather than the dictionary lookup that caused it. Annotate the local explicitly:
   `var ang: Vector3 = c.ang`. Entities held as dictionaries - which is what keeps the scene
-  tree out of the test runner - make this common.
+  tree out of the test runner - make this common. **Grep for it rather than waiting to hit
+  it**, because the failure mode is a hang rather than an error: `grep -rn 'var [a-z_]* :=
+  .*\["' src/ test/` finds every one in a second, and on Stillwater it found all three
+  after they had already cost a five-minute timeout each.
 - **A parse error in a script the harness loads produces a run that never terminates**, not
   a failure: `_initialize` aborts before it reaches `quit()`. The symptom is a hung command,
   and the cause is several screens up the output. Read the top of the log, not the end.
+  **Two practical consequences for how to run it at all.** Redirect to a file with `*>` and
+  read the file - a PowerShell pipeline that assigns to a variable buffers the whole run, so
+  a hung command shows you nothing at all rather than showing you the parse error at the top.
+  And when a command does hang, the first move is to check the log's first twenty lines, not
+  to raise the timeout.
 - **Drive the picture with a screenshot script, which is the Godot equivalent of driving a
   browser.** A `SceneTree` script that instantiates the real scene, calls `freeze()`, advances
   through the same seam the tests use, waits about five frames and saves
