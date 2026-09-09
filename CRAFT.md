@@ -289,6 +289,15 @@ the chain roughly doubled the damage a pass delivers, and a room that had been a
 went down in eight seconds. The two numbers are one decision and have to be re-balanced
 together, or the level loses its middle.
 
+**The best version of a greed mechanic is one where greed genuinely pays, right up until it
+does not.** Wrecking Crew's collapse used to be measured by "does leaving earn more than
+staying" - and once the driving was fixed, it stopped being true: the policy that ignores the
+collapse puts twice the columns down and banks more rubble before the ceiling lands on it.
+That is not a broken mechanic, it is the correct one, and the assertion was what needed
+changing. **The claim is not "the safe option scores higher". It is "the reckless option
+never actually works."** If a player who ignores the threat can still finish, the threat is
+scenery; if the safe option simply scores more, there was never a decision.
+
 ---
 
 ## Legibility
@@ -592,6 +601,26 @@ pixels per radian.
 carries the boom's knob AND a small mark where the ball actually is. The gap between them is
 the lag the whole game is about, and it can be read without tracking two objects in the 3D
 view at once.
+
+**"It feels like it drifts" usually means the PATH curves, not that the physics slide.**
+Wrecking Crew's machine has never had a lateral term - every step's displacement lies along
+its own heading, and there is a test asserting it. What it had was a throttle floor of 45%
+that applied through even a 180-degree correction, so every change of direction came out as a
+long arc. Under a camera that holds a fixed orientation, a vehicle sweeping a curve reads as
+a vehicle sliding. **Check the path before you check the integration**: the player is
+describing the shape they see, not the term you are looking for.
+
+**A tracked vehicle is one constant away from a car: the cone it must be facing within before
+any throttle is applied.** Outside it, counter-rotate and do nothing else; inside, ramp the
+throttle in as the nose comes round. That is the whole difference, and it is what "hold right
+and it turns to face right, then moves" actually is. Pair it with a turn rate that is fast at
+a standstill and much slower at speed, or the machine carves out of every turn anyway.
+
+**A displacement test has to exclude the frames where something legitimately teleports the
+object.** The "moves only along its heading" test failed immediately on the wall clamp, which
+writes position directly and is a correct sideways displacement - the alternative being to
+drive through concrete. Skip those frames and say why in the test, or the next person deletes
+a true assertion.
 
 ---
 

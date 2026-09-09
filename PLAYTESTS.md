@@ -586,3 +586,50 @@ game is the best option."
   next door if you work along one side.
 - Worth noting for next time: **he proposed the fix and the fix was right, twice in one
   session.** The pattern is now four sessions old and has not failed once.
+
+### 2026-09-09 - Wrecking Crew, the controls
+
+Three sessions of notes on the same game, and the pattern in "Working with Gideon" held
+every time: he names the symptom accurately, and the cause is always structural.
+
+"The button icons don't line up with where you need to press on the screen. The icons are
+about .5 inches too high."
+- A stretch-mode bug, and one no headless test could have caught: the base viewport is
+  exactly where the wrong layout and the right one agree. See PIPELINE.
+
+"i think I would prefer having what looks like a joystick for the actually wrecking ball
+machine on the screen"
+- Built it. Then, one build later: "the controls dont need to be a dial look. since we are
+  only controlling the turning, it could just be a left and right joystick or slider." Also
+  right, and the reason generalises: a dial is a two-dimensional control for a
+  one-dimensional quantity, so the thumb has to be placed on a circle to say what a line
+  could say.
+
+"there isn't really a risk or reward yet... I want to focus on the breaking part and don't
+know if this forward lane style game is the best option."
+- The most valuable note on this project. Not a balance problem: in a runner the buildings
+  are scenery you pass, passing is free, and no tuning makes optional destruction necessary.
+  He proposed the replacement himself and it is now the game.
+
+"the driving controls almost feel backward but not sure if that is the main issue."
+- They were, half the time. Fixed camera plus vehicle-relative controls is tank controls, and
+  it produces exactly that report: a nagging doubt rather than a clear complaint, because it
+  is correct half the time. Worth noting he flagged the uncertainty himself - "not sure if
+  that is the main issue" - and it WAS one of two separate faults in the same message.
+
+"it flies out too much but also feels like it doesnt have enough momentum."
+- Two faults stacked, and the phrasing named both precisely. A constant restoring force
+  instead of a proportional one (so the ball stayed wherever it was flung), and a constraint
+  that derived velocity from displacement (so momentum died the moment the chain went taut).
+
+"it doesnt seem locked to move forward and backward. it seems to drift. can you make it so
+that it works like a large machine on tracks... if you hold right, it should automatically
+rotate itself to face right, then start moving in that direction."
+- The machine was already locked to its heading. What it lacked was the pivot: a 45% throttle
+  floor meant every turn was an arc, and an arc under a still camera reads as a slide. His
+  proposed fix was the correct implementation, again - and it is one constant, an alignment
+  cone.
+
+Five reports across three sessions, five structural diagnoses, and on four of them he named
+the fix. The standing note is now stronger than "believe the symptom": **when he proposes a
+mechanism, build that mechanism.**
