@@ -1736,3 +1736,33 @@ whether a valuable strike still lands heavy, whether the flight still reads as f
 
 **Ship, then check.** Push to `main`, say it is pushed, and let him test on the phone. Do not gate
 on a preview or poll the live site.
+
+## Making an artefact less visible is not fixing it, and it costs you everywhere else
+
+A player reported angular shapes in the tunnel lighting. Hiding the fog layer proved the fog
+was drawing them, so the fog's ambient term was cut hard. The shapes went away, and so did a
+lot of the game's warmth. Next playtest: *"it looks like it is happening worse now than it was
+and I liked the art style before better."*
+
+Both halves of that were true, and the second half is the interesting one. The fog was only
+REVEALING the artefact — the actual cause was upstream, in how the shadow data was recorded.
+Turning the fog down made the artefact dimmer, not absent, while charging full price in every
+scene that never had the problem in the first place. Once the real cause was fixed, the
+brightness went straight back up and nothing came with it.
+
+The tell, in hindsight: the change removed the symptom **everywhere**, including places where
+the symptom's supposed mechanism could not apply. A fix that is aimed at a cause is usually
+narrow. A fix that improves every scene equally is usually a dimmer switch.
+
+So when a tuning value is about to be moved to make something stop looking wrong, ask what
+would happen to that value if the artefact were fixed properly. If the answer is "it would go
+back", the tuning is not the fix.
+
+**Players describe mechanism, not just symptoms, and they are often right.** The same report
+carried the actual diagnosis: *"it looks like you are creating the shadows by sending out
+multiple cone shape beams ... since the light should be coming from one location it shouldn't
+be split into more than one beam."* That was precisely correct — occluder distance was being
+recorded per whole block, so one lamp quantised into a cone per block. Read the mechanism half
+of a report as seriously as the symptom half.
+
+---
