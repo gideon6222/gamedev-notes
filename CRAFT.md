@@ -1955,6 +1955,55 @@ every screen you build, once, and look at it.**
 
 ---
 
+## Vertex-displaced water: displace the swell, normal-map the chop
+
+Stillwater's lake facets badly the first time it has enough specular to show it,
+and the diagnosis took four attempts. Everything here is general.
+
+- **A wave shorter than about four times the quad size cannot be represented.**
+  Two samples per wavelength is the theoretical floor and it looks terrible; the
+  1.55 m and 0.85 m waves on a 1.17 m quad aliased into flat plates. Displace only
+  the long swells and move the short chop to a fragment-shader normal, which is
+  where it belongs anyway - the eye reads the normal far more than the geometry.
+- **Value noise sits on an axis-aligned integer lattice**, and stacking octaves
+  that share it leaves the grid visible as rectangular plates at a grazing view.
+  Rotate each octave by an irrational-ish angle so the lattices never realign.
+- **Ripples are centimetres.** A base octave at 1.7 cycles/metre is a 59 cm cell,
+  and one of those covers a third of the screen from a camera a metre above the
+  water. 6.5 and up.
+- **A fade added to hide one artefact will expose another.** A near-field fade
+  meant to hide the lattice switched the fine normal off over exactly the water
+  where the mesh quads are largest on screen, leaving the bare facets showing. The
+  fine detail is what BREAKS UP the facets, so it has to run right to the camera.
+
+And the general one: **a chain of short boxes rotated to follow a curve reads as
+floating debris** - every joint leaves a gap and every end cap catches the light
+on its own. Anything long and curved wants a swept mesh: one function that takes
+a path and a cross-section pays for itself the second time (a boat hull and a
+reed, here).
+
+---
+
+## Post-processing is the cheapest mood tool there is, and the last one reached for
+
+Stillwater had correct geometry, a real sky, a tuned palette and a light rig that
+all did their jobs, and the picture still looked CLEAN - which was the one thing
+that game must not look. A vignette, animated grain and a touch of radial
+chromatic aberration, all rising with the same progress number the rest of the
+arc uses, did more for the mood than any of the modelling.
+
+Four details that matter:
+
+- **Put it UNDER the HUD**, on a lower CanvasLayer. Grain over a price list reads
+  as a broken display, and the text has to stay legible at arm's length.
+- **Animate the grain.** Static grain is dirt on the lens.
+- **Weight it to the mid-tones.** Real film has none in the highlights and little
+  in the blacks, where it is just noise.
+- **Lift the blacks toward the scene's own colour**, not toward grey. A true black
+  on an OLED phone is a hole, and a hole reads as the screen being off.
+
+---
+
 ## Making an artefact less visible is not fixing it, and it costs you everywhere else
 
 A player reported angular shapes in the tunnel lighting. Hiding the fog layer proved the fog

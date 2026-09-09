@@ -245,6 +245,49 @@ Two measurements from doing it:
   26.98 MB budget, inside tolerance without a re-record. Do not pre-emptively downsample or
   trim loops to protect a size budget that is not actually under threat.
 
+### The Godot .hdr import default is a TRAP, and it cost 14 MB
+
+Measured on Stillwater, 2026-09-09. Godot imports `.hdr` **uncompressed** by
+default (`compress/mode=0`): a 1024x512 panorama becomes a 2.1 MB `.ctex`, and six
+of them took the APK from 27.8 MB to **41.7 MB** - a 55% jump against a 10% size
+budget. The `.hdr` files on disk are only 1 MB each, so nothing in the repo looks
+wrong; the growth is entirely in `.godot/imported`.
+
+The fix is two lines per `.import` file:
+
+```
+compress/mode=2          # VRAM compressed - ASTC on Android, BPTC on desktop
+process/size_limit=512
+```
+
+**2.1 MB becomes 175 KB, and on a sky it is invisible.** A game sky is tinted,
+greyed, darkened and fogged before anyone sees it, and the water reflecting it
+blurs it further - 512x256 is plenty. Final APK 29.2 MB, +8.3%, inside budget.
+
+Check `ls -laS .godot/imported` after any import. It is the only place the real
+cost shows.
+
+### For a game with a day cycle, take a SERIES from one location
+
+Poly Haven's `qwantani_*` set is dawn / morning / afternoon / dusk / night from
+one spot, all `puresky`. Because the cloud structure is consistent between them
+they crossfade cleanly, which a set assembled from five different locations does
+not.
+
+Two things worth knowing:
+
+- **`puresky` variants are sky only** - no terrain, no horizon clutter. Essential
+  wherever the horizon is water, because anything baked into the lower half of
+  the panorama gets reflected in it. The first attempt used a non-puresky dawn
+  and put African savanna hills across a drowned English valley.
+- **A panorama is one fixed photograph.** If the game's look is a continuous
+  curve - time of day, weather, depth - `PanoramaSkyMaterial` fights it, because
+  swapping panoramas at each step is exactly the hard cut the curve exists to
+  avoid. A ~20-line `shader_type sky` that samples TWO panoramas and crossfades
+  them, then applies the same tint and darkening everything else gets, keeps both.
+  Multiply a separate cloud panorama in for weather rather than blending toward
+  it, so a storm at dusk stays lit dusk-coloured.
+
 **Generated also beats downloaded on COHERENCE, which is the argument that matters.** A
 fishing game needs about twenty sounds that belong to each other - the reel click and the
 drag buzz are the same mechanism, the calm pad and the deep pad are the same chord - and an
