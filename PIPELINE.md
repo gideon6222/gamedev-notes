@@ -708,6 +708,27 @@ tools and platform-tools.
   a hung command shows you nothing at all rather than showing you the parse error at the top.
   And when a command does hang, the first move is to check the log's first twenty lines, not
   to raise the timeout.
+- **Tell a parse error from slow code by CPU share, before theorising about cost.** The trap
+  is that a parse error in a big file does not fail fast - Stillwater's test suite went from
+  one second to sixteen minutes because a golden-recording splice left a stray `]` at the end
+  of a 190-line data const, and the process sat there *running*. It looks exactly like a test
+  that got expensive, which is the wrong thing to go and fix: two rounds of "which test did I
+  make slow?" cost twenty-five minutes, and the answer was that no test was slow at all.
+
+  One command separates them:
+
+  ```powershell
+  $p = Get-Process -Name "Godot*" | Select-Object -First 1
+  "CPU={0:N1}s elapsed={1:N1}min" -f $p.CPU, ((Get-Date) - $p.StartTime).TotalMinutes
+  ```
+
+  **Real work pins one core - CPU seconds track elapsed seconds. A parse that has gone
+  quadratic does not: 147 CPU-seconds against 16 elapsed minutes is about 15%, and that ratio
+  is the tell.** Anything well under 100% means the file is broken, not the code slow.
+- **Splice a re-recorded golden by finding the const's real end, not by appending a bracket.**
+  The stray `]` above came from replacing `s[a:b]` with a block that had its own `]` added
+  back on. After any script rewrites a source file, `grep -n '^\]' file.gd` costs nothing and
+  catches exactly this - and the count of top-level closers should be one per const.
 - **Drive the picture with a screenshot script, which is the Godot equivalent of driving a
   browser.** A `SceneTree` script that instantiates the real scene, calls `freeze()`, advances
   through the same seam the tests use, waits about five frames and saves
