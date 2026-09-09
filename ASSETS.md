@@ -231,6 +231,40 @@ Things worth knowing about Web Audio, learned rather than looked up:
 
 ---
 
+## Search the libraries before deciding a game is unservable — the hit rate is per-SUBJECT
+
+Wick found nothing (no wax, no candles) and the conclusion drifted toward "these libraries
+never have what we want". That is wrong, and it is worth stating as a rule: **the hit rate is a
+property of the subject, not of the library.** Queried on 2026-09-08 for a lake-and-boat
+fishing game, Poly Haven alone covers most of the set dressing:
+
+- `modular_wooden_pier` — a dock, and modular, so a whole shoreline is one import
+- `ship_pinnace`, `dutch_ship_medium` — a small boat, and a wreck
+- `ocean_buoy`, `lateral_sea_marker` — the only things on open water that are not water
+- `coast_rocks_01`–`05`, `coastal_cliff_01/02/04`, `coast_line_01/02` — shoreline and cliffs
+- `fir_tree_01`, `pine_tree_01`, `island_tree_01`–`03`, `dead_tree_trunk`, `tree_stump_01`
+- `fishermans_hat`, `fish_knife`, `life_jacket`, `wooden_bucket_01`, `wicker_basket_01`
+- `treasure_chest`, `can_rusted`, `metal_detector`, `rubber_duck_toy`, `old_military_crate` —
+  a junk-catch table straight off the shelf, which is a *mechanic* fed entirely by imports
+
+And ambientCG has `Rope001` and `Net002A/003A/004A` — actual rope and netting as PBR sets.
+
+**The two-minute API query is the research step and it is cheap.** Do it before designing the
+art direction around what you assume is unavailable, and record the misses too: neither
+library has a single fish, and ambientCG still has no water, liquid or ripple material.
+
+## The exception is a SITUATION, and "the vehicle you sit in" is one of them
+
+The rule at the top has now named three: Wrecking Crew's basement (an interior you drive
+around inside), Coreward's landing pad, and — from the fishing game's design pass — **the
+dock you tie up to every session and the boat you sit in for the entire game**. All three are
+the same description: stationary, close to the camera, and looked at while nothing else is
+happening.
+
+The useful sharpening is that **a first-person or near-camera vehicle is automatically the
+exception**, because it is the one object on screen for one hundred per cent of play time at
+one hundred per cent of its real size. Ask how many pixels tall a thing is *and for how long*.
+
 ## What has actually been imported, ever
 
 | Game | Asset | Size | Verdict |

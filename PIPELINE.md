@@ -691,6 +691,33 @@ headlessly, and is testable at 120 fps against 60. **Physics is for debris, whic
 nothing.** The same reasoning applies to any engine feature that would own a number the game
 is scored on.
 
+### `DEPTH_TEXTURE` is corrupt on Forward Mobile with MSAA, and the fix is better than the bug
+
+Found while designing the water for a fishing game, before writing any of it. **Sampling the
+depth texture on Forward Mobile with MSAA enabled returns corrupted data** — the MSAA resolve
+is missing before the texture is bound. That matters because the standard recipe for water,
+shore foam, soft particles and any depth-based fade is exactly this sample, and it is what
+every tutorial reaches for.
+
+The workaround is to turn MSAA off. **Do not take it.** The better answer is to notice that in
+these games the renderer is being asked a question the simulation already knows the answer to:
+the lake bed is a heightfield the sim authors and owns, because it decides where the fish are
+and whether you snag. Upload that same field as a small texture, sample it in the shader by
+**world position**, and the depth is exact, cheap, and *identical to the number the rules use*.
+
+Three things fall out, and they are the reason this is a rule and not a workaround:
+
+- **The picture cannot disagree with the game.** Foam is drawn where the sim says the bed is.
+  Same guarantee as showing the real ship in the shop instead of a copy of it.
+- **It is testable headlessly.** A depth-buffer read is invisible to a headless run; a
+  heightfield lookup is arithmetic and goes straight into the golden.
+- **MSAA stays on**, so thin geometry — line, reeds, rigging — stops shimmering.
+
+Generalised: **when a shader wants to know something about the world, check whether the
+simulation already owns it before asking the renderer.** Sampling the frame buffer to recover
+a fact the game computed three milliseconds earlier is a second source of truth, and it is the
+one that breaks on a specific renderer with no error message.
+
 ### Measured on the phone
 
 First native build on the S26 Ultra, 2026-09-08: **Vulkan 1.4.295, Forward Mobile, Adreno
