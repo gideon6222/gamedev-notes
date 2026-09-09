@@ -770,6 +770,20 @@ the frame, sampling a second channel of the same texture that is non-zero only i
 turns the void near the lamp into glow and leaves the far end black. One draw call, and it is the
 single change that made the feature read.
 
+**When a lighting model lands, audit everything that emits light - not just the thing you set
+out to replace.** Coreward had a wide additive halo sprite on the ship standing in for "there is
+a lamp here". It predated the propagated light, it kept working, and because it was small enough
+to read as part of the ship it survived three rounds of "the lighting still looks wrong". It was
+the last object in the frame obeying different rules: additive quads know nothing about
+geometry, so it painted a circle over solid rock. **A fake put in before the real system exists
+does not announce itself when the real system arrives.**
+
+**A gauge you check under pressure must not move for reasons unrelated to the check.** A
+tachometer ring was added around a fuel dial on request and removed the next round: it swept
+every time the player moved or dug, which turned a glance at the one reading that decides
+whether to turn round into something you had to parse. Movement on an instrument has to be
+earned by being read.
+
 **Delete the fake when the real thing arrives.** Coreward drew a volumetric cone from the drill
 as a stand-in for a headlight. Once light actually propagated, the cone was a triangle drawn where
 light was *supposed* to be — it passed through solid rock as happily as through air, and it
