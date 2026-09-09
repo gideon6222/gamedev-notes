@@ -534,6 +534,62 @@ Why it matters at all: a pale object on a pale ground has no edge without one. A
 lying on a white runway rendered as a faint grey smear indistinguishable from a shadow, and
 the batch - the thing the whole game is about - was the least legible object on screen.
 
+## Test the PICTURE with pixels, test the PLACEMENT with the model
+
+Both kinds of check are worth having and they are not interchangeable. Getting this backwards
+cost three discarded metrics on one afternoon.
+
+A wax pool rendering striped, and a station sign hung at the camera's eye height, were both
+attacked first as frame statistics. Measured on a good build against a deliberately broken one:
+
+| Metric | Good | Broken | Verdict |
+|---|---|---|---|
+| colour changes across a row | 45 | 49 | useless |
+| saturated runs across five rows | 7 | 8 | useless |
+| fraction of the upper frame still sky | 0.869 | 0.826 | too weak to threshold |
+| **fraction of the lower frame near-black** | **0.028** | **0.196** | **kept** |
+
+Both of the stubborn ones are GEOMETRY, and geometry is a number in the model: the pool's y
+against the tops of the lane-stripe boxes, the distance from the lens to the nearest visible
+gantry. In the model they are exact, they need no GPU, and the failure message names the number
+and the object. In pixels they are a shade that also depends on marbling, on the time of the
+frame, and on what happened to be on the ground where the band was sampled.
+
+**What frame statistics are for is the whole picture going wrong at once** - everything one
+colour, everything black, nothing drawn - which the model cannot see at all. That is a real
+category: a build where every instanced object rendered as a solid black silhouette passed
+every model assertion it had.
+
+### Two rules for a pixel check that is worth running
+
+**Measure first, then set the threshold, then break the build on purpose and watch it fail.**
+A guard that does not move when the bug is present is worse than no guard - it is a green light
+nobody has any reason to doubt. Give the runner a `--report` mode that prints the metrics and
+asserts nothing, so the numbers can be re-derived rather than guessed at.
+
+**Sample densely and judge the worst frame; a handful of chosen moments is not a sweep.** The
+first version of this check sampled five seconds of a level and missed the exact bug it had
+been written for, because a sign only fills the frame for about a second after you pass under
+it. A frame costs milliseconds. Sample every second or two across the whole level. Transient is
+precisely what a chosen-moment check cannot see, and in a runner transient is most of what is
+wrong.
+
+### State a guard in terms of what it is really about
+
+The gantry check was first written as "no gantry is drawn behind the player", and it failed on
+a deliberate one-metre grace that stops the gantry popping out as you cross it. That gantry is
+still eleven metres from the camera and completely harmless. The rule is about distance from
+the LENS, and once written that way it passes on every correct build and fails on the bug.
+
+A guard phrased as the nearest convenient proxy will fail on correct changes, and a guard that
+fails on correct changes gets deleted.
+
+### Keep the pixel check local when CI has no GPU
+
+Thresholds derived on one renderer do not transfer to another, and maintaining two sets of
+numbers for one check is how a check stops meaning anything. Put it in a `check.sh` alongside
+the headless suites and run that before committing, rather than pretending CI covers it.
+
 ## Screenshot a whole level as a contact sheet, not a second at a time
 
 A single screenshot answers "does this moment look right" and costs an entire engine start, so
