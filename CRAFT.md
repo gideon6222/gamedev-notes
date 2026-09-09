@@ -262,6 +262,33 @@ that were not there yet, and the waving bot's advantage grew.
 true and valuable, write the problem down where the next session will read it, and leave the
 assertion for when the fix lands.
 
+**Solving a constraint by moving a thing and not touching its velocity injects energy;
+solving it by overwriting the velocity destroys momentum. Neither is the answer.** Wrecking
+Crew's chain went through both. The first version projected the ball back onto the circle and
+left its velocity alone - which adds energy on every taut frame and compounds, measured at
+216 m/s on a machine that cannot exceed 9.5. The obvious fix, deriving the velocity from how
+far the ball actually moved, is stable and *kills the swing*: a taut chain clamps the ball to
+a circle, so its per-frame displacement is small, so the derived velocity is small. The player's
+words for those two faults sitting on top of each other were **"it flies out too much but also
+feels like it doesn't have enough momentum"**.
+
+The correct constraint **zeroes the RADIAL component of the ball's velocity relative to the
+anchor, and leaves the tangential component completely alone.** Tangential is the momentum, so
+it carries. Radial is the stretch, so it cannot. It cannot inject energy either, because it
+only ever removes a component - which is what makes it stable without needing the displacement
+trick at all.
+
+**A restoring force has to be proportional to the displacement, or the thing has no period.**
+The same chain pulled toward its anchor with a constant magnitude, which does not care how far
+out the weight is - so once it was out, it stayed out. `g * offset / length` is one line, and
+a period is what makes a swing read as a swing rather than as a weight being dragged on a
+string.
+
+**Every improvement to how hard a hit lands is a change to how long a level takes.** Fixing
+the chain roughly doubled the damage a pass delivers, and a room that had been a minute's work
+went down in eight seconds. The two numbers are one decision and have to be re-balanced
+together, or the level loses its middle.
+
 ---
 
 ## Legibility
@@ -540,6 +567,31 @@ and by street 20 at half that. A design test caught it - `window > lag`, at leve
 and 20 - and the fix was to cap speed and make later streets harder by growing the *targets*
 instead. **Any game with a charge time, a wind-up, a reload or a lag should assert that
 relationship at the top of its ladder, not just at the bottom.**
+
+**A fixed camera and vehicle-relative controls are tank controls, and players feel it before
+they can name it.** Wrecking Crew's machine took a throttle and a steer while the camera held
+a fixed orientation - so whenever the machine faced back toward the lens, forward on the stick
+drove it DOWN the screen and right turned it left. Gideon's report was "the driving controls
+almost feel backward but not sure if that is the main issue", which is exactly what a control
+scheme that is correct half the time produces: not a clear complaint, a nagging one.
+
+**The rule: the frame the CONTROL speaks in must match the frame the CAMERA speaks in.** A
+camera that turns with the vehicle can take vehicle-relative input. A fixed or world-aligned
+camera needs world-relative input - push the stick where you want to go, and let the vehicle
+work out its own heading. Mixing them is the bug, and it is invisible in any test that drives
+the input seam directly, because at the seam both schemes look identical.
+
+**Give a one-dimensional quantity a one-dimensional control.** The boom only slews, and it
+had a dial - so the thumb had to be placed precisely on a circle to say something a line
+could say, and the vertical half of every drag was thrown away. Gideon: *"the controls don't
+need to be a dial look. since we are only controlling the turning, it could just be a left
+and right joystick or slider."* A wide slider also buys precision for free, because width is
+pixels per radian.
+
+**And put the lagging thing on the control next to the thing being controlled.** The slider
+carries the boom's knob AND a small mark where the ball actually is. The gap between them is
+the lag the whole game is about, and it can be read without tracking two objects in the 3D
+view at once.
 
 ---
 
@@ -1234,6 +1286,22 @@ sweep and was quietly worse at connecting than the committed policy - so tests m
 "does a column take its hit points to break" were really checking "can this particular sweep
 connect at all". Export the policy's own routine and have the tests drive through it. One
 definition of how the game is played, used by the bots and the tests alike.
+
+**A hand-derived ceiling is the wrong test for "is this physics stable".** Wrecking Crew's
+energy test computed a bound from the machine's top speed and its rotation rates and asserted
+the ball never exceeded it. It failed - correctly, and for entirely the wrong reason: driving
+a pendulum near its own period PUMPS it, so the speed legitimately climbs well past anything
+one push can produce. That is resonance, not a leak.
+
+**Assert SATURATION instead.** Drive adversarially for a minute, take the worst speed in the
+first half and the worst in the second, and require the second to be within a few percent of
+the first. Real damping settles to a steady state; an energy leak grows without bound. The
+test then says the thing you actually mean, and it stops firing on legitimate play.
+
+**A safety clamp that fires in normal play cannot signal anything.** The same game capped ball
+speed at a number ordinary hard driving reached, so the clamp was on much of the time and the
+runaway it existed to catch would have been indistinguishable from a good swing. Set a guard
+ABOVE anything legitimate, and assert in the tests that it never fires.
 
 ---
 
