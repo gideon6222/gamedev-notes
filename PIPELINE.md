@@ -697,6 +697,45 @@ Claude can drive a browser to check things visually. Two traps:
   a pure reducer and test it in milliseconds instead.
 - **Playwright composites properly.** When something needs real frames, that is the tool.
 
+### Build a FILMSTRIP before judging anything that moves
+
+Every tool for looking at a game produces a **still** — a screenshot, a pixel read, a uniform
+dumped to the console — and half of what a game is judged on is movement. Asked to make an
+intro "less like a slide show", there was no way to check the answer except to look at one
+frame and reason about the code in between, which is the same habit that cost four rounds on a
+lighting artefact.
+
+The fix is about eighty lines and pays for itself on the first run: drive the built game under
+Playwright, **advance GAME time in fixed steps**, screenshot each step, and composite the
+frames into one contact-sheet PNG. A whole sequence becomes a single image.
+
+```
+node scripts/filmstrip.mjs <scenario> [frames] [secondsPerFrame]
+```
+
+Three decisions that make it worth having rather than a toy:
+
+- **It runs on the tick seam, never the wall clock.** `advance(dt)` steps the simulation by a
+  fixed amount however fast the machine is, so the same command produces the same sheet on CI,
+  on this PC, and in six months. A harness that samples real time is measuring the machine.
+- **It composites in the BROWSER.** `sharp` is a run-it-once-by-hand tool and should not become
+  a repo dependency; the page is already open and has a canvas, so the frames go back in as
+  data URLs and one PNG comes out. No install step.
+- **Named scenarios**, so a repro is a command rather than a paragraph of set-up — and
+  scenarios that need the game running have to cross the title screen exactly like a player,
+  never through a bypass flag.
+
+**What it found on its first three runs**, none of which any amount of reading the code would
+have produced: the intro was cutting to a new planet on every caption (the actual slide show,
+visible at a glance); the title wordmark was running off the right edge of a 375px phone; the
+title and the intro were rendering on top of each other; and a menu button was correctly greyed
+and inert, which showed the *scenario* was wrong rather than the game.
+
+**Collect console errors and print them with the sheet.** Three separate bugs in one session
+were sitting in the console while they were being hunted somewhere else.
+
+---
+
 ### A null A/B is worthless until you have proved the screen can change
 
 Toggling one uniform, screenshotting twice and getting two identical images feels like a
