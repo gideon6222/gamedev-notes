@@ -731,3 +731,55 @@ back when preparing to cast but it pushes down and flings up when you let go."
 
 Second time in two sessions that he has reported something the probe or a screenshot had
 already had the chance to tell me. **The instrument keeps being the thing that is wrong.**
+
+## 2026-09-08 - Coreward, the lighting rounds
+
+Five rounds on one artefact. His words each time, in order:
+
+> "it looks like the tunnel light is still showing in a circle around the ship and shows on the
+> face of the rocks, making the sharp shadows not quite look right."
+
+> "it looks like we are still getting the circle of tunnel light coming from the ship and it
+> looks like it bleeds through the rock still."
+
+> "that helped but we are still getting this overlapping rounded look. do you know what is
+> causing this?"
+
+> "it is still doing it but I think it will be hard to see from your tests since it only
+> happens when approaching a branching path."
+
+> "Did you see the areas I circled in my picture? The position of the ship won't cause the
+> issue that you have it at currently. It only happens when approaching a branching path, not
+> when you are at the actual branch. It only shows up when the shadow is cast as you are
+> approaching the branch"
+
+Then, after a fix that removed the symptom by turning the fog down:
+
+> "it looks like it is happening worse now than it was and I liked the art style before better.
+> I think I see the possible cause now. it looks like you are creating the shadows by sending
+> out multiple cone shape beams to check of light should make it into the tunnel. since the
+> light should be coming from one location it shouldn't be split into more than one beam like
+> we see here."
+
+- **He was right about the mechanism, and I was not.** Occluder distance was being recorded per
+  whole block, so one point lamp quantised into a cone per block. I had spent four rounds
+  reasoning about which shader term could make the shape.
+- **"approaching a branch, not at the branch" was the actual diagnostic.** It ruled out
+  everything that depends only on the ship's own position and pointed at the geometry between
+  ship and branch. I kept setting up test scenes with the ship AT the junction, which is the one
+  place the artefact cannot appear, and he had to say so twice.
+- **"I liked the art style before better"** followed a change that removed the artefact by
+  making everything dimmer. It removed the symptom everywhere, including where its supposed
+  mechanism could not apply - which in hindsight is the tell for a dimmer switch rather than a
+  fix. Once the real cause was fixed the brightness went straight back with nothing following it.
+- What finally worked was hiding one layer and re-rendering: artefact gone, terrain lighting
+  intact, four modules eliminated in one call. That should have been the first move, not the
+  fifth.
+
+Later the same day, three asks in one message - a visible beam through dusty air, a real dust
+particle effect, and autopilot flying home nose-first instead of reversing. The autopilot one
+was a sign error that had been shipping for weeks and that nobody had put into words before.
+
+**Read the mechanism half of a report as seriously as the symptom half.** Twice now he has
+supplied the cause and I have treated it as a description of the symptom.
+
