@@ -452,6 +452,37 @@ strange as what remains approaches nothing.
 
 ## Feel
 
+**A "threshold fight" settles into ONE correct sustained input, and then it is over as a
+mechanic.** Hold the needle inside the band, keep the bar under the fish, stay in the green -
+the whole family has the same failure: once the player finds the position that works there is
+nothing left to do but not move, and the game becomes a test of not fidgeting. It is the most
+common shape in fishing minigames and it is why Stillwater's first fight was called too easy
+within a minute of being played.
+
+**The fix is to make gaining ground require a RHYTHM rather than a value.** Stillwater's second
+fight gives line on a completed pump - a lift above a threshold followed by a drop below a lower
+one - so holding any constant load, high, low, or perfect, gains exactly nothing. There is a
+test asserting precisely that at six different held values, because it is the one property that
+would silently revert the mechanic to the thing it replaced.
+
+**Give the player a risk dial they hold themselves.** Line gained scales with how high the lift
+went, and the line starts taking damage just above the most profitable pump. The greedy option
+is genuinely better and genuinely near the edge, which is a decision on every single stroke
+rather than a difficulty setting.
+
+**A sudden event should hit hardest at its START, and that is what separates awareness from
+reaction.** A run in Stillwater carries a surge multiplier that decays over the first third of
+a second, so being a tenth of a second late costs several times what being late later does.
+The effect is that a player who reads the warning and drops the rod BEFORE the run begins wins
+by a margin nobody can close by reacting faster - which is the difference between a game about
+watching and a game about twitching. Before it was added, more frequent runs only made fights
+longer; afterwards the same fish went from a 96% landing rate to 54%.
+
+**And doing nothing must lose, or the optimal strategy is to take all day.** Every forgiving
+fishing minigame collapses to patience. Stillwater runs a wear clock for the whole fight that
+ends it in about 46 seconds regardless of how carefully it is played, so caution is a real cost
+and not a free hedge.
+
 **Hit-stop is the highest value per line of code in the whole toolbox.** Freezing the
 simulation for 35–80 ms on an impact makes the same animation feel like a different game.
 Scale the freeze to how significant the event is.
@@ -1217,6 +1248,29 @@ transform, so the control and the thing it controls cannot disagree.
 thumb and the dial drift apart until the picture no longer says where the machine is pointing,
 which defeats the entire point of drawing it.
 
+**But a readout that must be watched CONTINUOUSLY cannot live under the thumb that operates
+it** - and that limit is what decides whether the rule above applies at all. Stillwater's first
+fight put a tension meter on a control on the right-hand side, exactly the Wrecking Crew
+arrangement, and Gideon's note was "I don't like that my thumb will be blocking the gauge I am
+looking at". The dial got away with it because you GLANCE at a dial between decisions; a
+tension meter is read every frame, and a hand rests on it the whole time.
+
+So the test before combining a control with its readout is **how often is it read**, not how
+well the two go together:
+
+- **Glanced at** - combine them. The dial is right and stays right.
+- **Watched continuously** - separate them, and prefer putting the instrument in the WORLD
+  rather than somewhere else on the HUD. Stillwater deleted the meter and made the rod's bend
+  the tension: it is in the upper half of the frame where no hand goes, it is the actual object
+  rather than a picture of one, and the input became a relative drag anywhere on the screen -
+  which has no fixed track, so there is nothing left for a thumb to cover.
+
+**When an instrument is the only one you have, it has to deform, not just move.** That rod was
+first drawn as a single stick rotated by the load, and the silhouette barely changed - 40% and
+60% look the same when a straight line tilts. Five chained segments, each taking a share of the
+angle weighted toward the tip, reads as a rod under strain at a glance. Weight the shares
+unevenly, or an even share bends it into a circular arc and it reads as a bow.
+
 ---
 
 ## Audio design
@@ -1241,6 +1295,43 @@ happened, however good the particles are.
 ---
 
 ## Testing design, not just code
+
+**A PERFECT BOT WINNING IS NOT EVIDENCE ABOUT DIFFICULTY.** It is a fact about perfect bots.
+This is the most expensive testing lesson here so far, because the probe printed the answer a
+full day before the player said it out loud and it was read as good news.
+
+Stillwater's first fight was a threshold model - hold the tension inside a band. The scripted
+angler landed 6.83 fish per session and lost **zero**. That went into NOTES.md as "the number
+to watch", the build shipped, and Gideon's first sentence about it was "it is too easy". The
+bot was a zero-latency, perfect-information controller: it will beat any mechanic that is fair,
+so its score carries no information about whether a person will be challenged.
+
+**The fix is a bot with human faults, and it has to have MEMORY.** Stillwater's now models
+three: a 300 ms reaction time, a tell it misreads about one time in six, and a thumb that
+wobbles by ±0.055. The first attempt was stateless and scored *identically* to the perfect bot,
+which was a second wrong reading of the same kind - because a stateless bot corrects itself the
+instant the world changes, so a misread costs it only the warning window and nothing after. A
+person keeps doing the wrong thing **until they notice**. Once belief lagged reality by a
+reaction time, the same build went from 0% losses to 24%, and the fight was suddenly measurable.
+
+Two corollaries worth having:
+
+- **Tune the GAME so the human bot struggles; never tune the bot so the game looks hard.** The
+  moment the model is adjusted to produce a nicer number it stops being an instrument.
+- **A tell longer than human reaction time makes a mechanic free.** Stillwater's warning was
+  0.42 s against a 0.30 s reaction, so the "late" player was never actually late. That is only
+  visible with a latency model; with the perfect bot both numbers score the same.
+
+**Difficulty is usually the PRODUCT of two fields, and neither one tells you where a thing
+sits.** Raising the bluegill's run chance while leaving its "busyness" high made the *tutorial*
+fish harder than the one after it - 79% landed against the perch's 88%. Nothing in either field
+looked wrong on its own. There is now a test asserting the species table is a monotonic ladder
+in the order it is written, because a content table that is supposed to be ordered should say
+so out loud.
+
+**Measure per item, not as one mean.** The aggregate said "the human loses 24%", which hid that
+the first fish was a 92% win and the prize fish was 54%. One mean over a difficulty ladder
+describes none of its rungs.
 
 **A metric is only useful if its denominator is the thing in question.** Coreward's run log
 reported "98.5% of blocks paid", which was true and worthless: plain dirt had started paying a
