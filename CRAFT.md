@@ -770,6 +770,15 @@ the frame, sampling a second channel of the same texture that is non-zero only i
 turns the void near the lamp into glow and leaves the far end black. One draw call, and it is the
 single change that made the feature read.
 
+**When you replace the reason for a workaround, delete the workaround in the same commit.**
+Coreward bled a tunnel's glow half a cell onto the rock around it, to stop wall bulges reading
+as unlit chips inside a lit shaft. A version later the real fix landed - the glow quad moved in
+front of the terrain - and the bleed stayed, because nothing failed when it became unnecessary.
+What it did instead was paint an additive wash over every rock face near the player: a circle,
+over solid rock, softening the very shadow edges the shadow solver existed to draw. It took two
+rounds of playtest notes to find, because a leftover workaround is indistinguishable from a
+deliberate choice.
+
 **When a lighting model lands, audit everything that emits light - not just the thing you set
 out to replace.** Coreward had a wide additive halo sprite on the ship standing in for "there is
 a lamp here". It predated the propagated light, it kept working, and because it was small enough
