@@ -707,3 +707,27 @@ having visual on screen queues or gauges would be a good addition"
 - Worth noting he opened with "im sure we can work on it later" about the rod — he flags what he
   considers low priority. The rod was a ten-minute fix and the mechanic was a rewrite, so the
   ordering he offered was correct.
+
+### 2026-09-09 - M1, the third fight, and three bugs in one screenshot
+
+"something doesn't seem right. i dont see any gauges and after it says tap in the green, it
+pulls the rod back slightly then I cant recast or anything. also the rod should pull up and
+back when preparing to cast but it pushes down and flings up when you let go."
+
+- Three separate faults in one sentence, all correctly described, and he sent two screenshots
+  that between them showed the state I needed.
+- **The gauges were never visible at all.** `visible` was set inside the `draw` callback, which
+  is a latch - a hidden Control never gets `draw` again. Every property a check would look at
+  was right; the thing was simply not on screen. The smoke test had five assertions about those
+  bars and not one of them was `visible`.
+- **"I cant recast or anything"** was a way-out bug of a kind worth naming: `reel_in()` existed,
+  was tested, passed - and nothing in the renderer called it. A public method with no caller is
+  a missing feature wearing full test coverage.
+- **The rod signs were inverted**, both of them, and he described the symptom exactly: "it
+  pushes down and flings up when you let go".
+- The uncomfortable part: I had taken a screenshot of this build and it looked fine, because it
+  froze mid-fight - the one state in which none of the three show. `shot.gd` takes a state name
+  to stop at now.
+
+Second time in two sessions that he has reported something the probe or a screenshot had
+already had the chance to tell me. **The instrument keeps being the thing that is wrong.**

@@ -1071,6 +1071,28 @@ it. Papering over it with `DoubleSide` then rendered the text mirrored, which is
 wearing a second symptom. Rotate the plane `Math.PI` about Y. **When something renders as
 nothing, enumerate what you never configured.**
 
+**A CALLBACK MUST NOT DECIDE WHETHER IT IS CALLED.** Stillwater's two HUD gauges set their own
+`visible` at the top of their `draw` handler - `visible = (state == FIGHTING)`, which reads as
+tidy and is a **latch**: a hidden Control never receives `draw` again in Godot, so the first
+frame in any other state switched it off permanently and neither gauge was ever seen on the
+phone. Every property a check would look at was correct. Anchors, offsets, size, mouse filter,
+the colours: all fine, on a control nobody could see.
+
+The general shape is worth carrying past this engine: **anything that gates its own invocation
+can only ever fail closed.** Visibility, enablement and scheduling belong to the thing that runs
+every frame regardless, never to the handler being gated.
+
+**And assert that a thing is ON SCREEN, not merely configured.** The smoke test for those gauges
+checked anchors, offsets, hit-box behaviour and that the numbers they drew matched the rules -
+five assertions, all passing, none of which was `visible`. Add the trivial one; it is the only
+one that fails when the interesting ones cannot.
+
+**Screenshot the SHORT states, deliberately.** The one capture taken of those gauges happened to
+freeze mid-fight - the single state in which the latch cannot show - and it looked correct.
+Stillwater's `shot.gd` now takes a state name to advance until, because the moments worth
+photographing (a hook window, an impact, a transition) are exactly the ones a timestamp will
+miss. **A screenshot at "24.5 seconds" is a screenshot of whatever happened to be true then.**
+
 **Gradient skies for free.** Render with `alpha: true` and no scene background, then put a CSS
 gradient behind the canvas.
 
@@ -1416,6 +1438,18 @@ continuous, no fixture noticed, because a fixture is written by someone who alre
 happy case. Ask what value every test happens to share, and write one that does not - and say in
 the test why the awkward number is awkward, or the next person tidies it back to the round one
 and silently retires the test.
+
+**A WAY OUT THAT ONLY THE SIMULATION KNOWS ABOUT IS NOT A WAY OUT.** The pure-core rule has a
+matching failure mode and this is it: Stillwater's `reel_in()` — the escape from a cast with no
+bite — existed, had a test, and passed for three builds, and **nothing in the renderer ever
+called it.** The player was left with a lure in the water, no fish, and no route back to the
+boat: "i cant recast or anything".
+
+The test was asserting about an API rather than about the game. **Every "there is always a way
+out" test has to drive the call the INPUT HANDLER makes**, not the method that exists to serve
+it — which for a phone game means the tap or drag seam, exercised through the real scene. A
+public method with no caller is the same thing as a missing feature, and it is harder to see
+because the coverage looks complete.
 
 **Put collision in a pure module and test the failures, not the successes.** "Moves in open space"
 is not worth a test. Tunnelling at speed, catching on a corner, creeping into a block by leaning

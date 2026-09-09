@@ -715,6 +715,14 @@ tools and platform-tools.
   waiting the frames matters, since capturing on frame one gives a grey rectangle. Because it
   goes through `freeze` and `advance`, the same second of the same street is captured every
   time, which makes two screenshots taken a week apart genuinely comparable.
+- **Give that script a STATE to advance until, not just a number of seconds.** A capture at
+  "24.5 seconds" is a capture of whatever happened to be true then, and the moments worth
+  looking at are the short ones - a hook window, an impact, a transition. Stillwater shipped a
+  build in which neither HUD gauge was ever visible, and the single screenshot taken of them
+  looked right because it froze mid-fight, the one state in which that particular bug cannot
+  appear. `-- 90 hooking` advances until the state matches and complains if it never does.
+- **A screenshot proves a state, never the absence of a bug in the states it did not reach.**
+  Three HUD faults shipped together behind one good-looking picture.
 
 ### `stretch/aspect = "expand"` means the base resolution is a LIE about height
 
