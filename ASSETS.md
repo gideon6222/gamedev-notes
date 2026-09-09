@@ -35,6 +35,60 @@ the colour underneath. That is not a mesh with a skin, it is a data structure be
 Before asking how many pixels tall a thing is, ask whether the game changes its shape. If it
 does, the question is closed.
 
+## The exception finally happened, and it is a PLACE
+
+The rule at the top has held for three games: model anything judged on
+silhouette at thirty pixels. Wrecking Crew's basement is the first thing here
+that is genuinely the exception the rule names - "stationary, close to the
+camera, and looked at while nothing else is happening" turns out to describe an
+**interior you drive around inside**, every surface of it, for the whole level.
+
+What went in, and what each one is actually doing:
+
+- **A Poly Haven HDRI** (`abandoned_parking_1k.hdr`, 1.6 MB). Three jobs at
+  once, which is why it earns its place over a light rig: it lights the room,
+  it gives the wrecking ball something to REFLECT - a metal has no diffuse term
+  and renders as hotspots on black with nothing to reflect - and it is what you
+  see through the exit, which is the only daylight in the level and therefore
+  the thing the player drives toward. Fetchable unattended:
+  `https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/<name>_1k.hdr`.
+- **An ambientCG concrete normal + roughness**, 512px WebP, 41 KB the pair.
+  Same rule as before - take the normal, leave the colour map - and the
+  roughness is the other half that is also style-neutral.
+
+The whole import is **1.6 MB and took the APK from 27.1 to 29.7**, which on a
+native build is nothing. That is worth stating plainly: on the web stack every
+kilobyte was a download over mobile data, and the caution around imports came
+from there. **A native app does not have that constraint**, and the asset rules
+written under it need re-reading rather than re-applying.
+
+### Poly Haven's API, searched by keyword
+
+`curl -s "https://api.polyhaven.com/assets?t=hdris"` returns 994 HDRIs and
+`?t=models` returns 521, both as one JSON object keyed on the asset id - so a
+keyword filter over the keys and names is the whole search. For a basement:
+`abandoned_parking`, `abandoned_garage`, `concrete_tunnel`,
+`debris_basement_corridor`, `empty_warehouse_01`. For props:
+`concrete_road_barrier`, `Barrel_01`, `caged_hanging_light`,
+`modular_industrial_pipes_01`, `fire_hydrant`. `api.polyhaven.com/files/<id>`
+gives the download URLs and exact byte sizes per resolution.
+
+### Audio is still the gap, and the answer is probably to GENERATE it
+
+Checked again on 2026-09-08: **Kenney's asset URLs are not guessable** (every
+attempt 404s; the site needs a browser session), and **freesound still requires
+an API key**. So the two CC0 audio libraries worth having are both unavailable
+unattended.
+
+For a Godot game the web stack's answer - synthesise at runtime through Web
+Audio - does not carry over cleanly, and writing a synth against
+`AudioStreamGenerator` in GDScript is real work for a phone's CPU. **The better
+route is to generate the WAVs offline with a short Python script and commit
+them**: a concrete impact is a filtered noise burst with a fast attack over a
+low thump, rubble is layered short grains, a collapse is a descending rumble.
+Deterministic, no licensing, no runtime cost, and the pitch jitter that stops a
+repeated sound becoming a machine happens at playback.
+
 ---
 
 ## Sources, ranked by usefulness to us
