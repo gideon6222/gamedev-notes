@@ -208,3 +208,42 @@ so phases W, P, G, S and T are approved as written. Seven new asks on top of it.
   rather than turning. Already on the plan as 11.9d and now confirmed as something he can see.
 
 Answered in: PLAN.md phase B (the body), phase R (the rooms), and W1 for the water.
+
+## 2026-09-10 - on the phone: menus clip, no way out, and the fight needs a button
+
+> "a couple of issues. the menus clip through the physical objects, i cant see the log book on
+> the ground. I cant swipe the pages on the log book when I pick it up. instead of clicking
+> outside the menu to close it, i want an X or back button to prevent accidentally closing out
+> of the menue. since the text is small I want arrow keys and confirm button to navigate the
+> menues. for the fishing game, you still tap on the screen to fight the fish, there is no
+> dedicated button to fill the bar. I want a button instead of just tapping the screen. it is
+> also not obvious that the fish will pull back and add pressure to the bar. can you research
+> how other games make this feel like a risk/reward system, how they make it feel smooth and
+> intuitive, plan it out and implement it? I want an obvious mechanic change, that uses the
+> same principle but implements it in a better way."
+
+Three screenshots, taken on the phone, and the first playtest of the rooms.
+
+- **Every one of the first five is a consequence of the rooms landing.** He asked for objects
+  instead of panels, got them, and immediately found what a panel had been doing for free:
+  panels do not intersect geometry, always have a close button, and are never behind anything.
+  Making a menu physical means re-earning all three, and none of them was in the plan.
+- **"The menus clip through the physical objects"** is visible in both shots. The tackle box's
+  panel passes through the floorboards and the logbook's page passes through the tackle box.
+  A SubViewport quad is ordinary geometry and depth-tests like any other.
+- **"I cant see the log book on the ground"** while the prompt in the same frame reads "The
+  keeper's logbook - 2 of 5 hands". So the crosshair is ON it and the eye cannot find it. That
+  is the third time this exact fault has been reported about this object.
+- **"Instead of clicking outside the menu to close it"** - tap-to-dismiss was written down as
+  "what a reader expects from a thing they picked up". It is what a reader expects and it is
+  also how you lose a page by brushing the screen. He is right and the note was wrong.
+- **"Since the text is small I want arrow keys and confirm"** - the first accessibility note he
+  has given, and it applies to every room, not just the ones built so far.
+- **The fight asks are the substantial half.** A dedicated button rather than tapping anywhere,
+  and: "it is also not obvious that the fish will pull back and add pressure to the bar." The
+  run IS the mechanic the whole fight is built on, it has a tell, a wake and a jolt, and after
+  all that the player does not know it is coming. He asks for research and for "an obvious
+  mechanic change, that uses the same principle but implements it in a better way" - which is
+  permission to replace the presentation of the run, not the idea of it.
+
+Answered in: PLAN.md phase R (the rooms' three debts) and a rebuilt phase F for the fight.
