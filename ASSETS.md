@@ -1,487 +1,207 @@
-# ASSETS.md
+# ASSETS.md - where to get things we did not make, and how to use them well
 
-Where to get things we did not make, how to fetch them, how to shrink them, and — the part
-that matters most — **when not to bother**.
+Current state, not history. Edited only by `/digest`. Every source below was checked on
+2026-09-10; `scripts/assets.py` is the fetcher and `/asset-hunt` is the skill that runs
+the search. Re-check a source before trusting a claim that looks stale.
 
-**Current state, not history.** Rewrite in place. Every "verified" claim below was tested
-from this machine on 2026-09-07; re-test before trusting one that looks stale.
+## The rule that decides what to import
 
----
+**Import what the player reads at its real size. Model in code what is judged on silhouette
+at thirty pixels, and anything whose shape IS game state.**
 
-## The rule that decides everything else
+Type, UI, icons, sound, music, textures, skies and anything permanently on screen (a
+first-person interior, the vehicle you sit in, the dock you tie up to, a shop room) are read
+at full size and a better one is better immediately. A ship sprite thirty pixels tall is
+read as a shape, and an imported model brings its own topology and scale that will not match
+the rest. A candle whose radius is how much wax you have is a data structure being drawn,
+not a mesh.
 
-> **Import what the player reads at its real size. Model in code anything that is thirty
-> pixels tall and judged on silhouette.**
+**Apply it as a measurement, not a habit.** If you cannot say roughly how many pixels tall
+the thing will be and for how long it is on screen, you have not applied the rule. Under
+about sixty pixels, model it. Over about two hundred and permanently on screen, import it,
+and modelling it is what now needs justifying. Stillwater's bucket was four hundred pixels
+tall in every frame and was modelled from habit.
 
-Type, UI art, icons, sound, textures and music are read at full size — a better one is
-better, immediately, on every screen. A ship sprite thirty pixels tall is read as a
-*shape*, and a downloaded model brings its own topology, normals and sense of scale that
-will not match hand-tuned flat shading. The join shows in the first frame.
+**On a native APK, size is not the constraint it was on the web.** An HDRI plus a PBR set
+cost 1.6 MB and took an APK from 27.1 to 29.7 MB, which is nothing. Nineteen generated
+sounds including music beds came to 4 MB of WAV and +3% APK because Godot compresses on
+export. The web-era caution ("nothing modelled has ever been worth importing") was written
+when every kilobyte was mobile data. It is retired.
 
-This was learned the expensive way. Repainting Coreward's drill per upgrade tier was
-correct, cost nothing, and was **completely invisible** at play scale; it had to be replaced
-with a change to the *number* of sparks to read at all. Before importing a model, ask how
-many pixels tall it will be. Under about sixty, the answer is usually to model it.
+**Search before deciding a subject is unservable.** The hit rate is a property of the
+subject, not the library. Wax and candles found nothing anywhere; a lake-and-boat game found
+its whole set dressing on Poly Haven in two minutes (pier, boats, buoys, rocks, trees, hat,
+knife, life jacket, bucket, basket, junk-catch table). The two-minute API query is the
+research step. Record the misses too.
 
-**And the inverse, which was missing and cost real time.** Over about two hundred pixels and
-permanently on screen, **import — and modelling it is what now needs justifying.** The rule
-above was written with only one threshold and only one bias ("usually to model it"), which
-reads as a default rather than as a question. It is not a default. It is a measurement, and
-it points both ways.
+## What to use for what
 
-Checked against Stillwater on 2026-09-09, after Gideon asked whether the rule had a valid
-reason or needed correcting. **The rule was right; the application was wrong.** A bucket in
-the bottom of a boat you are sitting in is about four hundred pixels tall. The rule already
-said import it. Nobody ever estimated the number — "model in code" was reached for as a
-habit, and the tell is exactly that: *if you cannot say roughly how many pixels tall the
-thing will be, you have not applied this rule, you have skipped it.*
-
-**The exception worth naming:** an object that is stationary, close to the camera, and
-looked at while nothing else is happening. Coreward's landing pad qualifies. That is a
-description of a *situation*, not of an object — look for the situation in a new game rather
-than assuming "the pad". **A first-person interior is that situation permanently**, for every
-object in it: Stillwater's boat is on screen in every frame the game ever renders.
-
-### NEVER SHIP AN INTERACTION POINT WITH NO GEOMETRY
-
-The worst placeholder found in three games. Stillwater had a livewell, a bait box and a lamp
-that could all be looked at and used, and **none of them existed as geometry** - the player
-pointed at empty air and got a prompt back. It survived a reachability test that swept the
-entire look range, because that tests the AIM and not the picture.
-
-Two rules out of it, both cheap:
-
-- Assert that every interactable has **visible** mesh within arm's reach of its point. Visible
-  matters: the first version of that test counted hidden meshes, which let a lamp that is
-  switched off until it is bought stand in for one that is there.
-- **If the game names a thing, the thing exists.** Hiding the unbought lantern immediately
-  re-created the same bug in the other direction - the hint said "a bracket where a lamp would
-  go" and there was no bracket either.
-
-**The other rule that decides it: if the object's shape is gameplay state, it must be code.**
-Wick's candle cannot be a model under any circumstances - its radius is how much wax you have,
-its bands are what you dipped in and in what order, and a blade shaving one side has to expose
-the colour underneath. That is not a mesh with a skin, it is a data structure being drawn.
-Before asking how many pixels tall a thing is, ask whether the game changes its shape. If it
-does, the question is closed.
-
-## The exception finally happened, and it is a PLACE
-
-The rule at the top has held for three games: model anything judged on
-silhouette at thirty pixels. Wrecking Crew's basement is the first thing here
-that is genuinely the exception the rule names - "stationary, close to the
-camera, and looked at while nothing else is happening" turns out to describe an
-**interior you drive around inside**, every surface of it, for the whole level.
-
-What went in, and what each one is actually doing:
-
-- **A Poly Haven HDRI** (`abandoned_parking_1k.hdr`, 1.6 MB). Three jobs at
-  once, which is why it earns its place over a light rig: it lights the room,
-  it gives the wrecking ball something to REFLECT - a metal has no diffuse term
-  and renders as hotspots on black with nothing to reflect - and it is what you
-  see through the exit, which is the only daylight in the level and therefore
-  the thing the player drives toward. Fetchable unattended:
-  `https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/<name>_1k.hdr`.
-- **An ambientCG concrete normal + roughness**, 512px WebP, 41 KB the pair.
-  Same rule as before - take the normal, leave the colour map - and the
-  roughness is the other half that is also style-neutral.
-
-The whole import is **1.6 MB and took the APK from 27.1 to 29.7**, which on a
-native build is nothing. That is worth stating plainly: on the web stack every
-kilobyte was a download over mobile data, and the caution around imports came
-from there. **A native app does not have that constraint**, and the asset rules
-written under it need re-reading rather than re-applying.
-
-### Poly Haven's API, searched by keyword
-
-`curl -s "https://api.polyhaven.com/assets?t=hdris"` returns 994 HDRIs and
-`?t=models` returns 521, both as one JSON object keyed on the asset id - so a
-keyword filter over the keys and names is the whole search. For a basement:
-`abandoned_parking`, `abandoned_garage`, `concrete_tunnel`,
-`debris_basement_corridor`, `empty_warehouse_01`. For props:
-`concrete_road_barrier`, `Barrel_01`, `caged_hanging_light`,
-`modular_industrial_pipes_01`, `fire_hydrant`. `api.polyhaven.com/files/<id>`
-gives the download URLs and exact byte sizes per resolution.
-
-### Audio is still the gap, and the answer is probably to GENERATE it
-
-Checked again on 2026-09-08: **Kenney's asset URLs are not guessable** (every
-attempt 404s; the site needs a browser session), and **freesound still requires
-an API key**. So the two CC0 audio libraries worth having are both unavailable
-unattended.
-
-For a Godot game the web stack's answer - synthesise at runtime through Web
-Audio - does not carry over cleanly, and writing a synth against
-`AudioStreamGenerator` in GDScript is real work for a phone's CPU. **The better
-route is to generate the WAVs offline with a short Python script and commit
-them**: a concrete impact is a filtered noise burst with a fast attack over a
-low thump, rubble is layered short grains, a collapse is a descending rumble.
-Deterministic, no licensing, no runtime cost, and the pitch jitter that stops a
-repeated sound becoming a machine happens at playback.
-
----
-
-## Match the pack's STYLE before its licence
-
-Kenney, Quaternius and KayKit are all CC0, all excellent, and all **stylised low-poly** -
-and all three would be wrong in a game lit by a photographic HDRI over PBR timber. One of
-their props next to Stillwater's plank normals reads as a different game leaking in.
-
-For a photoreal game the CC0 shortlist is short: **Poly Haven** (521 models, 994 HDRIs,
-real-world scale, PBR) and **ambientCG** (materials). Use the stylised packs when the game
-is stylised - which is most games, and is why they are named first everywhere else.
-
-**Poly Haven models come as glTF plus a `textures/` folder**, and the API's `include` map
-gives the relative paths. Preserve that layout or Godot imports a white model **with no
-error at all** - the texture reference simply does not resolve. Fetch pattern:
-
-```
-https://api.polyhaven.com/files/<id>   ->  .gltf.1k.gltf  {url, include{rel: {url}}}
-```
-
-Measured: four props (bucket, crate, lantern, lifebuoy) at 1k came to 8.25 MB of source,
-and the VRAM-compression settings in the HDRI section above apply to their textures too.
-
-## Sources, ranked by usefulness to us
-
-| Source | Licence | Fetchable unattended? | Best for |
+| Need | First choice | Second | Notes |
 |---|---|---|---|
-| **Google Fonts** | OFL | **Yes, verified** | Type. The highest-value import there is |
-| **Poly Haven** | CC0 | **Yes, verified JSON API** | Photoreal props, textures, HDRIs |
-| **ambientCG** | CC0 | **Yes, verified JSON API** | PBR textures |
-| **Kenney** (kenney.nl) | CC0 | No — session redirect, needs a browser | Stylised 3D/2D/UI/audio kits, one consistent style |
-| **Quaternius** | CC0 | No — HTML site, no API | Low-poly models, animated characters |
-| **Poly Pizza / Icosa** | mostly CC-BY | API needs a key | The archived Google Poly library |
-| **OpenGameArt** | mixed — check each | No | Odds and ends; licence per asset |
+| Stylised low-poly props, vehicles, buildings, kits | **Kenney** (CC0) | **KayKit** (CC0, GitHub) | Same palette-atlas approach, mix freely |
+| Rigged, animated characters and creatures | **KayKit** Adventurers / Skeletons (CC0) | **Quaternius** (CC0 or QAL) | Quaternius Universal Animation Library 2 has 130+ humanoid animations. Mixamo needs a browser |
+| Photoreal props, hero objects | **Poly Haven** (CC0, API) | Poly Pizza (per model) | 1k textures for a phone, 2k for a hero |
+| PBR textures, materials | **ambientCG** (CC0, API) | Poly Haven textures | Take NormalGL. Take the map that holds the PATTERN, strip the map that carries the STYLE |
+| Skies and lighting | **Poly Haven HDRIs** (CC0) | Godot `ProceduralSkyMaterial` | `puresky` variants for water horizons; a series from one location for a day cycle |
+| Textures for a stylised game | Kenney pattern and texture packs | ambientCG normals only | A photograph is mostly grain; blur hard at full size, then downscale |
+| 2D sprites, tiles, particles | **Kenney** (CC0) | OpenGameArt CC0 filter | Kenney Particle Pack: 80 x 512 px |
+| UI: buttons, panels, sliders, input glyphs | **Kenney UI Pack**, **Input Prompts** (touch gestures included) | | Build one `Theme` with 9-slice `StyleBoxTexture` |
+| Icons | **Lucide** (ISC), **Tabler** (MIT) for UI; **game-icons.net** (CC-BY 3.0) for RPG glyphs | | SVG, `stroke="currentColor"` renders black, tint with `modulate` |
+| Fonts | **Google Fonts** (OFL) | Fontsource | The single highest-value import: two weights change every screen |
+| Sound effects, recorded | **Kenney audio packs** (CC0), **Sonniss GDC bundles** (royalty-free) | **Freesound** CC0 filter (key) | |
+| Sound effects, procedural | **jsfxr** (node, deterministic from a code) | our own WAV generators | For anything that must answer game state |
+| Music loops | **Tallbeard / Abstraction Music Loop Bundle** (CC0, itch, 200+ loops) | Kevin MacLeod (CC-BY 4.0, direct mp3) | Kenney has jingles only |
+| Music, generated | MIDI via python + FluidSynth and a free soundfont | `techniques/generated-audio.md` | Coherent by construction, tempo you can nod to |
+| Menus, options, pause, credits, input remap | **Maaack's Menus Template** (MIT, Godot 4.7) | our own shell | See POLISH.md |
+| Camera | **Phantom Camera** (MIT) | hand-rolled | Follow modes, dead zones, transitions |
+| Shaders | godotshaders.com (check each: CC0, MIT or GPL) | | Never ship a GPL shader |
+| Godot addons | GitHub release zips by tag | legacy Asset Library API | The new Asset Store has no API; the old one is going read-only |
 
-**For a stylised low-poly game, Kenney and Quaternius are the right style** and neither can
-be fetched without a browser. Claude can drive one — but a download that needs babysitting
-is a different kind of cost, so it is worth doing once for a whole kit rather than per
-asset.
+## Style families, and mixing
 
-### Verified: Google Fonts, self-hosted
+- **Kenney and KayKit match each other**: flat-shaded low-poly, one small colour atlas per
+  pack, so recolouring to the game's palette is one PNG edit. Quaternius is the same family,
+  rounder and slightly more detailed. Take environments from any of the three, keep all
+  characters from one source.
+- **Poly Haven and ambientCG are photoreal** and read as a different game leaking in next
+  to a low-poly kit. Use them for a photoreal game, or take only their style-neutral half
+  (normals, roughness, HDRI lighting with the panorama hidden or blurred).
+- **Unify whatever you mix**: one key light, one tonemap, imported materials forced to
+  roughness ~0.8 and metallic 0 unless they are metal, one outline or rim treatment, scale
+  normalised on import, and the atlas recoloured to the game's palette.
+- Within Kenney, the "Tiny", "Scribble" and "Pixel" series each share a line weight and
+  palette with their own series only.
+- For an icon family pick one: Lucide and Tabler match each other (2 px stroke, 24 px grid);
+  game-icons are solid glyphs.
 
-Do not link a font CDN from a PWA. An external stylesheet is a request that fails offline,
-and a font that arrives late reflows the whole HUD on the first frame the player sees.
+## Fetching, unattended
 
-```bash
-# 1. Ask for the CSS with a browser UA, or you get TTF instead of woff2
-curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36" \
-  "https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&display=swap" > /tmp/f.css
+`scripts/assets.py` (python 3, requests) wraps every source that can be scripted. Keys live
+in `C:\dev\.env` and are never committed.
 
-# 2. The latin subset is the block above `unicode-range: U+0000-00FF`
-grep -B7 "U+0000-00FF" /tmp/f.css | grep -E "font-weight|src: url" | paste - -
+```powershell
+python C:\dev\gamedev-notes\scripts\assets.py search polyhaven models pier
+python C:\dev\gamedev-notes\scripts\assets.py search ambientcg wood --limit 20
+python C:\dev\gamedev-notes\scripts\assets.py search kenney         # lists packs by category
+python C:\dev\gamedev-notes\scripts\assets.py search freesound "reel click" --license cc0
+python C:\dev\gamedev-notes\scripts\assets.py search polypizza lantern --license cc0
+
+python C:\dev\gamedev-notes\scripts\assets.py get polyhaven modular_wooden_pier --res 1k --into assets/models
+python C:\dev\gamedev-notes\scripts\assets.py get ambientcg Wood095 --res 1K --maps NormalGL,Roughness --into assets/textures
+python C:\dev\gamedev-notes\scripts\assets.py get kenney platformer-kit --into assets/kenney
+python C:\dev\gamedev-notes\scripts\assets.py get kaykit KayKit-Character-Pack-Adventures-1.0 --into assets/kaykit
+python C:\dev\gamedev-notes\scripts\assets.py get font "Chakra Petch" --weights 500,700 --into assets/fonts
+python C:\dev\gamedev-notes\scripts\assets.py get icons lucide --names play,pause,settings --into assets/ui/icons
+python C:\dev\gamedev-notes\scripts\assets.py get sfxr jump --seed 1234 --into assets/audio/sfx
+python C:\dev\gamedev-notes\scripts\assets.py get addon ramokz/phantom-camera v0.11.0.3 --into addons
+python C:\dev\gamedev-notes\scripts\assets.py get itch tallbeard/music-loop-bundle --into assets/audio/music
 ```
 
-Then `@font-face` with a relative `src` in `public/fonts/`, and — the step that is easy to
-miss — **add `woff2` to the Workbox glob**, or the installed app falls back to a system face
-offline:
-
-```js
-globPatterns: ['**/*.{js,css,html,svg,webmanifest,woff2}']
-```
-
-Two weights of a latin subset is about **20 KB**, less than a third of Coreward's own code,
-and it changes every screen in the game. This is the single best asset import available.
-
-### Verified: Poly Haven
-
-521 CC0 models plus textures and HDRIs, with a real API and no key:
-
-```bash
-curl -s "https://api.polyhaven.com/assets?t=models"      # list, ~520 entries
-curl -s "https://api.polyhaven.com/files/Barrel_01"      # download URLs, per resolution
-# -> https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/Barrel_01/Barrel_01_1k.gltf
-```
-
-Photoreal, so the wrong register for anything stylised — but it is the one 3D source that
-can be scripted end to end, and its textures are useful regardless of art style.
-
-### Verified: ambientCG, end to end
-
-CC0 PBR textures, no key, and the one source that goes from search to a shipped file without
-a browser. This is the whole pipeline, run on 2026-09-07 to put real rock into Coreward:
-
-```bash
-# 1. search (displayData gives you tags to choose on)
-curl -s "https://ambientcg.com/api/v2/full_json?type=Material&q=rock&limit=40&include=displayData"
-
-# 2. the download is one zip of the whole PBR set - 9 MB at 1K-JPG
-curl -sL "https://ambientcg.com/get?file=Rock035_1K-JPG.zip" -o r.zip && unzip -q r.zip -d r
-
-# 3. take the ONE map you want and shrink it. three.js wants NormalGL, not NormalDX
-npx sharp-cli -i r/Rock035_1K-JPG_NormalGL.jpg -o out.webp resize 384 384 -- webp -q 70
-```
-
-**Take the normal map and leave the colour map.** This is the rule that lets a photographed
-texture into a stylised game at all: a normal map carries no colour, so every surface keeps the
-hand-tuned palette it already had and gains relief. The colour map from the same download would
-drop a photograph into the middle of a flat-shaded low-poly world, which is the join that shows
-in the first frame. Half of a photoreal asset is style-neutral; ship that half.
-
-**Size it from physical pixels, not from what the download offers.** On an S26 Ultra at a pixel
-ratio capped to 2 a Coreward cell is about 118 physical pixels. Tiling one texture across four
-cells means it is displayed at roughly 470 px, so **384 x 384 is native** and 1K is three
-quarters of a megabyte thrown away. Measured WebP sizes for that normal map: 256 q82 **26 KB**,
-384 q70 **45 KB**, 512 q70 **84 KB**. Do this arithmetic before downloading, not after.
-
-**A normal map is already compressed; gzip does nothing.** Coreward's code and HTML gzip to
-161 KB and the 46 KB texture is 46 KB on the wire - a 29% bigger download for the largest
-surface in the game. That is worth knowing before adding the second one.
-
-**`sharp` is the tool and it does not need to be a repo dependency.** The conversion is run by
-hand once; install it in a scratch directory, commit the output. Windows has no ImageMagick, and
-`C:\Windows\system32\convert` is a disk utility that will happily not be what you meant.
-
----
-
-## Shrinking what you import
-
-`gltf-transform` is the tool. **Verified working, v4.5.0 via npx**, no install needed:
-
-```bash
-npx @gltf-transform/cli optimize in.glb out.glb \
-    --compress draco --texture-compress webp
-```
-
-- **Draco** compresses geometry; **Meshopt** compresses geometry, morph targets and
-  animation. Meshopt if the model is animated.
-- **WebP** for textures, or **KTX2/Basis** when VRAM matters more than file size.
-- **Halve texture resolution for mobile.** A 4k texture on a phone is wasted bandwidth and
-  wasted VRAM; 1k is usually indistinguishable at the sizes anything is viewed at.
-
-Loading a `.glb` costs `GLTFLoader` in the bundle, an async fetch, and a precache entry.
-That is a real cost — worth paying for a hero asset, not for scenery.
-
----
-
-## Audio
-
-**Everything so far has been synthesised at runtime with Web Audio, and it has been the
-right call.** No files, no loading, no licensing, no precache entries, and the score can
-respond to game state in ways a recording cannot — Coreward's music has layers that mix in
-by depth, danger and zone off one scheduler.
-
-Import audio only when a synthesised version has actually been tried and is not good enough.
-If it comes to that: Kenney's audio packs are CC0, and freesound.org is a large mixed-licence
-library that needs an API key.
-
-Things worth knowing about Web Audio, learned rather than looked up:
-
-- Chrome **refuses to create an `AudioContext` outside a user gesture**. Build the graph on
-  first touch, and build it atomically — publish the whole graph or none of it, so one null
-  check narrows everything.
-- **Vertical layering needs one tempo, one key and one harmony.** A procedurally generated
-  score gets that free, since it all comes off one scheduler.
-- **Fade times should not match.** Places arrive slowly, about a second and a half. Alarms
-  snap in over a quarter second and leave lazily — late is useless for an alarm, and one
-  that vanishes the instant you fix the problem teaches nothing about how close it was.
-- **Route an alarm past whatever is muffling everything else.** If a lowpass closes with
-  depth, the danger layer has to bypass it, because the moment it needs to be heard is
-  exactly the moment everything else is being darkened.
-
-**On Godot, generate at BUILD time and commit the WAVs.** The web stack synthesises at
-runtime because Web Audio does the arithmetic in C++; GDScript does it in GDScript, at about
-a million samples a second. Stillwater's four music beds alone are four million samples,
-which is four seconds of a black screen on the phone. A `SceneTree` script that writes
-16-bit mono WAVs by hand is thirty lines, runs headless, and is deterministic - same seed,
-same bytes - so re-running it and getting a diff means something actually changed.
-
-Two measurements from doing it:
-
-- **22050 Hz mono is enough** for water, wind, wood and low sine tones, and it halves a
-  library that would otherwise be most of the APK. Nineteen sounds, including three
-  eight-second ambience loops and four sixteen-second music beds, came to 4.0 MB.
-- **That 4 MB cost +3% APK, not +14%.** Godot compresses WAVs on export: 27.80 MB against a
-  26.98 MB budget, inside tolerance without a re-record. Do not pre-emptively downsample or
-  trim loops to protect a size budget that is not actually under threat.
-
-### The Godot .hdr import default is a TRAP, and it cost 14 MB
-
-Measured on Stillwater, 2026-09-09. Godot imports `.hdr` **uncompressed** by
-default (`compress/mode=0`): a 1024x512 panorama becomes a 2.1 MB `.ctex`, and six
-of them took the APK from 27.8 MB to **41.7 MB** - a 55% jump against a 10% size
-budget. The `.hdr` files on disk are only 1 MB each, so nothing in the repo looks
-wrong; the growth is entirely in `.godot/imported`.
-
-The fix is two lines per `.import` file:
-
-```
-compress/mode=2          # VRAM compressed - ASTC on Android, BPTC on desktop
-process/size_limit=512
-```
-
-**2.1 MB becomes 175 KB, and on a sky it is invisible.** A game sky is tinted,
-greyed, darkened and fogged before anyone sees it, and the water reflecting it
-blurs it further - 512x256 is plenty. Final APK 29.2 MB, +8.3%, inside budget.
-
-Check `ls -laS .godot/imported` after any import. It is the only place the real
-cost shows.
-
-### For a game with a day cycle, take a SERIES from one location
-
-Poly Haven's `qwantani_*` set is dawn / morning / afternoon / dusk / night from
-one spot, all `puresky`. Because the cloud structure is consistent between them
-they crossfade cleanly, which a set assembled from five different locations does
-not.
-
-Two things worth knowing:
-
-- **`puresky` variants are sky only** - no terrain, no horizon clutter. Essential
-  wherever the horizon is water, because anything baked into the lower half of
-  the panorama gets reflected in it. The first attempt used a non-puresky dawn
-  and put African savanna hills across a drowned English valley.
-- **A panorama is one fixed photograph.** If the game's look is a continuous
-  curve - time of day, weather, depth - `PanoramaSkyMaterial` fights it, because
-  swapping panoramas at each step is exactly the hard cut the curve exists to
-  avoid. A ~20-line `shader_type sky` that samples TWO panoramas and crossfades
-  them, then applies the same tint and darkening everything else gets, keeps both.
-  Multiply a separate cloud panorama in for weather rather than blending toward
-  it, so a storm at dusk stays lit dusk-coloured.
-
-**Generated also beats downloaded on COHERENCE, which is the argument that matters.** A
-fishing game needs about twenty sounds that belong to each other - the reel click and the
-drag buzz are the same mechanism, the calm pad and the deep pad are the same chord - and an
-asset pack gives you twenty that belong to twenty other games. Generated, the whole set
-shares one key, one sample rate and one family of envelopes and is coherent by construction.
-It also turns the brief into a parameter: "happy but eerie, then worse" is a detune value
-rather than a second shopping trip.
-
----
-
-## "Take the normal, leave the colour" is a special case of a better rule
-
-That rule has held for three games and it broke on the fourth, in a way worth
-understanding rather than patching.
-
-Candle Gift wanted swirled relief for molten wax and took ambientCG's `Marble012` normal map.
-The pool rendered as one flat colour. The normal map is **blank** - every pixel measured at
-(0.502, 0.498, 1.0) - because polished marble *has no surface relief*. Its swirl is PIGMENT.
-The only place the pattern exists is the colour map, which the rule says to leave behind.
-
-**The real rule: take whichever map holds the PATTERN, and strip whatever carries the STYLE.**
-For rock, the pattern is relief and the style is in the colour, so you take the normal. For
-marble, the pattern is in the colour, so you take the colour and convert it to LUMINANCE - which
-keeps the pattern and throws away every hue that would have clashed. The tint comes from the
-game.
-
-Check before assuming: open the normal map. If it is a flat lavender rectangle, the material's
-character is not in its geometry.
-
-## A photograph is mostly grain, and grain in motion is static
-
-The same marble at 1K is far more speckle than swirl, and speckle scrolled across a surface
-reads as television static rather than as movement. **Blur hard at full size, THEN downscale** -
-blurring after the resize only smears the aliasing the resize introduced. Nine pixels of
-Gaussian at 1024 left the swirl and nothing else, and took the file from 221 KB to 36 KB on the
-way.
-
-### Do not derive a normal from `dFdx`/`dFdy` on a surface seen at a grazing angle
-
-It looks like a free relief map: two instructions, no second texture, the screen-space gradient
-of whatever mask you already sampled. On a ground plane viewed from a low chase camera it is a
-speckle generator, because screen-space derivatives are the difference between ADJACENT PIXELS -
-and on a surface that foreshortened, adjacent pixels are far apart in the texture, so the
-"slope" is sampling noise.
-
-The tell that it was not the texture: blurring the texture heavily did not change the speckle at
-all. When a fix aimed at one suspect changes nothing, that is evidence about the suspect.
-
-## A procedural surface can be the expensive thing, and a texture can be free
-
-Candle Gift's wax was thirteen octaves of value noise plus a 3x3 cell neighbourhood plus two
-more fbm evaluations for a fragment-computed normal - roughly 250 hash evaluations per fragment,
-over a surface filling the lower third of the screen. Measured at 1080x2340 with **vsync off**
-against a flat stand-in with the same uniforms:
-
-| | mean frame |
-|---|---|
-| procedural | 1.60 ms |
-| flat stand-in | 1.34 ms |
-| **two texture samples** | **0.82 ms** (stand-in 0.92) |
-
-Two scrolling samples of one 36 KB texture were *within noise of a plain material*. On a desktop
-that is 0.26 ms nobody notices; the game was crashing on an Adreno, where the same shader is ten
-to twenty times dearer.
-
-**Measure with vsync off.** The first attempt at this reported 8.33 ms for both cases, which is
-120 Hz, not a shader. And build the cheap case with the SAME uniforms - swapping in a
-StandardMaterial3D made every `set_shader_parameter` fail once a frame, and the "cheap" case
-measured slower than the expensive one.
-
-## Kenney has no music loops, and a drone is how you write dread
-
-Worth recording both halves because the second one is not an asset problem at all.
-
-Kenney's audio packs - the CC0 library this stack reaches for - are Interface Sounds, Impact
-Sounds, UI Audio, Digital, RPG, Casino, and **Music Jingles**, which is stingers. There is no
-upbeat background loop to take. Generating one remains the answer.
-
-And when a generated bed was described by the player as "creepy", the fault was **composition,
-not fidelity**. It was a root, a fifth and an octave under a slow swell - a drone. Three changes,
-none of them about sample quality:
-
-- a **major progression with a cadence** (I-V-vi-IV)
-- **movement** - a plucked arpeggio on the quaver, so something happens eight times a bar
-- a **pulse** - a soft kick on the beat
-
-A loop with no rhythm floats. What makes music sound happy rather than ambient is a tempo you
-can nod to.
-
-**Sample where a sample is better, synthesise where the sound must answer the game.** Kenney's
-interface and impact sounds beat a sine blip for a tap or a knock. But a dip pitched by how many
-colours the candle already wears turns four pools into a rising figure, and no fixed sample does
-that without a folder of variants.
-
-## Search the libraries before deciding a game is unservable — the hit rate is per-SUBJECT
-
-Wick found nothing (no wax, no candles) and the conclusion drifted toward "these libraries
-never have what we want". That is wrong, and it is worth stating as a rule: **the hit rate is a
-property of the subject, not of the library.** Queried on 2026-09-08 for a lake-and-boat
-fishing game, Poly Haven alone covers most of the set dressing:
-
-- `modular_wooden_pier` — a dock, and modular, so a whole shoreline is one import
-- `ship_pinnace`, `dutch_ship_medium` — a small boat, and a wreck
-- `ocean_buoy`, `lateral_sea_marker` — the only things on open water that are not water
-- `coast_rocks_01`–`05`, `coastal_cliff_01/02/04`, `coast_line_01/02` — shoreline and cliffs
-- `fir_tree_01`, `pine_tree_01`, `island_tree_01`–`03`, `dead_tree_trunk`, `tree_stump_01`
-- `fishermans_hat`, `fish_knife`, `life_jacket`, `wooden_bucket_01`, `wicker_basket_01`
-- `treasure_chest`, `can_rusted`, `metal_detector`, `rubber_duck_toy`, `old_military_crate` —
-  a junk-catch table straight off the shelf, which is a *mechanic* fed entirely by imports
-
-And ambientCG has `Rope001` and `Net002A/003A/004A` — actual rope and netting as PBR sets.
-
-**The two-minute API query is the research step and it is cheap.** Do it before designing the
-art direction around what you assume is unavailable, and record the misses too: neither
-library has a single fish, and ambientCG still has no water, liquid or ripple material.
-
-## The exception is a SITUATION, and "the vehicle you sit in" is one of them
-
-The rule at the top has now named three: Wrecking Crew's basement (an interior you drive
-around inside), Coreward's landing pad, and — from the fishing game's design pass — **the
-dock you tie up to every session and the boat you sit in for the entire game**. All three are
-the same description: stationary, close to the camera, and looked at while nothing else is
-happening.
-
-The useful sharpening is that **a first-person or near-camera vehicle is automatically the
-exception**, because it is the one object on screen for one hundred per cent of play time at
-one hundred per cent of its real size. Ask how many pixels tall a thing is *and for how long*.
-
-## What has actually been imported, ever
-
-| Game | Asset | Size | Verdict |
-|---|---|---|---|
-| Coreward | Chakra Petch, 2 weights, self-hosted | 20 KB | Clear win. Changed every screen |
-
-Checked again on 2026-09-07 for Wick, a candle game, and the sources are exactly as useful as
-the table above says: Google Fonts fetched cleanly (8 woff2 faces for a warm rounded family,
-~20 KB), **Poly Haven's model API has nothing candle-related beyond a lantern and a shelf** and
-is photoreal anyway, and **ambientCG returns `numberOfResults: 0` for wax**. Both APIs work;
-neither had anything to sell. The thing that made that game look finished was not an asset at
-all - it was making the avatar a real light source in a dark room.
-| Coreward | ambientCG Rock035, **normal map only**, 384², WebP | 46 KB | Clear win. Flat facets became rock |
-
-Both are things the player reads at full size, which is the rule at the top of this file doing
-its job. Nothing modelled has ever been worth importing. Procedural generation plus flat-shaded
-low-poly has carried two games to a finish. The right question is never "what can I import"
-but "what is the player looking at long enough to notice".
+Every `get` appends a line to the game's `assets/CREDITS.md` (source, id, URL, licence, date)
+and refuses a licence it does not recognise. The credits file feeds the credits screen.
+
+How each source is reached, for when the script needs fixing:
+
+- **Kenney**: the zip URL on `kenney.nl/assets/<slug>` contains a hash and a timestamp that
+  change on re-upload. Fetch the page and regex `kenney\.nl/media/pages/assets/[^"']+\.zip`.
+  Category pages `kenney.nl/assets/category:3D|2D|Audio|UI` list the packs. No JSON API.
+- **KayKit**: `github.com/KayKit-Game-Assets/<repo>` as a zip from
+  `codeload.github.com/KayKit-Game-Assets/<repo>/zip/refs/heads/main`, already in an
+  `addons/` layout. Packs not on GitHub are on `kaylousberg.itch.io`.
+- **Poly Haven**: `api.polyhaven.com/assets?t=models|textures|hdris&c=<category>` then
+  `api.polyhaven.com/files/<id>` for URLs and sizes. Send a `User-Agent`. glTF comes with an
+  `include` map of relative texture paths; **preserve that layout or Godot imports a white
+  model with no error**.
+- **ambientCG**: `ambientcg.com/api/v2/full_json?type=Material&q=<q>&include=downloadData`
+  then `ambientcg.com/get?file=<Id>_1K-JPG.zip`.
+- **Quaternius**: pack pages link a Google Drive folder; `gdown --folder` works but is
+  fragile and capped. Prefer KayKit or the Malcolmnixon Godot mirrors on GitHub.
+- **Google Fonts**: `fonts.google.com/download/list?family=<Name>` returns JSON (strip the
+  first `)]}'` line) with direct `fonts.gstatic.com` TTF URLs. No key.
+- **Freesound**: `freesound.org/apiv2/search/text/?query=...&filter=license:"Creative Commons 0"&token=KEY`.
+  The HQ OGG *preview* downloads with the token alone and is fine for a phone; the original
+  needs OAuth, so the script takes the preview.
+- **itch.io free packs**: `https://<user>.itch.io/<slug>/data.json` gives the game id;
+  `itch.io/api/1/<KEY>/game/<id>/uploads` then `.../upload/<uid>/download` gives the CDN URL.
+- **Poly Pizza**: `api.poly.pizza/v1.1/search/<q>?license=CC0` with header `x-auth-token`.
+  Free tier is credit-limited; GLB with embedded textures.
+- **Sonniss**: `downloads.sonniss.com/Sonniss.com-GDC2024-GameAudioBundle1of9.zip` through
+  `9of9` (tens of GB, pro quality, royalty-free, no resale). Fetch one part, keep what fits.
+- **OpenGameArt**: `opengameart.org/art-search-advanced?keys=<q>&field_art_type_tid[]=<type>&field_art_licenses_tid[]=4`
+  (type 9 2D, 10 3D, 12 music, 13 SFX, 14 textures; licence 4 is CC0). Direct file links
+  under `sites/default/files/`.
+- **Godot addons**: `codeload.github.com/<owner>/<repo>/zip/refs/tags/<tag>`, copy
+  `addons/*` in. The legacy Asset Library API (`godotengine.org/asset-library/api/asset?filter=`)
+  still resolves a `download_url` but is being frozen.
+- **Not fetchable unattended**: Mixamo (Adobe login), ZapSplat (forbids scripts), BBC SFX
+  (non-commercial), Pixabay audio (no API), Free Music Archive (no new keys), Sketchfab
+  (OAuth). Do not spend time on them.
+
+## Bringing assets into Godot
+
+- Folder per source under `assets/`: `assets/kenney/<pack>`, `assets/polyhaven/<id>`,
+  `assets/textures/<Id>`, `assets/audio/{sfx,music,ambience}`, `assets/fonts`, `assets/ui`.
+  Drop a `.gdignore` into `Previews/`, `Isometric/`, `Source/`, `Samples/` folders from a
+  kit before importing, or the import cache fills with things nothing uses.
+- Prefer **GLB** (embedded textures). For glTF keep `textures/` and the `.bin` where the
+  file references them. Name suffixes work headless: `-col`, `-convcol`, `-noimp`, `-loop`.
+- `godot --headless --path . --import` after adding files, and check the log for `ERROR`.
+  Commit the `.import` files; `.godot/` is ignored.
+- Write the `.import` before the first import for anything large:
+  PBR albedo `compress/mode=2`, `compress/high_quality=true` (ASTC on the Mobile renderer),
+  `mipmaps/generate=true`, `process/size_limit=1024`; normal maps `compress/normal_map=1`;
+  HDR skies `compress/mode=2` and `process/size_limit=512`. `ls -laS .godot/imported` is the
+  only place the real cost shows.
+- Sizes for a 1080x2340 phone: props at 1k, a hero or terrain at 2k, UI at native design
+  resolution, a sky at 512x256 to 1k. Size a tiled texture from the physical pixels it
+  displays at, not from what the download offers: 384 px was native for a Coreward cell and
+  1k was three quarters of a megabyte thrown away.
+- Imported low-poly kits: leave the atlas Lossless with mipmaps. Recolour the atlas to the
+  game's palette rather than tinting per material.
+- Fonts: TTF or WOFF2 both import. A variable font works through `FontVariation`. MSDF for
+  UI that scales. Ship the OFL text with the font.
+- Audio: OGG for music and ambience, WAV for short SFX. 22050 Hz mono is enough for water,
+  wind, wood and low tones and halves the size. Do not pre-emptively trim to protect a size
+  budget that is not under threat.
+
+## Audio specifically
+
+- **Sample where a sample is better, synthesise where the sound must answer the game.**
+  Kenney's interface and impact packs beat a sine blip for a tap or a knock. A dip pitched by
+  state, a reel whose buzz tracks tension, a music bed that crossfades on depth are generated.
+- **Generate at build time and commit the files.** GDScript synthesis at runtime costs
+  seconds of black screen on a phone. A `SceneTree` script writing 16-bit WAVs is thirty
+  lines and deterministic. `techniques/generated-audio.md`.
+- **Music needs a written theme**: a progression with a cadence, movement eight times a bar,
+  a pulse. A drone reads as creepy. A fast attack on a high sine reads as a notification.
+  When a loop from the Tallbeard bundle fits the brief, take it; it will be better than a
+  first-attempt generated one and it is CC0.
+- Round-robin players, pitch jitter on repeats, separate buses so the options screen can
+  set Music, SFX and UI independently.
+
+## Licences and credits
+
+- CC0 (Kenney, KayKit, Poly Haven, ambientCG, Tallbeard, Sonniss for our use): nothing
+  required, but the credits screen lists them anyway because it is decent and free.
+- CC-BY (game-icons, Kevin MacLeod, Freesound CC-BY sounds): the exact attribution string
+  goes in `assets/CREDITS.md` and on the credits screen. Kevin MacLeod's is
+  `"<Title>" Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0`.
+- OFL fonts: ship `OFL.txt` beside the font. Lucide (ISC) and Tabler (MIT): ship the notice.
+- Quaternius QAL: free to use, no attribution, **do not redistribute the raw files**, which
+  means do not commit them to a public repo. Keep QAL packs out of git or make the repo
+  private.
+- Never ship GPL code (some godotshaders entries). Never use FreePBR (non-commercial).
+- The Play listing's Data safety form does not care about assets, but the credits screen and
+  `CREDITS.md` are what let a game be published without a licence audit later.
+
+## Measured facts worth keeping
+
+- Two weights of a latin font subset: about 20 KB, and it changed every screen in the game.
+- ambientCG rock normal at 384 px WebP q70: 45 KB, and flat facets became rock.
+- A Poly Haven HDRI plus a concrete normal and roughness pair: 1.6 MB, APK 27.1 to 29.7 MB.
+- Six 1k `.hdr` skies imported uncompressed: +14 MB. With `compress/mode=2` and a 512 limit:
+  175 KB each, invisible difference on a sky.
+- Nineteen generated sounds at 22050 Hz mono including four 16-second music beds: 4.0 MB,
+  +3% APK.
+- Two texture samples versus a 13-octave procedural surface over a third of the screen:
+  0.82 ms versus 1.60 ms a frame, measured with vsync off. A texture can be the free thing.

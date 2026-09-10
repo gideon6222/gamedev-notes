@@ -92,17 +92,16 @@ proving identity, or accepting a legal agreement.
 - [ ] Accept the Developer Distribution Agreement
 - [ ] **Enable Play App Signing** on each app — do this, see below
 - [ ] Create the app entry and fill the content declarations
-- [ ] Add the repository secrets (Claude generates the values; only Gideon can paste them
-      into GitHub Settings → Secrets and variables → Actions)
 - [ ] Recruit 12 testers and start the closed test
+- [ ] Upload the AAB to Play Console (Claude hands him the file and the release notes)
 
 ## What Claude sets up
 
 - [x] Upload keystore, generated with a cryptographic random password
-- [x] Base64 of the keystore, ready to paste as a repository secret
+- [x] The three repository secrets, set at repo creation by `/game-scaffold` through `gh secret set`
 - [x] An `Android Release` export preset producing a signed **AAB**
 - [x] CI that builds, tests, size-guards and signs
-- [ ] Store listing text, screenshots and the feature graphic
+- [ ] Store listing text, screenshots and the feature graphic (`/ship store`)
 - [ ] Privacy policy, hosted on the game's own GitHub Pages
 
 ---

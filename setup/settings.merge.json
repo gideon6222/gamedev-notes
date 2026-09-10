@@ -1,0 +1,80 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh *)",
+      "Bash(godot *)",
+      "Bash(*Godot_v4.7.2-stable_win64_console.exe *)",
+      "Bash(adb *)",
+      "Bash(*platform-tools/adb.exe *)",
+      "Bash(ffmpeg *)",
+      "Bash(scrcpy *)",
+      "Bash(curl *)",
+      "Bash(node *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(python *)",
+      "Bash(py *)",
+      "Bash(powershell *)",
+      "Bash(pwsh *)",
+      "Bash(robocopy *)",
+      "Bash(ls *)",
+      "Bash(dir *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(unzip *)",
+      "Bash(tar *)",
+      "Read(//c/dev/**)",
+      "Edit(//c/dev/**)",
+      "WebSearch",
+      "WebFetch(domain:docs.godotengine.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:kenney.nl)",
+      "WebFetch(domain:polyhaven.com)",
+      "WebFetch(domain:api.polyhaven.com)",
+      "WebFetch(domain:ambientcg.com)",
+      "WebFetch(domain:opengameart.org)",
+      "WebFetch(domain:itch.io)",
+      "WebFetch(domain:freesound.org)",
+      "WebFetch(domain:fonts.google.com)",
+      "WebFetch(domain:godotshaders.com)",
+      "WebFetch(domain:godotengine.org)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(rm -rf /*)",
+      "Read(//c/dev/keys/**)",
+      "Read(//c/dev/.env)"
+    ],
+    "additionalDirectories": [
+      "C:/dev/gamedev-notes",
+      "C:/dev/godot-template"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "timeout": 60,
+            "command": "GAMEDEV_HOOK=1; n=/c/dev/gamedev-notes; if [ -d \"$n/.git\" ]; then git -C \"$n\" pull --ff-only -q 2>/dev/null || echo 'gamedev-notes: pull failed (offline or diverged); run scripts/kb.ps1 pull'; c=$(ls \"$n\"/inbox/*.md 2>/dev/null | grep -vc README.md); echo \"gamedev-notes: up to date ($(git -C \"$n\" log -1 --format=%h' '%s | cut -c1-70)); $c lesson(s) waiting in inbox\"; if [ \"$c\" -gt 10 ]; then echo 'More than ten lessons are waiting: run /digest before starting a new game.'; fi; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+# playtests/
+
+One file per game, Gideon's words verbatim and dated; complaints are the most valuable entries. **Append only** — add a `## YYYY-MM-DD` heading at the end of the game's file when feedback arrives, never reorder or rewrite what is there; this directory is evidence, and evidence does not get reorganised.
+Interpretation belongs elsewhere: the design lessons drawn from these notes go in the topic files, and `PLAYER.md` summarises the recurring patterns in how he plays and reports (he plays the opening and opens the menus first; he names the mechanism and is usually right; a note that survives a correct fix is about something else).
+Files: `coreward.md`, `captain-run.md`, `wick.md`, `candle-gift.md`, `wrecking-crew.md`, `stillwater.md`. Captain Run and Wick were never played — their entries record what was verified by harness and what was not.
+Split from the original single `PLAYTESTS.md` on 2026-09-10; entries are in chronological order within each game, and text is unchanged apart from heading levels and one marked duplicate in `wrecking-crew.md`.

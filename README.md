@@ -1,52 +1,56 @@
 # gamedev-notes
 
-The shared brain for Gideon's games. Games are built with Claude Code on a Windows PC and
-played on a Galaxy S26 Ultra, installed to the home screen as PWAs.
+The shared brain for Gideon's phone games. Games are built with Claude Code on a Windows
+PC, in Godot 4.7 (native Android) or occasionally as web PWAs, and played on a Galaxy S26
+Ultra. Every Claude Code session on this machine loads `INDEX.md`; everything else is read
+by the step that needs it.
 
-**Read this repo before starting or resuming any game.** Without it nothing compounds.
-
-| File | What it holds | Lifecycle |
+| File | What it holds | Who edits it |
 |---|---|---|
-| **`SKILL.md`** | The process, start to ship. **The canonical copy of the `phone-game-studio` skill** — the installed one is a pointer at this file, because the plugin cache it lives in is re-extracted every session | Rewrite in place |
-| **`PIPELINE.md`** | The stack, how to ship, and the **measured** limits. Start here to find out what is actually constrained | Rewrite in place |
-| **`CRAFT.md`** | What makes a game good. Organised by topic, not by date | Edit the right section |
-| **`ASSETS.md`** | Where to get things we did not make, how to shrink them, and when not to bother | Rewrite in place |
-| **`PLAY.md`** | Getting a game onto the Google Play Store: the accounts, the keys, the paperwork and the two waiting periods. Mostly not code | Rewrite in place |
-| **`PLAYTESTS.md`** | What Gideon actually said, dated, in his words | **Append only** — it is evidence |
+| **`INDEX.md`** | The core: process, standing rules, file map, toolchain. Loaded in every session | `/digest`, rarely |
+| **`PLAYER.md`** | How Gideon plays, what he complains about, how he wants to work | `/digest`, from `playtests/` |
+| **`CRAFT.md`** | What makes a game good, one rule per line, by topic | `/digest` |
+| **`GODOT.md`** | The Godot stack, engine traps, invariants, export and signing | `/digest` |
+| **`TESTING.md`** | Test layers, harness rules, filmed runs, the phone | `/digest` |
+| **`ASSETS.md`** | Where to get assets, how to fetch and import them, licences | `/digest` |
+| **`POLISH.md`** | The ship gate: what complete means on a phone | `/digest` |
+| **`PLAY.md`** | Getting onto Google Play | `/digest` |
+| **`WEB.md`** | The web stack, for games that want to be a link | `/digest` |
+| `techniques/` | Long write-ups of things done once that may be done again | `/digest` |
+| `playtests/<game>.md` | His words, dated, verbatim. Append only | any session, append |
+| `inbox/` | Lessons waiting to be folded in. One file each | any session, create only |
+| `skills/` | The Claude Code skills that run the process. Junctioned into `~/.claude/skills` | this repo |
+| `agents/` | Subagents (researcher, asset scout, playtester). Copied into `~/.claude/agents` | this repo |
+| `scripts/` | `new-game.ps1`, `kb.ps1`, `assets.py`, `movie.ps1`, `device.ps1` | this repo |
+| `setup/` | `install.ps1` and the files it writes into `~/.claude` | this repo |
+| `archive/` | The previous generation of these notes, kept whole | never |
 
-## No game is a one-off
+## Setup on a fresh machine, or after pulling a change to `setup/`
 
-Every game is built to be added to indefinitely, so every one gets the full stack from the
-first commit — git, Vite, TypeScript, CI, a size guard, a golden test, `CLAUDE.md`,
-`NOTES.md`, a build stamp and a changelog. `PIPELINE.md` has the list. There is no "start
-simple and migrate later": that migration then has to happen around a game you are trying not
-to break.
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\dev\gamedev-notes\setup\install.ps1
+gh auth login      # once
+```
 
-## How this reaches every session
-
-`~/.claude/CLAUDE.md` points at this repo and loads in **every** Claude Code session on this
-machine, in every project. Each game repo also has its own `CLAUDE.md` pointing here, which
-loads when a session runs in or under that directory. A session already running when these
-files change will not see them until it restarts.
+`install.ps1` installs `gh`, `ffmpeg` and `scrcpy` in user scope, writes
+`~/.claude/CLAUDE.md`, merges hooks and permissions into `~/.claude/settings.json`, junctions
+`skills/` and copies `agents/` into `~/.claude`, and creates `C:\dev\.env` from
+`setup/env.example` if it does not exist. It is safe to re-run.
 
 ## The one rule
 
-**Write what you learn in the same commit as the change that taught it.** Not at the end of a
-session, not when the game ships. Several games run at once, so a lesson recorded after this
-game finishes is one the next game never got.
-
-The test: *would this have saved time if I had known it this morning?* If yes, write it now,
-even mid-build.
-
-## Prefer a measurement to a caution
-
-If a rule anywhere reads like a guess — "keep it small", "be careful with memory" — go and
-measure the real number, write it down, and delete the caution. Several rules in here were
-precautions from when Claude could not run anything locally. That era is over.
+**Write what you learn the moment you learn it**, as a file in `inbox/`, with
+`scripts/kb.ps1 commit`. Several games run at once, so a lesson written at the end of a
+session is one the other games never got, and a topic file edited mid-build is one another
+session will overwrite. `/digest` folds the inbox into the topic files at the start of every
+new game.
 
 ## Games
 
-| Game | Repo | Live |
-|---|---|---|
-| Coreward | github.com/gideon6222/coreward | https://gideon6222.github.io/coreward/ |
-| Captain Run | github.com/gideon6222/Captain_Run | https://gideon6222.github.io/Captain_Run/ — **Pages was never enabled on this repo** (`has_pages: false`, the URL 404s). A workflow cannot enable it: `configure-pages` with `enablement: true` is refused with "Resource not accessible by integration". It needs Settings → Pages → Source = "GitHub Actions", once, by hand. |
+| Game | Stack | Repo | Status |
+|---|---|---|---|
+| Coreward | web | github.com/gideon6222/coreward | live at gideon6222.github.io/coreward |
+| Candle Gift | Godot | github.com/gideon6222/candle-gift | playable |
+| Stillwater | Godot | github.com/gideon6222/stillwater | playable |
+| Wrecking Crew | Godot | github.com/gideon6222/wrecking-crew | playable |
+| Captain Run, Wick | web | superseded by Candle Gift | archived |
