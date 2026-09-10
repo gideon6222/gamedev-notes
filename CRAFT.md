@@ -2023,6 +2023,44 @@ whether a valuable strike still lands heavy, whether the flight still reads as f
 **Ship, then check.** Push to `main`, say it is pushed, and let him test on the phone. Do not gate
 on a preview or poll the live site.
 
+## Taste questions belong to the player. Ship the options, not your guess
+
+Two music beds were written for Candle Gift from this side of the screen. The first was a root,
+a fifth and an octave under a slow swell; the player's word for it was **"creepy"**. It was
+rewritten with a major cadence, a plucked arpeggio and a kick on the beat - textbook "upbeat" -
+and came back **"chirpy"**.
+
+The second attempt was not badly written. The problem is that **nobody writing it could hear
+it**, and no amount of care fixes that. Iterating on a judgement you have no access to is how a
+week goes sideways: each round costs a build, a install and a report, and the feedback is one
+adjective.
+
+Four CC0 loops now ship with the game and the pause panel cycles them - off, each track in turn,
+off - with the choice saved like any other preference. One button turned an unanswerable
+question into an answered one.
+
+**The test: can I verify this myself?** If the answer is no and there is a library of
+alternatives, ship the library and a selector. It applies to music first, but also to palettes,
+fonts, camera distance, difficulty curves - anything where the report will come back as a single
+adjective rather than a number.
+
+And it is not a licence to avoid deciding. A selector with fifty entries is worse than one good
+default. Four was the whole pack.
+
+## When a report says "very bright", it is measuring something
+
+Three of the player's phone reports on that game turned out to name a specific number:
+
+| What they said | What it was |
+|---|---|
+| "the movement is backward" | the drag handler added where the camera required subtract |
+| "made of little blocks" | eight nested cylinders 12 mm apart, z-fighting at sub-pixel separation |
+| "very bright" | ambient at 0.78 blowing a cream object out to pure white on a white ground |
+
+None of them was vague. A player describes the symptom in the only vocabulary they have, and
+the work is translating it into the quantity behind it - not asking them for a better
+description.
+
 ## Build the meta-game and you will find out what the economy actually does
 
 A runner's economy can be wrong for a long time without looking wrong, because nothing in a

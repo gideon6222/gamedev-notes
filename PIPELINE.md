@@ -713,6 +713,45 @@ somewhere else. Anything that restarts a level for a gameplay reason (buying a p
 retry button) has to push the save back in afterwards, or it silently deletes progress as a side
 effect of something that looks unrelated. The bug reads as "the shop does not work".
 
+## A crash you cannot reproduce needs the build to report on itself
+
+No cable, no logcat, a device that crashes in twenty seconds and a desktop that plays for
+hours. What worked, after a first attempt that came back empty:
+
+**Write your OWN trace, do not rely on the engine's log.** One line a second of game state -
+time, level, counts, fps, memory - opened in append mode and **flushed every write**. An OOM
+kill or a driver reset prints nothing on its way out, which is exactly the shape of a
+device-specific crash, so the engine log can be empty when it matters most. Whatever is on disk
+when the process dies is the truth, and a buffered write loses precisely the seconds either side
+of the fault.
+
+**A marker file distinguishes a crash from a clean exit.** Write it at boot, delete it on a
+clean shutdown. If it is still there next launch, the last session died - show the tail of both
+logs on screen to be screenshotted. On a phone with no cable a screenshot is the only channel
+back.
+
+Two Godot specifics that cost a whole build:
+
+- **`debug/file_logging/enable_file_logging` read FALSE at runtime** despite being `true` in
+  `project.godot`, because a `.pc` feature override had been added next to the plain key and
+  Godot ships one of its own. **Print the setting; do not trust the file.**
+- **Godot rotates the log on every launch.** By the time the game can read anything,
+  `godot.log` is the CURRENT session's and nearly empty. The previous session is the newest
+  timestamped copy in the same folder.
+
+## Nested geometry a few millimetres apart will z-fight, and it looks like a shading bug
+
+Candle Gift draws a dipped candle as coats stacked from the base up, each one slightly wider
+than the last. At 45 mm of separation the silhouette was a visible staircase and the candle read
+as a stack of plates; at 12 mm the coats z-fought and the phone showed a bright slab with black
+arcs scrawled across it. Neither number is right, because **the separation was never the
+question.**
+
+A nested coat is only ever SEEN between the top of the coat outside it and its own top. Drawing
+just that band gives an identical picture with no hidden geometry and nothing to fight. Look for
+this wherever concentric or stacked shells are used to represent layers: the fix is usually to
+draw the visible slice rather than to space the shells further apart.
+
 ## Four Godot traps that fail silently, and one that reads as a hang
 
 All five cost time on the first game written straight into the template rather than grown
