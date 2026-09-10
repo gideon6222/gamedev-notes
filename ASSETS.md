@@ -349,6 +349,90 @@ rather than a second shopping trip.
 
 ---
 
+## "Take the normal, leave the colour" is a special case of a better rule
+
+That rule has held for three games and it broke on the fourth, in a way worth
+understanding rather than patching.
+
+Candle Gift wanted swirled relief for molten wax and took ambientCG's `Marble012` normal map.
+The pool rendered as one flat colour. The normal map is **blank** - every pixel measured at
+(0.502, 0.498, 1.0) - because polished marble *has no surface relief*. Its swirl is PIGMENT.
+The only place the pattern exists is the colour map, which the rule says to leave behind.
+
+**The real rule: take whichever map holds the PATTERN, and strip whatever carries the STYLE.**
+For rock, the pattern is relief and the style is in the colour, so you take the normal. For
+marble, the pattern is in the colour, so you take the colour and convert it to LUMINANCE - which
+keeps the pattern and throws away every hue that would have clashed. The tint comes from the
+game.
+
+Check before assuming: open the normal map. If it is a flat lavender rectangle, the material's
+character is not in its geometry.
+
+## A photograph is mostly grain, and grain in motion is static
+
+The same marble at 1K is far more speckle than swirl, and speckle scrolled across a surface
+reads as television static rather than as movement. **Blur hard at full size, THEN downscale** -
+blurring after the resize only smears the aliasing the resize introduced. Nine pixels of
+Gaussian at 1024 left the swirl and nothing else, and took the file from 221 KB to 36 KB on the
+way.
+
+### Do not derive a normal from `dFdx`/`dFdy` on a surface seen at a grazing angle
+
+It looks like a free relief map: two instructions, no second texture, the screen-space gradient
+of whatever mask you already sampled. On a ground plane viewed from a low chase camera it is a
+speckle generator, because screen-space derivatives are the difference between ADJACENT PIXELS -
+and on a surface that foreshortened, adjacent pixels are far apart in the texture, so the
+"slope" is sampling noise.
+
+The tell that it was not the texture: blurring the texture heavily did not change the speckle at
+all. When a fix aimed at one suspect changes nothing, that is evidence about the suspect.
+
+## A procedural surface can be the expensive thing, and a texture can be free
+
+Candle Gift's wax was thirteen octaves of value noise plus a 3x3 cell neighbourhood plus two
+more fbm evaluations for a fragment-computed normal - roughly 250 hash evaluations per fragment,
+over a surface filling the lower third of the screen. Measured at 1080x2340 with **vsync off**
+against a flat stand-in with the same uniforms:
+
+| | mean frame |
+|---|---|
+| procedural | 1.60 ms |
+| flat stand-in | 1.34 ms |
+| **two texture samples** | **0.82 ms** (stand-in 0.92) |
+
+Two scrolling samples of one 36 KB texture were *within noise of a plain material*. On a desktop
+that is 0.26 ms nobody notices; the game was crashing on an Adreno, where the same shader is ten
+to twenty times dearer.
+
+**Measure with vsync off.** The first attempt at this reported 8.33 ms for both cases, which is
+120 Hz, not a shader. And build the cheap case with the SAME uniforms - swapping in a
+StandardMaterial3D made every `set_shader_parameter` fail once a frame, and the "cheap" case
+measured slower than the expensive one.
+
+## Kenney has no music loops, and a drone is how you write dread
+
+Worth recording both halves because the second one is not an asset problem at all.
+
+Kenney's audio packs - the CC0 library this stack reaches for - are Interface Sounds, Impact
+Sounds, UI Audio, Digital, RPG, Casino, and **Music Jingles**, which is stingers. There is no
+upbeat background loop to take. Generating one remains the answer.
+
+And when a generated bed was described by the player as "creepy", the fault was **composition,
+not fidelity**. It was a root, a fifth and an octave under a slow swell - a drone. Three changes,
+none of them about sample quality:
+
+- a **major progression with a cadence** (I-V-vi-IV)
+- **movement** - a plucked arpeggio on the quaver, so something happens eight times a bar
+- a **pulse** - a soft kick on the beat
+
+A loop with no rhythm floats. What makes music sound happy rather than ambient is a tempo you
+can nod to.
+
+**Sample where a sample is better, synthesise where the sound must answer the game.** Kenney's
+interface and impact sounds beat a sine blip for a tap or a knock. But a dip pitched by how many
+colours the candle already wears turns four pools into a rising figure, and no fixed sample does
+that without a folder of variants.
+
 ## Search the libraries before deciding a game is unservable — the hit rate is per-SUBJECT
 
 Wick found nothing (no wax, no candles) and the conclusion drifted toward "these libraries
