@@ -809,3 +809,47 @@ currently, it pulls back a little then angles all the way into the water before 
 
 Six sessions now. Every mechanism he has proposed has been the right one, and the last three
 notes have each named a fault I could not see in my own screenshot.
+
+## 2026-09-09 — Stillwater, after build 23
+
+> "I dont see the log book in the game, just a log book button, which takes you to a flat page.
+> it is very difficult to see where you are looking and I think partial controls are still
+> leftover from previous updates. when you press on the water it pulls back the rod to cast. I
+> dont want it to do that. I want holding the cast button to pull back the rod, then flick
+> forward when you release it. can you add a small analog stick to the left side of the screen
+> to control where you look instead of sliding on the screen to turn. also a small dot in the
+> middle of the screen to see what you are looking at. can you stylized the cast button and mini
+> game gauge to match the style of the game better and feel more responsive? can you make the
+> water appear slightly translucent without showing fish under the water? can you make the boat
+> move with the waves instead of being flat the while time?"
+
+Seven items, and five of them are the same complaint from different angles: **a control that
+exists is not a control that is found or understood.**
+
+- **"partial controls are still leftover"** — the drag-to-look and tap-to-charge scheme had been
+  superseded but not removed, so the water still loaded the rod. Every stray touch fired it.
+  When a control scheme is replaced, delete the old one in the same commit; a half-live scheme
+  reads to the player as a bug, not as a legacy.
+- **"very difficult to see where you are looking"** — first-person with no cursor is guesswork.
+  The sight that fixed it had to be drawn with a dark backing ring; at 42% alpha and 2.5 px it
+  was invisible over sunlit water, which is the brightest thing in the frame.
+- **"a small analog stick... instead of sliding on the screen to turn"** — the difference is not
+  the picture, it is that **a stick holds a direction**. A drag reports movement, so to keep
+  turning you must keep dragging, lift, and do it again. Worth knowing before choosing a look
+  control for a phone game.
+- **"the boat... flat the while time"** — the true numbers were 9.8 cm of heave, 5.1° of roll
+  and **0.75° of pitch**. All correct: a 2.7 m boat on a 5 m swell genuinely barely pitches. But
+  the camera rides the hull, so the player sees none of it. Exaggerate ×1.2 heave, ×1.5 roll,
+  ×4 pitch. **When the camera is bolted to the thing that moves, the physical answer is the
+  wrong one.**
+- **"slightly translucent without showing fish under the water"** — both halves matter. Water you
+  can see a little way into reads as liquid; water you can see through shows the fish, and the
+  fish being invisible is the entire first minigame. Cap the transparency low, fade it with
+  distance, close it at grazing angles (where a real lake is a mirror anyway), and reduce it as
+  the water gets deeper — which is also the mood arc.
+
+Earlier in the same conversation, and worth keeping beside these: *"for the menus I was wanting
+real physical objects and places"* — menus **styled** like objects is not what was asked for. It
+means a thing lying in the boat that the camera goes to and that opens. The SubViewport-on-a-quad
+route keeps every Control layout and makes it the surface of the object, so nothing is thrown
+away to make it real.
