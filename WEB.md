@@ -52,6 +52,13 @@ does this and creates the repo, then enables Pages with
 - **Rebuild before every e2e run that follows a source change**, and never start the smoke
   tests while a build is in flight. A stale `dist/` lies in the direction of "your fix did
   not work".
+- **The pure layer is a DIRECTORY, `src/sim/`, not a paragraph asking people to be careful.**
+  Coreward kept thirteen pure modules beside the renderer modules with the rule written in a
+  comment; an `import * as THREE` in one of them would have shipped and first shown up as an
+  esbuild error in the golden harness days later, in a file nobody had touched. Moving them
+  cost 77 import lines. Then a test reads the directory and fails on an import of three.js, on
+  any non-`import type` crossing out of it, on a renderer or input global, and on an unseeded
+  roll - and each of those five clauses gets falsified separately.
 - **The headless tick seam** (`freeze()`, `advance(dt, draw)` behind `?debug`) is what makes
   the deep game testable: 51x real time, draw only the last frame. Anything that accrues in
   game time belongs on it, never on wall-clock polling.

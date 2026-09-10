@@ -100,11 +100,37 @@ python C:\dev\gamedev-notes\scripts\assets.py get itch tallbeard/music-loop-bund
 Every `get` appends a line to the game's `assets/CREDITS.md` (source, id, URL, licence, date)
 and refuses a licence it does not recognise. The credits file feeds the credits screen.
 
+**Run a positive control before writing down a miss.** A scraper that returns an empty list on
+a markup change is indistinguishable from a source that has nothing, and the empty answer is
+the one that gets believed - so a property of a regex gets recorded as a property of the
+library. Before "no CC0 asset exists for X" goes into a plan, run one query whose answer is
+known non-empty (`search kenney` with no query must list packs) and check it comes back.
+Scrapers rot silently; the failure mode is always a confident empty result rather than an
+error. This has now cost two asset hunts, and the same rule governs every source below.
+
+Better than a control you have to remember to run: **make the tool itself distinguish "the
+filter matched nothing" from "the scraper saw nothing".** `search_kenney` counts the slugs it
+sees before filtering and exits non-zero naming the selector when that count is zero, so the
+absence answer can no longer be produced silently. Verified by falsification - `search kenney
+category:UI` exits 1 with the message, the default search lists packs and exits 0.
+
 How each source is reached, for when the script needs fixing:
 
 - **Kenney**: the zip URL on `kenney.nl/assets/<slug>` contains a hash and a timestamp that
   change on re-upload. Fetch the page and regex `kenney\.nl/media/pages/assets/[^"']+\.zip`.
-  Category pages `kenney.nl/assets/category:3D|2D|Audio|UI` list the packs. No JSON API.
+  **The four categories are `3D`, `2D`, `Audio` and `Textures` - there is no `UI` category.**
+  `kenney.nl/assets/category:UI` is a real page that lists no packs, so for as long as it sat
+  in the script's default list the UI quarter of every search returned nothing and read as
+  "Kenney has no interface assets". Kenney has seven UI packs; they are a TAG, reached with
+  `search kenney tag:interface` (`ui-pack-adventure`, `ui-pack-sci-fi`, `input-prompts`,
+  `mobile-controls`, `crosshair-pack`, ...). Any selector containing `:` is passed through
+  as-is. No JSON API.
+  **The site emits single-quoted attributes**, so any slug regex must accept either quote:
+  measured on `category:3D`, 55 single-quoted asset links against 6 double-quoted (M). While
+  `search_kenney` matched double quotes only it saw a tenth of the library, found no rows,
+  broke out of its paging loop, and returned an empty table for every query in two separate
+  asset hunts - which both wrote down as "Kenney has nothing for this". The first re-run after
+  the one-character fix surfaced `modular-cave-kit` for a game made of caves.
 - **KayKit**: `github.com/KayKit-Game-Assets/<repo>` as a zip from
   `codeload.github.com/KayKit-Game-Assets/<repo>/zip/refs/heads/main`, already in an
   `addons/` layout. Packs not on GitHub are on `kaylousberg.itch.io`.

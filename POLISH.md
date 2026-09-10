@@ -62,7 +62,10 @@ the ones already on his phone. Edited only by `/digest`.
       `NOTIFICATION_APPLICATION_PAUSED`. Settings in a separate `ConfigFile`. Erase progress
       sets a one-way latch so the unload save cannot write it back.
 - [ ] The Android back button pauses in play, goes back in menus, and never quits without
-      asking (`quit_on_go_back = false`, `NOTIFICATION_WM_GO_BACK_REQUEST` handled).
+      asking. **Both halves in the same commit**: `quit_on_go_back = false` AND
+      `NOTIFICATION_WM_GO_BACK_REQUEST` in `_notification`, unwinding one layer per press.
+      The setting alone is a dead system button; assert the unwinding, not the setting. The
+      save happens here too, because `WM_CLOSE_REQUEST` does not arrive on an Android back-out.
 - [ ] Home then resume returns to a paused game, not a restarted one. Screen sleep is
       prevented during play (`keep_screen_on`).
 - [ ] Orientation locked to portrait. Immersive mode on. Safe area applied.
@@ -91,7 +94,10 @@ the ones already on his phone. Edited only by `/digest`.
 ## Repo hygiene
 
 - [ ] CI green. APK attached to the release. Changelog entry written in the player's words.
-- [ ] `CLAUDE.md`, `NOTES.md` and `PLAN.md` current. Milestone list ticked.
+- [ ] `CLAUDE.md`, `NOTES.md` and `PLAN.md` current. Milestone list ticked. The plan is
+      called `PLAN.md` and its first unticked box is the answer to "what now".
+- [ ] Version agrees in all three places, asserted by a test: `Changelog.VERSION`,
+      `version/name` in **each** export preset, and `RELEASES[0].version`.
 - [ ] `assets/CREDITS.md` complete, and the credits screen renders it.
 - [ ] Lessons filed to `inbox/`, his words filed to `playtests/<game>.md`.
 - [ ] Screenshot at 460x996, the APK link, the changelog entry and the numbered answers to

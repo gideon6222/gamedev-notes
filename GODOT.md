@@ -29,7 +29,43 @@ Nothing is installed system-wide and nothing needed admin. Everything portable u
 | Debug keystore | alias `androiddebugkey`, pass `android` | `C:\dev\toolchain\debug.keystore` |
 | Upload keystore | alias `upload` | `C:\dev\keys\upload.keystore`, password in `C:\dev\keys\UPLOAD-KEY-README.txt` |
 | Export templates | 4.7.2.stable | `%APPDATA%\Godot\export_templates\4.7.2.stable` |
-| ffmpeg, gh, scrcpy | via winget, user scope | on PATH after `setup/install.ps1` |
+| ffmpeg, gh, scrcpy | via winget, user scope | on the **user** PATH; a session older than the install will not see it |
+
+**Anything winget installed during a session is invisible to that session.** winget writes
+the user PATH in the registry and a process reads it once, at startup, so `Get-Command` says
+"not installed" about a tool that is installed and signed in. Never send the reader to
+`setup\install.ps1` for it - that is a whole-machine script that rewrites `~/.claude` and is
+shared with other running sessions. Instead, re-read the user PATH at the top of any script
+that shells out, which fixes `gh`, `adb` and `ffmpeg` at once:
+
+```powershell
+$userPath = [Environment]::GetEnvironmentVariable('PATH','User')
+if ($userPath) {
+  $have = $env:PATH -split ';'
+  $missing = @($userPath -split ';' | Where-Object { $_ -and $have -notcontains $_ })
+  if ($missing.Count) { $env:PATH = ($missing -join ';') + ';' + $env:PATH }
+}
+```
+
+Then fall back to the winget Packages glob (`%LOCALAPPDATA%\Microsoft\WinGet\Packages\<Publisher>.<Id>_*\...`,
+which is how `GODOT` is already resolved) before giving up, and give up with the one-line
+`winget install --id <id> --scope user` rather than the installer.
+
+**`$ErrorActionPreference = 'Stop'` makes a native command's stderr terminate the script
+before any `$LASTEXITCODE` check below it runs.** Redirection does not save it - `*>` and
+`2>$null` send the text somewhere and the ErrorRecord still throws - so every `-AllowFail`
+flag, `-ErrorAction SilentlyContinue` and exit-code branch downstream is decoration. It cost
+two sessions: `check.ps1` died at step one on one stderr line from an import warning it was
+explicitly told to forgive, and `new-game.ps1` died on a `gh repo view` probe that is
+*supposed* to fail on a new game. Wrap every native call whose failure is expected:
+
+```powershell
+function Native([scriptblock]$Block) {
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try { & $Block } finally { $ErrorActionPreference = $prev }
+}
+```
 
 **Godot finds the SDK, the JDK and the debug keystore through editor settings, not
 environment variables**: `%APPDATA%\Godot\editor_settings-4.7.tres`, keys under
@@ -225,6 +261,15 @@ player's report was "the buttons are about half an inch too high".
 - **`ANDROID_DEBUG_KEYSTORE_B64` must be a repository secret** or every CI build is signed
   with a throwaway key and Android refuses to update the installed app. `/game-scaffold`
   sets it with `gh secret set` at repo creation, along with the upload key secrets.
+- **Never import `config/quit_on_go_back=false` on its own.** It is half a mechanism: the
+  other half is `NOTIFICATION_WM_GO_BACK_REQUEST` in `_notification`, unwinding **one** layer
+  per press in the order the game stacks its screens, and quitting only when nothing is open.
+  Godot's default throws the player's run away on a stray back press; the setting with no
+  handler produces a dead system button, which is worse, because a player presses it again
+  harder rather than concluding the game is fine. Neither state shows in a headless suite.
+  Assert the unwinding, never the setting - a config line cannot fail. A game with no pause
+  screen still handles back, because `NOTIFICATION_WM_CLOSE_REQUEST` does **not** arrive on an
+  Android back-out, so that is where the save has to happen.
 - `android/` is gitignored (it is the unpacked export template, not source).
 - The Android launch component is `<unique_name>/com.godot.game.GodotAppLauncher`.
   `.GodotApp` itself is not exported. Godot's logcat tag is `godot`.

@@ -3,8 +3,10 @@
 Gideon builds phone games with Claude Code on this Windows PC and plays them on a Samsung
 Galaxy S26 Ultra (Android, 1080x2340, Adreno 840, Vulkan). Every game is meant to be kept,
 improved and eventually put on Google Play. Claude has a shell, git, `gh`, Godot 4.7.2, the
-Android toolchain, `adb` to the phone, `ffmpeg`, node and python. Nothing here is limited
-by what Claude can run. Several sessions run at once on different games.
+Android toolchain, `adb` to the phone, `ffmpeg`, node and python - all on the **user** PATH,
+which a session older than the install does not see, so resolve a "missing" tool by path
+before believing it (`GODOT.md`). Nothing here is limited by what Claude can run. Several
+sessions run at once on different games.
 
 **The goal is not to satisfy one request. It is to make each game better than the last.**
 That only works if this knowledge base is read at the start and written to as you go.

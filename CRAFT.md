@@ -195,6 +195,18 @@ only when a bullet here is not enough.
   the art.
 - Seat a first-person camera at seated height and draw the vehicle as an edge (gunwales),
   not a surface.
+- **A first-person camera carried by a moving object gets its own transform, derived from the
+  carrier rather than parented to it.** Inherit ~0.9 of its POSITION (translation is what
+  sells "afloat" and does not make people ill), take **20-30% of its ROTATION**, and damp with
+  a time constant of 0.5-1 s so the head lags the deck. A neck holds a head level whether it
+  likes it or not, so the passenger sees the gunwales swing against a steady horizon - the
+  exact opposite of what a hull-locked camera renders. Bolted to the hull, honest motion is
+  invisible (both move together, and the report is "the boat is flat"), so the only lever left
+  is to exaggerate the hull until it reads, and then the report is "the movement feels odd".
+  Stillwater, measured: 20.0 deg camera peak-to-peak at 41.9 deg/s before, 1.1 deg at 3.1 deg/s
+  after, with the hull MORE visible than it had been (M). **Peak angular rate is the number
+  that predicts discomfort and the one nobody looks at** - a forty-line headless probe
+  reporting peak-to-peak, RMS, frequency and peak rate is what makes any of it defensible.
 - A tight frame reads as "camera too close" unless darkness justifies it. Make framing an
   upgrade and let the light's reach explain it.
 - Any end-of-run camera move is a second placement pass over everything near the finish.
@@ -338,6 +350,32 @@ only when a bullet here is not enough.
 - Write the lesson the moment you learn it. Several games run at once.
 - A complaint that survives a correct fix is about something else. When a symptom survives
   two fixes, stop fixing and measure: hide a layer, read a pixel, print the buffer.
+- **When the fix for one complaint reliably causes another, stop tuning the number and look
+  for the missing degree of freedom.** Two things that must differ are being driven by one
+  value. This is the harder sibling of the rule above: the complaint did not survive a correct
+  fix, it survived a fix that was correct given a structure that was wrong.
+- **Put a rule where the file system can see it, then write the test that reads it, then break
+  the code five times to prove the test is awake.** A boundary in a comment is a request, not a
+  boundary: Coreward's thirteen pure modules sat beside the renderer with a paragraph asking
+  the next person to keep them apart, and nothing would have failed at the moment of the
+  mistake. Moving them into `src/sim/` cost 77 import lines and converted the rule into a
+  location.
+- **The process is a list of filenames, so the filename is the interface.** The plan goes in
+  `PLAN.md`, his words in `playtests/<slug>.md`, decisions and measurements in `NOTES.md`. A
+  29 KB plan called `DESIGN.md` is reachable only by listing the directory and guessing;
+  nothing in the process opens it. A document that earns a different name is linked from
+  `CLAUDE.md` or it does not exist, and a rename is a `git mv` plus a grep for the old name in
+  the same commit. `PLAN.md` earns its keep when the first unticked box answers "what now" -
+  put the checklist at the top.
+- **When a game moves to a new repo, mark the old one dead in the same commit as the new one's
+  first.** A banner at the top of its `CLAUDE.md` and `README.md` saying where the game went
+  and that this is read-only. The pointer has to be written backwards, from the replacement to
+  the thing replaced, because forwards is the direction nobody is standing in - a session
+  opened in the old folder reads three files that agree with each other and all point at the
+  dead build. This is "delete the stand-in in the same commit as the real thing" applied to a
+  whole repo, where the banner is what deletion would have been.
+- **After reorganising the shared notes, grep every game repo for the old filenames.** Moving
+  files into `archive/` leaves each game's `CLAUDE.md` naming documents that no longer exist.
 - Half a feature working is the worst symptom, because it reads as tuning. If adjusting the
   obvious parameter changes nothing, a constant term is drowning it.
 - Two bugs can hide each other. When a fix makes a different test fail, suspect a mask.

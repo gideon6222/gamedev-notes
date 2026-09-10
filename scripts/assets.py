@@ -291,10 +291,18 @@ KENNEY_ZIP_RE = re.compile(r'https://kenney\.nl/media/pages/assets/[^"\'\s]+\.zi
 
 
 def search_kenney(a):
-    cats = a.query or ["3D", "2D", "Audio", "UI"]
+    # THE FOUR CATEGORIES ARE 3D, 2D, Audio AND TEXTURES. "UI" is not one of them:
+    # kenney.nl/assets/category:UI is a real page that lists no packs at all, so the UI
+    # quarter of every default search returned nothing and read as "Kenney has no UI".
+    # Interface packs are a TAG - pass `tag:interface`, which is handled below.
+    cats = a.query or ["3D", "2D", "Audio", "Textures"]
     rows = []
+    seen = 0                      # slugs the scraper actually saw, before any filtering
     for cat in cats:
-        cat_url = f"https://kenney.nl/assets/category:{urllib.parse.quote(cat)}"
+        # A selector that already names its kind (`tag:interface`) is used as-is; a bare
+        # word is a category.
+        sel = cat if ":" in cat else f"category:{cat}"
+        cat_url = f"https://kenney.nl/assets/{urllib.parse.quote(sel, safe=':')}"
         page = 1
         while page <= 6:
             html = http(f"{cat_url}?page={page}").decode("utf-8", "replace")
@@ -305,12 +313,21 @@ def search_kenney(a):
             slugs = [s for s in dict.fromkeys(slugs) if not s.startswith("category")]
             if not slugs:
                 break
+            seen += len(slugs)
             for s in slugs:
                 if not a.filter or a.filter.lower() in s:
                     rows.append([cat, s, f"https://kenney.nl/assets/{s}"])
             if 'page=' + str(page + 1) not in html:
                 break
             page += 1
+    # THE SEARCH MUST PROVE IT RAN. Zero rows because the filter matched nothing is a real
+    # answer; zero rows because the scraper saw no packs at all is a broken tool, and the
+    # two are indistinguishable from the outside. That is how a property of a regex got
+    # written into two plans as a property of the library. Fail loudly on the second.
+    if seen == 0:
+        sys.exit(f"kenney: no packs found on any of {cats} - the scraper is broken or the "
+            f"selector is not real (categories are 3D, 2D, Audio, Textures; try tag:interface). "
+            f"Do NOT record this as 'Kenney has nothing for this'.")
     table(rows[: a.limit if a.limit != 20 else 400], ["category", "slug", "page"])
 
 

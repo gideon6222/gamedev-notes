@@ -50,6 +50,28 @@ reach.** Three HUD faults shipped behind one good-looking picture.
 - **Verify a regression test by reintroducing the bug.** Never re-record a golden without
   reading the diff. A recorder that rewrites the file itself and refuses a broken bracket
   count is cheaper than the two hand-edits that broke it.
+- **If reintroducing the bug does not fail the test, the test is measuring a confounder.**
+  Remove the confounder's freedom, do not tighten the threshold. Stillwater's line-sag test
+  passed with sag hard-wired to ignore tension, because tension also bends the rod and the
+  rod moved the whole line: call the function under test with fixed inputs rather than
+  setting a value and stepping a frame, since stepping a frame runs every confounder you are
+  trying to exclude. Two identical numbers in the failure message ("0.183 vs 0.183") are the
+  proof it is looking at the right quantity.
+- **An allow-list clause is where a vacuous guard hides**, because it is the clause that
+  makes the test pass. Coreward's no-`Math.random` guard allowed the roll whenever the
+  preceding text ended in `=`, which was meant to permit an injectable default and also
+  permitted the bug. Falsify each clause separately, not the test as a whole.
+- **A branch reachable only through a failure needs its failure path exercised once**, or it
+  is untested in exactly the case it exists for. `new-game.ps1` probed "does this repo exist"
+  with a command that is *meant* to fail on a new game, and died there; nobody had ever
+  scaffolded a game whose repo did not already exist.
+- **A tool that cannot report failure reports absence instead**, and absence is the answer we
+  act on. Any scraper, filter or search whose empty result would be believed needs a positive
+  control: one query whose answer is known non-empty, run before the miss is written down.
+- **Version is one fact in three files and no code derives it.** Every game asserts
+  `Changelog.VERSION` == `version/name` in **each** export preset == `RELEASES[0].version`,
+  read out of `export_presets.cfg` as a pure test. The AAB preset's copy is the dangerous one
+  because nobody sees it until a store upload.
 - **Wait on game state, never wall-clock time.** Anything that accumulates over game time
   runs through the headless seam (`freeze()` then `advance(seconds)`), where sixty game
   seconds is sixty game seconds on every machine. Hold a real control only in the tests whose
@@ -102,6 +124,19 @@ scripts\movie.ps1 -Replay test/replays/level1.json -Seconds 20 -Fps 60 -Every 20
   Scenarios that need the game running cross the title screen like a player, never through
   a bypass flag.
 - **It must not run headless.** A real window, small and off-screen, is the whole point.
+- **Write replay coordinates against the PROJECT viewport, not `-Resolution`.** Movie Maker
+  renders at the project's viewport size and `-Resolution` only sizes the window; measured
+  from inside a run, `get_visible_rect()` is **1080x2338** (M) on this stack, not the 460x996
+  the sheet is downscaled to. A replay written at 460x996 lands every tap in the top-left
+  fifth, hits nothing, and films a game that looks broken rather than a coordinate that is.
+- **No headless probe can produce replay coordinates**: a headless root reports 100x100 and
+  every anchored control resolves against that. Print `get_global_rect()` from inside the
+  game's tick for one frame and film three seconds.
+- **Keep film output out of any directory Godot imports.** `build/` is inside the project, so
+  `--import` walks it, reimports every frame slowly, and dies on the movie writer's
+  `frame.wav` - which reads as "the check suite is broken" when the tests are fine.
+- **Budget about 150 MB and twenty seconds of wall clock per second of film** (M): sixteen
+  seconds is 960 full-resolution PNGs and 2.4 GB. Film the shortest run that shows the thing.
 - **Collect console errors and print them with the sheet.** Three separate bugs sat in the
   console while they were hunted somewhere else.
 
