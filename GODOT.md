@@ -135,8 +135,17 @@ player's report was "the buttons are about half an inch too high".
 - One `Control` with `PRESET_FULL_RECT` inside a `CanvasLayer`; everything anchors to it.
   `PRESET_CENTER_BOTTOM` plus a negative `offset_bottom` puts a thumb control a fixed distance
   from the real bottom edge at any aspect.
-- Apply `DisplayServer.get_display_safe_area()` as margins on `_ready` and on `size_changed`.
-  Required once `screen/edge_to_edge` is on in the export preset.
+- Apply `DisplayServer.get_display_safe_area()` as margins on `_ready` and on `size_changed`,
+  required once `screen/edge_to_edge` is on - but **guard it behind `OS.has_feature("mobile")`
+  and make it exactly zero everywhere else.** Off a phone it returns the usable DESKTOP (the
+  monitor minus the taskbar), which has nothing to do with the game's window, and applying it
+  displaced Gravewell's d-pad 104 px upward (M). Convert through
+  `DisplayServer.window_get_size()`, never `screen_get_size()`: the safe area is measured in
+  window pixels and the margins are viewport units, so mixing in the monitor makes the answer
+  arbitrary. Assert the margins are zero off a phone - a structural claim is the only kind a
+  headless run can make about layout, and this bug walked straight past the anchored-not-placed
+  test. A drawn control moves with its own hit box, so a screenshot shows it in a sensible
+  place; what found it was a filmed replay whose taps landed in empty space.
 - **Every interactive control handles its own input** through `_gui_input` and calls
   `accept_event()`, with `mouse_filter = STOP`. Position and hit box are then one object. A
   manual `_unhandled_input` hit test is a second source of truth for where a button is.
@@ -236,6 +245,21 @@ player's report was "the buttons are about half an inch too high".
   emits every follower as it crosses each threshold.
 - Anti-aliasing on a phone: MSAA 2x at most, or FXAA. Keep `scaling_3d/scale` around
   0.75-0.85 for a heavy scene while the UI stays crisp.
+- **A shader that computes its own lighting must say so: `render_mode unshaded`.** `ALBEDO`
+  in a lit `shader_type spatial` is not the colour that reaches the screen, it is the base
+  colour that LIGHTS MULTIPLY - so a surface excluded from every light (via `light_cull_mask`)
+  has nothing to multiply it by and renders black at every value of every constant. Either go
+  `unshaded` and write the finished colour to `ALBEDO`, or write the computed light to
+  `EMISSION`. Nothing warns. Gravewell lost two rounds to the falloff curve first, which is
+  the tell: a complaint that survives a correct fix is about something else.
+- **When a value is computed correctly and displayed wrongly, RENDER THE VALUE.** A shader has
+  no `print`, so the screen is its only readout: `ALBEDO = vec3(f.g, f.r, 0.0); EMISSION =
+  same;` and one screenshot ruled out the solver, the upload, the world-position mapping and
+  the texture format together. Three plausible hypotheses had been reasoned about first (a
+  half-texel UV offset, `source_color` sRGB-decoding a data texture, a wrong uniform) and all
+  three were consistent with the symptom and none was true. This is `CRAFT.md`'s "attribute an
+  artefact to a layer before touching the maths" one level down - which of my NUMBERS is
+  wrong - and it should be the first move, not the fifth.
 
 ## Export, signing and the two builds
 
@@ -246,6 +270,16 @@ player's report was "the buttons are about half an inch too high".
 | Signed with | debug key | upload key from `C:\dev\keys` |
 | Trigger | every push to `main` | a `v*` tag |
 
+- **Anything a tool writes INTO the project directory is a candidate for the package, and
+  `.gitignore` has no say in it.** A sixty-second film is 3,720 PNGs in `build/`, the exporter
+  walks the project directory, and Gravewell's next APK was **1.42 GB** (M) - a 4,933% growth
+  that only the size guard noticed, because the export itself succeeded, printed `DONE`, and
+  merely took ninety seconds instead of twelve. Two fixes, because they fail differently:
+  `exclude_filter="build/*, *.log, *.apk, *.aab, *.idsig"` in **every** preset keeps it out of
+  the package, and a `build/.gdignore` keeps it out of the import cache. The marker has to
+  survive `.gitignore`, so that needs `build/` then `!build/` then `!build/.gdignore`.
+  **This is the case for a size guard from the first commit**: nothing else in the gate had an
+  opinion, and the game inside the 1.42 GB APK worked perfectly.
 - **AAB export is only valid with `gradle_build/use_gradle_build = true`**, and Gradle is
   the only way to set `target_sdk` (Play requires 36 and it rises every year).
 - **`--install-android-build-template` only works alongside an export command.** Alone it

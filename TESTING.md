@@ -57,6 +57,34 @@ reach.** Three HUD faults shipped behind one good-looking picture.
   setting a value and stepping a frame, since stepping a frame runs every confounder you are
   trying to exclude. Two identical numbers in the failure message ("0.183 vs 0.183") are the
   proof it is looking at the right quantity.
+- **A test can measure the wrong END of the right object**, which reads identically from
+  outside a confounder: a plausible number that moves when the game changes and is never the
+  number in question. Name the end at risk in the assertion's own words ("the LAST candle, not
+  the leader") before you write it.
+- **A sentinel value used inside a max or min must stay ordered.** A flat "way off" constant
+  makes a search for the worst case return the FIRST case: Candle Gift returned a flat 9.0 for
+  every point behind the lens, they compared equal, `if f > worst` kept the nearest one, and
+  the camera solved its framing against a candle metres in front of the one hanging off the
+  edge. It held to level six and broke at level ten. `9.0 + local.z` keeps the ordering true.
+- **A construct that fails only for SOME inputs needs those inputs enumerated, not sampled
+  once.** The companion to "a construct that cannot fail is untested". Gravewell's destroyed-
+  cell gap is entered or missed depending on `hp / hardness` against the remaining fill, so a
+  single bite size passes for the same reason a single seed does; the test that catches it
+  cuts every cell with eight bite sizes across two classes and five depths and asserts the
+  property directly - a passable cell has always broken, and reports no material.
+- **Print the state before theorising about it.** Three rounds of plausible causes (falling
+  ceilings, the ship inside rock, the bot oscillating on a cell edge) all fitted the screen
+  and none was true; one print of the cells around the stuck ship showed `mat=2 fill=0.00` and
+  ended it.
+- **Write a table's balance property as an assertion in the same commit as the table** - see
+  `CRAFT.md`. It is the cheapest test in the repo and the one most likely to fire on its first
+  run against a table its author has just proofread.
+- **A positive control must be a query whose answer you have actually checked, not one that
+  sounds right.** "Search for UI, obviously Kenney has UI assets" is a plausible control
+  testing a URL that lists nothing. Better than remembering to run one: make the tool tell the
+  two apart itself - zero rows after filtering is an answer, zero rows before filtering is a
+  broken scraper, and from outside they are the same empty table. Any scraper, filter or
+  allow-list whose empty result would be believed deserves that split.
 - **An allow-list clause is where a vacuous guard hides**, because it is the clause that
   makes the test pass. Coreward's no-`Math.random` guard allowed the roll whenever the
   preceding text ended in `=`, which was meant to permit an injectable default and also
@@ -139,6 +167,18 @@ scripts\movie.ps1 -Replay test/replays/level1.json -Seconds 20 -Fps 60 -Every 20
   seconds is 960 full-resolution PNGs and 2.4 GB. Film the shortest run that shows the thing.
 - **Collect console errors and print them with the sheet.** Three separate bugs sat in the
   console while they were hunted somewhere else.
+- **A wrapper must not treat the tool's own chatter as failure.** Godot writes leaked
+  ObjectDB instances and "resources still in use at exit" to stderr on a NORMAL exit, so with
+  `$ErrorActionPreference = 'Stop'` a filmed run dies at the Godot call with
+  `NativeCommandError` - after writing every frame successfully - and it reads as "filming is
+  broken" rather than "the wrapper mishandled a warning". This is every run, not an edge case.
+  Wrap native calls in the `Native` helper in `GODOT.md`.
+- **The first time a tool is used in a repo is a test of the TOOL, not of the repo.** Candle
+  Gift's first filmed run in five rounds of work failed with nothing wrong with the game.
+- **When a digest records that a fix is owed to sibling scripts, the fix is not done.** Two
+  folded lessons both ended "the same fix is still owed to `movie.ps1` and `device.ps1`", and
+  the owed half is precisely the half that cost the next session an hour. Apply it across the
+  family in the same commit, or the note is a bug report filed against yourself.
 
 What the first filmed runs found that no screenshot had: an intro that cut to a new planet
 on every caption (the actual slide show), a wordmark running off a 375 px screen, a title

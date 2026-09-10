@@ -71,6 +71,14 @@ only when a bullet here is not enough.
 - One knob that swamps the others is a design bug, not a tuning problem (Stillwater:
   win ~= 1.06 - 1.15 x run_chance, M). A new knob must be a dial, not a cliff. Give it an
   arithmetic ceiling and assert it.
+- **Write a table's balance property as an assertion in the same commit as the table**, not
+  after a playtest says something feels off: no row dominates, every row is reachable, every
+  entry costs something. It runs in milliseconds and reads the WHOLE table rather than the row
+  you happen to be looking at. Coreward's fired on its first run against five world traits
+  their author had just proofread - one row had more geodes and a better price for no cost,
+  another had two costs and no upside - and the fixes (one field each) were better design than
+  what was there and were the test's idea, not the author's. A design test that has never
+  failed is either protecting something genuinely stable or is written too loosely to fire.
 - A "hold the needle in the band" fight collapses to one sustained input. Make gaining
   ground require a rhythm and assert that holding any constant value gains nothing.
 - Give the player a risk dial they hold themselves. The greedy option is genuinely better
@@ -204,9 +212,33 @@ only when a bullet here is not enough.
   invisible (both move together, and the report is "the boat is flat"), so the only lever left
   is to exaggerate the hull until it reads, and then the report is "the movement feels odd".
   Stillwater, measured: 20.0 deg camera peak-to-peak at 41.9 deg/s before, 1.1 deg at 3.1 deg/s
-  after, with the hull MORE visible than it had been (M). **Peak angular rate is the number
-  that predicts discomfort and the one nobody looks at** - a forty-line headless probe
-  reporting peak-to-peak, RMS, frequency and peak rate is what makes any of it defensible.
+  after, with the hull MORE visible than before (M). **Peak angular rate predicts discomfort
+  and is the number nobody looks at** - a forty-line headless probe reporting peak-to-peak,
+  RMS, frequency and peak rate is what makes any of it defensible. And check the WATER as well
+  as the rig: Stillwater's waves summed to a 32 cm swell on a lake at dawn, so the hull was
+  honestly riding something far too big and no camera constant could have settled it (M).
+- **Name the end at risk before measuring a frame.** For anything trailing a chase camera the
+  nearest element is the LAST one, and the two differ by the whole length of the thing. Candle
+  Gift's probe measured the leader, reported a comfortable 0.71 across three levels, and the
+  contact sheet plainly showed the tail clipped: a probe that disagrees with a picture you are
+  looking at is measuring the wrong quantity, and the picture wins.
+- **State the framing promise and solve for it; do not tune two constants toward it.** A
+  pullback of `11.5 + tail * 0.45` is two numbers keeping one promise between them and never
+  holds across a range. One constant for how far down the frame the last element may sit, plus
+  a bisection, is deterministic (the golden still agrees), monotonic, and lower-bounded at the
+  old value: worst position went 0.98 / 1.08 / 1.42 / 1.37 to 0.95 at every level (M). **Ease
+  such a solve asymmetrically** - out fast, in slow, since lagging on the way out IS the
+  clipping it exists to prevent (1.37 symmetric vs 0.95 at 9.0 out / 1.6 in, M).
+- **Check framing at the size where it breaks.** Level one measured 0.98, just inside the
+  edge, and hid this for four rounds. A fixture where the bug barely shows reports it as tuning.
+- **Inverting a follow is a two-part edit, and the second part is a deletion.** When "A is
+  positioned from B" becomes "B is positioned from A", grep every other place A is written in
+  the same frame and remove it. Stillwater's logbook became a held object hanging off the
+  camera while a per-frame branch still placed the camera from the book: positive feedback
+  with a gain just over one, and the pair were sixteen metres outside the boat within two
+  hundred frames (M). It is silent - no error, and every RELATIVE assertion between the two
+  still passes because they move together. Test it with an ABSOLUTE claim ("the camera is
+  still within 25 cm of the seat"), which is the one that failed.
 - A tight frame reads as "camera too close" unless darkness justifies it. Make framing an
   upgrade and let the light's reach explain it.
 - Any end-of-run camera move is a second placement pass over everything near the finish.
@@ -236,6 +268,16 @@ only when a bullet here is not enough.
 - Derive the picture and the score from one state so they cannot disagree. Let damage
   reveal history (shaved layers). When the accurate model and the readable model disagree,
   build the readable one (bands, not shells).
+- **One threshold for "gone", named once, and everything else reads that constant.** Two
+  pieces of code that each decide when a thing has been destroyed will disagree eventually,
+  and the disagreement is a band of values neither can see. Gravewell's passability used
+  `<= 1e-4` and its drill broke at exactly `0.0`, so a cell landing in that gap was flyable,
+  had never broken, still reported its ore forever, and a scripted miner ping-ponged between
+  two cells it had already dug out. Whether a cut lands in the gap is arithmetic, so it never
+  happened on one world class and happened constantly on the next. The fix is never to make
+  the two numbers match; it is for the second to read the first one's constant. **Second time
+  in that one file** - the first was passability at 0.5 against a drill breaking at 0.0, and a
+  miner reached 86 m having mined nothing.
 - A formation needs per-unit state and more than one unit wide to be readable. Rows with
   offset alternate rows beat a scatter. (unplayed)
 - Make failure a *shape* (lean over a neighbour), not a number, with something visible to
