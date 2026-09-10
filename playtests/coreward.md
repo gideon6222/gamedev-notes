@@ -421,3 +421,39 @@ He is right that the asset side has been the weak half of every round: the answe
 pre-made assets" has been a reasoned no more often than a yes, and the last round's honest
 blocker was that the fetch works and the image conversion does not. That is a toolchain
 failure being reported to him as a design decision, which it is not.
+
+## 2026-09-10 - the gas station, and neon that comes from something
+
+After 0.26.0, looking at the rebuilt Outfitter:
+
+"im notnsure what the different options do. it doesnt actually changes the viewable upgrades.
+I also want the whole structure of the room to change. I want something more creative and
+completely different. like a 3d futuristic gas station. the ship parks at the gas station, it
+has a retro neon feel with the lights. anything neon should feel like it is actually coming
+from an object or light in the room, not an overlay. the shop is similar to a gas station
+store. there is a display case that is also a counter. in the display case are important and
+expensive upgrades. behind the counter on the wall are the more standard upgrades. expand and
+research these idea and figure out how to implement them."
+
+Three things worth keeping.
+
+**"it doesnt actually changes the viewable upgrades" is a control that does nothing.** The
+plinths were built to filter the shelf and the filtering was cut in the same commit, for a
+real reason - the shelf's contents depended on when an async fetch landed - which left four
+lit, labelled, tappable-looking objects that do nothing at all. `POLISH.md`: every state names
+a visible action. Cutting the behaviour and shipping the affordance is worse than shipping
+neither, and he found it in the first minute.
+
+**"anything neon should feel like it is actually coming from an object or light in the room,
+not an overlay."** This is the sharpest note in the message and it is a correct read of the
+implementation: the neon is `MeshBasicMaterial` planes with additive halos, floating in front
+of the room at a fixed z. They are lit rectangles, not lit fittings. What he is asking for is
+a light SOURCE that is visibly attached to a thing - a tube in a housing, a sign with a back
+plate, a strip under a shelf lip - and light that falls on the surfaces near it.
+
+**The gas station is a complete spatial brief and it solves the layout problem.** A counter
+that is also a display case, expensive stock inside it, standard stock on the wall behind. That
+is a real shop's actual grammar, it separates fifteen upgrades into two natural groups by
+price rather than by an abstract category, and it gives the fixed portrait camera exactly the
+layered composition it wants: counter in the foreground, clerk's wall behind, ship parked
+outside. He designed the room; the job is to build it.
