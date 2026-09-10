@@ -161,3 +161,50 @@ Eight asks, and the second sentence is the important one.
   asked for an across-the-board art pass rather than naming a thing that looked wrong.
 
 Answered in: PLAN.md, rewritten, and the milestones under it.
+
+## 2026-09-10 - the boat as a place you are sitting in, and the three rooms as objects
+
+> "Can you make the water calmer in general? It still rocks a bit too much and the bobber
+> comes all the way out of the water, or goes completely below the wave, even when a fish
+> isn't biting. Can you calm the waves down and also have the bobber and line react better
+> with the water? You can still turn by swiping the screen, I only want to be able to turn by
+> using the virtual thumb stick. You are too far back in the boat so it doesn't look like a
+> person is actually sitting in it. Can you make it so it feels like you are in first person,
+> holding an actual fishing rod and sitting in the boat? When you look at the log book and hit
+> the interact button, can you make it so that you actually pick up and view the log book. You
+> fish count and any other relevant stats are shown there, and you physically swipe the pages
+> to read through it, rather than a scroll page. Can you also make your equipment menu a
+> tackle box that you look at and click to view. This should open the tackle box and show all
+> of your current equitable equipment. When the shop is available, there should be a shop
+> button but the camera pans over to a separate room that is a full 3d room of some kind, like
+> a shed or old bait shop where you can buy items. Can you expand on all of these ideas, plan
+> them out and how they will fit into the game and story, and implement them? I also like the
+> rest of your plan. The steps 4-8 that still need to be completed look good to me. Can you
+> plan this whole thing out and start working on it?"
+
+The plan gate is PASSED - "the steps 4-8 that still need to be completed look good to me" -
+so phases W, P, G, S and T are approved as written. Seven new asks on top of it.
+
+- **"The bobber comes all the way out of the water, or goes completely below the wave"** is
+  the most valuable line in the message, because it names a bug I had looked straight at in a
+  contact sheet and not seen. The float is placed at a fixed height in cast space. The WATER
+  moves, under a shader driven by the same wave sum, and the float does not read it at all.
+  Two models of one surface, which is the fault this game's notes name most often, and this
+  time the two models are the water and the thing floating on it.
+- **"It still rocks a bit too much"** after a measured 18x reduction in camera rotation. Worth
+  recording precisely because the numbers were right and the answer is still yes: 1.1 degrees
+  of camera pitch is calm, and the WAVES themselves are what he is looking at now. The
+  complaint moved from the camera to the water, which means the first fix worked and exposed
+  the next thing.
+- **"So it doesn't look like a person is actually sitting in it"** - the seat is at z = -1.90,
+  well aft, and the rod is a stick in the middle distance rather than something held. He is
+  asking for the body the first-person view implies.
+- **Three asks are one ask.** The logbook you pick up, the tackle box you open, and the shop
+  as a room the camera moves into are the same principle three times: **a menu should be a
+  thing in the world you look at and use.** He has now asked for this pattern in every screen
+  the game has, having seen it work exactly once, on the logbook. That is the strongest
+  possible signal that 11.9 was the right direction and should be finished everywhere.
+- **"Physically swipe the pages"** - the book paginates and a tap turns it, but the page swaps
+  rather than turning. Already on the plan as 11.9d and now confirmed as something he can see.
+
+Answered in: PLAN.md phase B (the body), phase R (the rooms), and W1 for the water.
