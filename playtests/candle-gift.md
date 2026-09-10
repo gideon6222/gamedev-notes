@@ -122,3 +122,16 @@ one she remembers") and close the distance to THAT.
 
 So the unit of work is the gap between the game and the intent, which lives in `REFERENCE.md`
 under "Still open" and in `POLISH.md`, not in the last bug report.
+
+## 2026-09-10 - the price tags, and the prices built around them
+
+Asked whether to make note values vary like the reference's (`5 $`, `154 $`, `610 $`) or leave
+the calibrated economy alone, he chose the reference:
+
+"I would go with the reference process tags and build the prices around those."
+
+Two instructions, and the second is the one that matters. **The tag values come first and the
+shop prices are DERIVED from them**, not the other way round. That is the same rule that made
+`VALUE_SCALE` work: keep money in the reference's units so its own observed prices stay usable
+as calibration, and move everything downstream to match rather than bending the units to fit a
+price list we invented.
