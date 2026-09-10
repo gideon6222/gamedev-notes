@@ -125,3 +125,39 @@ currently, it pulls back a little then angles all the way into the water before 
 
 Six sessions now. Every mechanism he has proposed has been the right one, and the last three
 notes have each named a fault I could not see in my own screenshot.
+
+## 2026-09-09 - the whole game: movement, feel, and "not that one boat in that one spot"
+
+> "There are a few things that I have been having trouble getting right with this game. The
+> movement has felt odd and I feel like things kept getting missed. I think you may have the
+> correct tools to fix those now. Can you make the boat rock much less, in the water? Make the
+> physics work better. The rod and the fishing line don't react to movement and don't feel
+> great. I want the looking, casting, and fishing mechanics to be much smoother. Can you also
+> look over the whole plan from start to finish and expand on it? Make the story and
+> progression fleshed out. Update all of the models, textures, sounds, graphics in general.
+> Look into ways to make the fishing game more fun and interactive. Go through every aspect of
+> the game, expand and research it and make sure each part moves smoothly into the next. I
+> don't want the whole game to take place in that one boat and in that one spot."
+
+Eight asks, and the second sentence is the important one.
+
+- **"I feel like things kept getting missed"** is a process complaint, not a bug report, and it
+  is the fourth time in six sessions he has named a fault a screenshot had already had the
+  chance to show me. He is right about the cause too: **"I think you may have the correct tools
+  to fix those now"** - he is pointing at the film and replay tools that landed this morning
+  and telling me to go and LOOK at the game in motion before touching it. A still frame cannot
+  show rocking, reaction or smoothness; all three of his feel complaints are motion complaints,
+  and until today there was no instrument for motion.
+- **"The rod and the fishing line don't react to movement"** is the same instinct as the nibble
+  note: he wants the fiction and the mechanic to be one object. A rod that ignores the boat it
+  is standing in is two separate models of the same world.
+- **"I don't want the whole game to take place in that one boat and in that one spot"** does not
+  contradict pillar 3 ("it stays the same lake"), and it is worth being careful about that,
+  because the pillar is load-bearing. He is not asking for a second location, he is asking for
+  the lake to be a PLACE - to get out of the boat, to have the bank and the shed and the gate
+  be somewhere you go, and for the six bands to look like six different waters rather than one
+  spot with a different number on the depth readout.
+- **"Update all of the models, textures, sounds, graphics in general"** is the first time he has
+  asked for an across-the-board art pass rather than naming a thing that looked wrong.
+
+Answered in: PLAN.md, rewritten, and the milestones under it.
