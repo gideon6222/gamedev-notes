@@ -104,3 +104,21 @@ Still unverified, and he should be asked: the upgrade list. "Same traps and upgr
 derived from two action screenshots and no source on the web lists them, so the shop is still
 our own - Bigger Batch, Earning Power, Steady Tray, Long Reach, Deeper Vats, Glitter Cannon,
 Press, Wrap. A screenshot of the reference's upgrade screen would settle it in one message.
+
+## 2026-09-10 - upgrade every aspect, against the original intent
+
+"take stock of the candle-gift game and bring it up to the new framework. Specifically the
+Godot version. If you see a web based version, that is the old one. Look through the initial
+plan and what I was trying to do, then expand on everything and upgrade every aspect of the
+game and try achieve what I was requesting initially, rather than just modifying things that
+are having issues with the game currently."
+
+The instruction worth keeping is the last clause. **He is asking for the original intent to be
+met, not for the current defect list to be worked.** The defect list is what the last three
+sessions did - crash, steering, blocks, pour, music - and each of those was a reaction to a
+build he had just played. This is the opposite direction: go back to what he asked for on
+2026-09-07 ("an upgraded version with similar art style and better graphics", "better than the
+one she remembers") and close the distance to THAT.
+
+So the unit of work is the gap between the game and the intent, which lives in `REFERENCE.md`
+under "Still open" and in `POLISH.md`, not in the last bug report.
