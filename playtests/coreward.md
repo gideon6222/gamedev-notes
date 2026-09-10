@@ -364,3 +364,18 @@ was a sign error that had been shipping for weeks and that nobody had put into w
 
 **Read the mechanism half of a report as seriously as the symptom half.** Twice now he has
 supplied the cause and I have treated it as a description of the symptom.
+
+## 2026-09-10 - round four approved at the gate
+
+Shown the three measured faults (everything at stake is the ship, the first sale buys four
+upgrades, planet 0's core at 110 m has never been reached in five sessions) and the eleven
+milestones that answer them.
+
+"That all sounds great, lets go for it from start to finish if possible."
+
+No edits to the plan, and no answer to either of the two questions offered - whether the Claim
+should follow him across the Drift rather than being per world, and whether compressing the
+thresholds was worth it. Both were offered as the reversible calls most worth his input and
+both were left to the plan, which is the same pattern as every previous gate: he approves the
+shape and expects the shape to be built. "From start to finish" is the operative half - he is
+asking for the whole eleven, not the first phase.
