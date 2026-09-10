@@ -2023,6 +2023,57 @@ whether a valuable strike still lands heavy, whether the flight still reads as f
 **Ship, then check.** Push to `main`, say it is pushed, and let him test on the phone. Do not gate
 on a preview or poll the live site.
 
+## Build the meta-game and you will find out what the economy actually does
+
+A runner's economy can be wrong for a long time without looking wrong, because nothing in a
+single run compares two numbers that ought to agree. Adding a shop is the first thing that
+does: a price sits next to an income, and a price list that is trivially affordable is a
+question mark over the income rather than over the prices.
+
+Two bugs and one structural fault came out of asking "is this ladder priced sensibly", none of
+which any test or screenshot had noticed:
+
+**The bank was being counted as run earnings and paid back into itself.** The end-of-run
+appraisal added the player's cash, and the player's cash had been seeded from the save. So a
+run was appraised as (what you earned + what you already had), and that total was banked. A
+balance of 5,000 became 141,699 in three runs of the same level.
+
+**The obvious assertion cannot catch that, and it is worth understanding why.** "The bank went
+up by the amount the reward screen said" is TRUE with the bug present, because both sides
+inflate together: the screen says R + bank and the bank rises by R + bank. Any test written
+from inside one run agrees with itself. The only shape that separates them is **playing the
+same level twice with different starting conditions and demanding the same answer** - an
+invariance test rather than a value test. Reach for one whenever a quantity might be
+contaminated by state it should not see.
+
+**And the value curve was hyperinflationary.** A run was worth 1.55x more per level - eighty
+times over ten levels - so no fixed price list could mean anything. Even after repricing, the
+whole ladder was bought out by level nine. The fix was upstream, in the curve, not in the
+prices.
+
+### Measure a progression by PLAYING it, not by dividing
+
+The first version of the ladder table divided each price by the mean run value over the first
+six levels and reported that the last shop took 75 runs. That number is meaningless: income
+scales with the level, so a player who has reached the seventh rung earns many times the mean
+of the first six. **Dividing a late price by early income measures a player who never got
+better.**
+
+Simulate the actual loop instead - play, bank, buy what is affordable, next level - and report
+the level at which each thing is reached. That is the number the player experiences, and it is
+the only one worth tuning against.
+
+### Keep the money in the units of the game you are copying
+
+Ours paid about 18,000 for a run where the reference paid about 540 - thirty-four times out.
+That sounds cosmetic and is not. The only two prices ever observed in the reference were
+$1,000 and $4,000, and against an 18,000 run those are not prices at all: the single most
+useful piece of external calibration available was unusable until the units matched. It also
+meant a money pill reading "148K" where the reference reads "540".
+
+One constant, applied at one point, so everything downstream moves together and every number
+stays comparable to the footage.
+
 ## A rewrite is the right call when a game keeps inheriting a shape it never wanted
 
 Candle Gift ran to seven versions on the web stack and kept feeling wrong in ways that were
