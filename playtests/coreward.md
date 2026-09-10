@@ -379,3 +379,45 @@ thresholds was worth it. Both were offered as the reversible calls most worth hi
 both were left to the plan, which is the same pattern as every previous gate: he approves the
 shape and expects the shape to be built. "From start to finish" is the operative half - he is
 asking for the whole eleven, not the first phase.
+
+## 2026-09-10 - after round four, on the look of everything
+
+Eleven asks in one message, and as usual every one of them names a structure rather than a
+degree.
+
+"it is difficult to tell what they buildings are for. I like the idea but need some indication
+about what they do. can you overhaul the shop, research what makes a shop sceen like that feel
+interactive and real. make it feel more like a space station with different colors textures and
+lights. reorganize the shop so they are layed out more intuitively. change the ship and part
+models to look more realistic. make it so each upgraded part changes the look as its upgraded.
+uses pre-made assets like models and textures for the different ship parts. update the look and
+feel of the dirt and rock. I want it to feel much more realistic. fully overhaul the look and
+feel of them as well as the planet specific things like plants and frost. you have access tk
+way more resources now so I want you to take full advantage of them. also, the ship flies
+backwards in the into scene, can you make it fly with the drill facing forward, the direction
+it is flying. can you make the cut from the ship flying to the planet, to it landing more
+seamless? I want it to actually show the ship flying onto the planet, then landing where befor
+being available to take control. please expand on all of these requests, research how and what
+other games do well, use assets everywhere possible, then implement the ideas. I want it to
+look like a brand new and polished game"
+
+Three things worth keeping about how this arrived.
+
+**"I like the idea but need some indication about what they do" is the whole Claim critique in
+one line.** The mechanic landed - he read three buildings on the surface as a thing worth
+having - and the READOUT did not. M2 put the entire state of that system into a lean, a settle
+and one lamp, on the argument that a HUD is a claim about what the player should think about.
+That argument was right about where the information belongs and wrong about how much of it can
+be carried by shape alone. A building that is bent tells you something is wrong; it does not
+tell you the refinery is what pays you.
+
+**"the ship flies backwards in the intro" is the second time this exact bug has been reported
+in this game.** Round three fixed nose-first flight for the crossing and the landing.
+Whatever the intro's showcase scene does, it was not covered by that fix, and nobody looked at
+the intro afterwards - a fix verified in one scene and shipped as if it were general.
+
+**"you have access to way more resources now so I want you to take full advantage of them."**
+He is right that the asset side has been the weak half of every round: the answer to "use
+pre-made assets" has been a reasoned no more often than a yes, and the last round's honest
+blocker was that the fetch works and the image conversion does not. That is a toolchain
+failure being reported to him as a design decision, which it is not.
