@@ -42,6 +42,27 @@ $Utf8 = New-Object System.Text.UTF8Encoding($false)
 function Write-Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 function Fail($msg) { Write-Host "!! $msg" -ForegroundColor Red; exit 1 }
 
+# A tool winget installed is invisible to a shell that started before the install, because a
+# process reads the user PATH once at startup and a Claude session's shell can be hours older.
+# Re-read the user PATH from the registry and prepend anything this process is missing, so gh,
+# adb and ffmpeg resolve without anyone reinstalling anything.
+$userPath = [Environment]::GetEnvironmentVariable('PATH', 'User')
+if ($userPath) {
+  $have = $env:PATH -split ';'
+  $missing = @($userPath -split ';' | Where-Object { $_ -and $have -notcontains $_ })
+  if ($missing.Count) { $env:PATH = ($missing -join ';') + ';' + $env:PATH }
+}
+
+# Native commands write progress, warnings and expected failures to stderr, and
+# $ErrorActionPreference = 'Stop' turns any of that into a terminating NativeCommandError
+# BEFORE the exit-code check below it ever runs. Every native call whose failure is expected
+# goes through this, so the exit code stays the only thing that decides.
+function Native([scriptblock]$Block) {
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try { & $Block } finally { $ErrorActionPreference = $prev }
+}
+
 function Replace-InFile([string] $Path, [hashtable] $Map) {
   $text = [System.IO.File]::ReadAllText($Path)
   $orig = $text
@@ -64,8 +85,8 @@ function Get-Godot {
 
 if (Test-Path $Dest) { Fail "$Dest already exists. Pick another slug or remove it." }
 if (-not $NoRepo) {
-  if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { Fail "gh is not installed. Run setup\install.ps1, then gh auth login." }
-  gh auth status 2>$null | Out-Null
+  if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { Fail "gh not found on PATH even after re-reading the user PATH from the registry. Install it with: winget install GitHub.cli" }
+  Native { gh auth status 2>&1 | Out-Null }
   if ($LASTEXITCODE -ne 0) { Fail "gh is not signed in. Run: gh auth login" }
 }
 
@@ -163,7 +184,7 @@ const RELEASES := [
   if (-not $NoRepo) {
     Write-Step "Creating github.com/$Owner/$Slug"
     $vis = if ($Private) { '--private' } else { '--public' }
-    gh repo view "$Owner/$Slug" 2>$null | Out-Null
+    Native { gh repo view "$Owner/$Slug" 2>&1 | Out-Null }
     if ($LASTEXITCODE -eq 0) {
       Write-Host "   repo exists, adding remote"
       git remote add origin "https://github.com/$Owner/$Slug.git"
@@ -254,7 +275,7 @@ if (-not $NoRepo) {
   $vis = if ($Private) { '--private' } else { '--public' }
   gh repo create "$Owner/$Slug" $vis --source . --remote origin --push --description "$Name, a phone game on GitHub Pages"
   if ($LASTEXITCODE -ne 0) { Pop-Location; Fail "gh repo create failed" }
-  gh api -X POST "repos/$Owner/$Slug/pages" -f build_type=workflow 2>$null
+  Native { gh api -X POST "repos/$Owner/$Slug/pages" -f build_type=workflow 2>&1 | Out-Null }
   if ($LASTEXITCODE -ne 0) { gh api -X PUT "repos/$Owner/$Slug/pages" -f build_type=workflow }
   gh api "repos/$Owner/$Slug/pages" --jq '.build_type + " " + .html_url'
 }
