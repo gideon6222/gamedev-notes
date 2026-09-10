@@ -298,7 +298,10 @@ def search_kenney(a):
         page = 1
         while page <= 6:
             html = http(f"{cat_url}?page={page}").decode("utf-8", "replace")
-            slugs = re.findall(r'href="https://kenney\.nl/assets/([a-z0-9-]+)"', html)
+            # Either quote: Kenney's listing pages emit href='...' and the double-quoted
+            # form matched 6 links on category:3D against 55 single-quoted ones, so this
+            # searched about a tenth of the library and reported the rest as absent.
+            slugs = re.findall(r'''href=["']https://kenney\.nl/assets/([a-z0-9-]+)["']''', html)
             slugs = [s for s in dict.fromkeys(slugs) if not s.startswith("category")]
             if not slugs:
                 break
