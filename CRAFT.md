@@ -2256,3 +2256,113 @@ The common shape: **a construct that cannot fail is not safe, it is untested.** 
 `|| fallback`, and clamps all quietly convert "wrong" into "plausible".
 
 ---
+
+## Godot imports textures with mipmaps OFF, and it is the biggest look bug on the list
+
+Stillwater, v0.5.1. Gideon, twice, in different words: *"the graphics still dont look very
+polished like a professional game"*, and *"make sure there are no place holder objects or
+textures"*. Sessions went into models, materials, props and post-processing. The actual cause
+was one line in every `.import` file:
+
+```
+mipmaps/generate=false
+```
+
+That is Godot's default for a 2D/3D texture import. Every ambientCG and Poly Haven map in the
+game arrived with it. On this game — and on any game whose surfaces are planks, rails, a lake
+and reeds seen almost edge on, with the grain tiling seven to twenty times across each one —
+sampling a full-resolution texture into a pixel that covers hundreds of texels produces a dither
+of black-and-tan speckle over the whole scene. **It does not scale away**: shot at 1.43× the
+resolution it was identical, which is what proved it was shading and not the screenshot.
+
+Three settings, all cheap, in the order they matter:
+
+1. **`mipmaps/generate=true` on every imported texture.** Costs a third again on texture bytes
+   (Stillwater's APK went 32.4 → 35.6 MB for the lot) and buys the single biggest visual change
+   in the project's history.
+2. **`textures/default_filters/anisotropic_filtering_level=3` in `project.godot`, and
+   `TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC` on the materials that tile.** Mipmaps alone
+   trade the speckle for a blur along the grain, because a grazing pixel's footprint is a long
+   thin smear and a square mip sample cannot represent it. Anisotropic keeps both. The project
+   setting does nothing on its own — `StandardMaterial3D` defaults to the non-anisotropic filter
+   and the material's own setting wins.
+3. **`anti_aliasing/quality/msaa_3d=1` (2x).** Everything in a game like this is a long thin
+   edge: a gunwale, a reed, a rod, a plank. On a tile-based mobile GPU MSAA resolves inside tile
+   memory, and the phone here measures 5 ms a frame at the 50th, 90th **and** 95th percentile.
+
+**Assert it, do not just fix it.** `.import` files are regenerated whenever the source changes,
+and the next texture anybody adds arrives with the same default. Stillwater has
+`test/test_assets.gd`, a pure test that walks `res://assets`, reads every `.import`, and fails on
+`mipmaps/generate=false` or a `compress/mode` that is not VRAM. Two tests, sixty lines, no GPU.
+
+## A hairline of sky along a seam is a hole in the model, not a shader
+
+Same session, and it cost more than the mipmaps did. A dashed white line ran the length of the
+port gunwale in every screenshot ever taken of the boat. It was chased as specular aliasing, as
+a sharpening filter, as a rim-light term, and as a bad roughness map. The pixels settled it in
+one line of Python: the bright ones were `(232,234,235)` — neutral, exactly the sky — while every
+lit surface nearby was warm. **Sky-coloured pixels in the middle of a model are a hole.**
+
+The hole: a hull skin swept to end exactly at the sheer, and a gunwale bar swept along exactly
+the same line. Two polylines approximating the same curve, sampled at different counts (15 points
+vs 22 stations) over slightly different ranges, cross each other between samples, and where the
+skin steps outboard of the bar there is a slit a fraction of a pixel wide. Widening the bar did
+not close it. What closed it was **overshooting the arc**: run the planking a little way *past*
+the rim, so it stands up inside the rail the way real planking does.
+
+There is a ceiling on that trick. Overshoot too far — 0.24 rad rather than 0.16 — and the lip
+pokes out through the top of the rail, and its sunlit edge is the same white hairline again, only
+brighter. The lip's upstand and the rail's depth are one number in two places; say so in a comment
+where both are set.
+
+Two process notes worth as much as the fix:
+
+- **Sample the pixels before theorising about the shader.** Three passes of hypotheses cost more
+  than `Image.load()` and a print loop, which named the culprit immediately.
+- **A hide-one-node diagnostic needs unique names.** Both rails were called `Gunwale`; Godot
+  renamed the second on `add_child`, so `SHOT_HIDE=Gunwale` silently hid one rail, reported
+  success, and sent a whole pass looking at the wrong side of the boat. Stillwater's screenshot
+  script now takes a `SHOT_HIDE` env var, and its rails are `GunwalePort` and `GunwaleStarboard`.
+
+## "It is in the scene and the test passes" is not "the player can see it"
+
+Gideon: *"I dont see the log book in the game, just a log book button."* The logbook existed, in
+the boat, above the floorboards, with a working page, a camera move, page turns, and a passing
+smoke test that asserted every one of those things. It was two metres ahead of and 1.13 m below a
+camera that sits 1.35 m up — twenty-seven degrees down in a frame that reaches twenty-nine. It
+was in shot the way a coin under the sofa is in the room.
+
+Every assertion about the object was about the object. None was about the **picture**. The check
+that was missing is four lines and works for anything the player is meant to notice:
+
+```gdscript
+var local := cam.affine_inverse() * world_point
+assert(-local.z > 0.05)                                  # in front
+var half_v := tan(deg_to_rad(cam.fov) * 0.5)
+assert(abs(local.y / -local.z) / half_v < 0.88)          # and not at the edge
+assert(abs(local.x / -local.z) / (half_v * aspect) < 0.88)
+```
+
+Use the **phone's** aspect, not the project's — a 1080x1920 frame and a 1080x2340 one disagree
+about exactly the bottom third, which is where things fall off. And reset the look direction
+first: an earlier check in the same run had left the view turned with the stick, and "is it in
+shot" asked of a player looking over their shoulder is not a question with an answer.
+
+## A gauge that is 1.8% of the screen tall is a gauge nobody drew
+
+The tension gauge was 42 px on a 2274 px screen. It had been given a brass bezel, engraved ticks,
+a breathing safe band, a strain wedge and a needle with a glow — and it photographed as a green
+block in a dark rectangle, because every one of those details landed under a pixel. Redrawing it
+at 96 px, with every dimension derived from the height rather than hand-placed, made the same code
+read as an instrument.
+
+Two things generalise:
+
+- **Size the element before detailing it.** Detail below about 3% of screen height is detail
+  spent on nothing. The instrument the player reads continuously, during the only part of the
+  game with a fail state, can afford to be the second largest thing on screen.
+- **A needle with weight in it is the cheapest "responsive" there is.** Chase the true value with
+  a spring (`v += (want - x) * k * dt; v *= exp(-d * dt); x += v * dt`) instead of assigning it,
+  so a tap kicks the needle and it settles. The rules never see the smoothed value; it is
+  presentation only, and it is the difference between a readout that reports a number and an
+  instrument that answers a thumb.
