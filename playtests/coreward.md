@@ -492,3 +492,37 @@ and store. They are aisle signs now.
 Both faults he reported in the same message - the card over the cases and the
 ship in front of the shelf - were one cause: the room was framed for the whole
 canvas while 40% of it was covered by the tray.
+
+## 2026-09-10 — on v0.29.0, the three mechanics changes
+
+> "I think this looks excellent. I want to make some large overall mechanics
+> changes. I dont want towing to be a thing. if you run out of gas, you should
+> game over. I want digging to cost a much larger amount of fuel than just
+> flying, so that when you get close to running out of fuel, you have a better
+> chance of getting back safely. when you get close to running out, make it
+> obvious that you are in danger and make the fuel flash red. I want there to be
+> way less special resources to show up so it actually feels like a prize when
+> you get one. you only start seeing new resources when you get really deep and
+> even then they are rare."
+
+Answered in v0.30.0. Three things worth keeping:
+
+**He diagnosed a real fault from feel alone.** "Digging should cost a much
+larger amount of fuel than just flying" — measured, per cell it already cost six
+times a metre of flight. What it did not do was STAY expensive: a tank bought 14
+cells of hard rock at leg 0 and 760 at leg 11. He could feel that fuel had
+stopped mattering and reached for the nearest lever. The fault was real and one
+level underneath where he pointed.
+
+**"A better chance of getting back safely" was already true and never shown.**
+The climb home is 11-17% of a tank at every stage of the game. The design
+writing on the Point of No Return is explicit that it is only tension if the
+player can compute it, so the fix was a visible reserve on the dial rather than
+a bigger number.
+
+**Where "game over" stops.** He said game over and meant it. The research is
+unanimous that no comparable game destroys its meta-progression on one failed
+run, so it takes the hold, the run and the ship and nothing else. Worth watching
+whether that reads as harsh enough to him — it is already harsher than
+SteamWorld Dig or Deep Rock, and it is the one call in this round I made for him
+rather than from his words.
