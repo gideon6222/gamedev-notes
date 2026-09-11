@@ -61,3 +61,14 @@ power at 87% and no lamp pool at all. He is describing three separate faults at 
 three are in the first forty metres, which is the only stretch he has ever played: a flat
 3.10 m/s with no variation, `dig_load` reading 0.00 so every effect channel was silent, and
 the spill unable to light a lamp buried in the rock it was cutting.
+
+## 2026-09-11 — on 0.10.1
+
+"it looks like it am still breaking through too quickly. im not sure if the ticks need to be
+smaller or of you can make the rock break into smaller chunks. can you do some research and see
+what the best option is to achieve this effect, even if we need to do it a different way?"
+
+Five screenshots, one at 88 m with the lamp on LANCE and the power at 9%, so he is getting much
+further in and the lighting fix has held. **He named two candidate mechanisms and asked which is
+right** rather than restating the feel, which is the first time he has done that: he is pointing
+at the granularity of the destruction, not only at the speed.
