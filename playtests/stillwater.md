@@ -336,3 +336,39 @@ actually puts the geometry.
   with two filled - and he reads it as "there are versions here to swap between", which is
   what a row of dots beside a pair of arrows means. The progression belongs in the shed, not
   under an object you cannot change.
+
+## 2026-09-11 - the fight: distance is progress, the ROD is the tension
+
+> "something with the fishing mini game still feels off. I think we are not showing a
+> different between reeling speed and tension on the line. instead of having bar at the top
+> that increases when you hold the button, can you have have a distance meter at the top,
+> showing how far the fish is from the boat. when you hold your finger on the reel button, I
+> want to see an actual reeling animation on the fishing pole. if the fish starts fighting, the
+> pole should get more bent, start shaking, the line turns red, then eventually snaps, if you
+> dont stop reeling. there should be a give and take, where you can keep reeling but risk
+> losing the fish, but if you get in a good rythem and wear the fish out, you can reel while
+> the fish is calm and stop when it starts pulling too hard. when the fish pulls, you should
+> feel a small vibration, and when the pole is getting too bent, you should get a good amount
+> of vibration to match. look into other games with similar mechanics to try to get a good
+> balance and feel to thks mechanic."
+
+**This is the fifth fight, and it is the first one where he has named the fault in the MODEL
+rather than in the presentation.** "We are not showing a difference between reeling speed and
+tension on the line" is exactly right: the needle is both. Holding the button raises it,
+progress is made while it is inside a band, and the fish pulling raises it too - so one
+number is the throttle, the score and the danger at once, and none of the three can be read.
+
+His split is the fix and it is cleaner than what is there:
+
+- **Distance is the progress**, on a meter at the top, and it is the thing the fight is
+  actually about - a fish twelve metres out coming to eight is a story a bar of tension is not.
+- **Tension is the danger**, and it belongs on the ROD. This game's own notes have said "the
+  rod's bend IS the tension gauge" since the third fight and then drew a needle anyway. Bend,
+  shake, the line reddening, and then it parts.
+- **Wearing the fish out is the give and take.** Reel while it is calm, stop when it pulls. He
+  has described stamina as a thing the player manages rather than a number that ticks down,
+  which is what makes stopping a decision rather than a rule.
+- **Two levels of haptics**, matched to the two states. The first time he has asked for the
+  phone to buzz.
+
+Answered in: PLAN.md 4.3c and phase F.
