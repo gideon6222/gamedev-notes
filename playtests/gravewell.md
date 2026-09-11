@@ -50,3 +50,14 @@ separate hard-edged rays is clearest in the 5 m and 2 m frames. **The rock face 
 explicitly approved: "looks decent". Do not change it.**
 
 First time he has named the DIGGING itself rather than the picture.
+
+## 2026-09-11 — on 0.10.0, the plow
+
+"it looks like that broke something. the ship just drives directly through now without slowing
+down."
+
+Three screenshots at 21 m, 18 m and 11 m. The 18 m one is a ship in total blackness with the
+power at 87% and no lamp pool at all. He is describing three separate faults at once and all
+three are in the first forty metres, which is the only stretch he has ever played: a flat
+3.10 m/s with no variation, `dig_load` reading 0.00 so every effect channel was silent, and
+the spill unable to light a lamp buried in the rock it was cutting.
