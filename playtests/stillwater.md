@@ -299,3 +299,40 @@ actually puts the geometry.
 - **"See the fish when we catch it and put it in the live well"** - the livewell is a weight
   cap with a bucket next to it. He wants the catch to be visible and accumulating, which is
   G1 and G2 on the plan arriving early because he can see the hole.
+
+## 2026-09-11 - the rod should follow the cursor, and Cast is the only button
+
+> "I am still getting the cast button while looking in the boat sometimes. I only want that to
+> pop up when the cursor is above the edge of the boat. I also want the fishing rod to pull up
+> in view like you are holding it follows the cursor so you can tell that where you look is
+> where you are preparing to cast.
+>
+> I dont want the use button anymore because the cast button should turn into the interact
+> button, so there should be no use for it.
+>
+> for the tacklebox, that is much better but I want the items in it to be shrunk down and
+> placed more in a grid so they down overlap. and I want to have up down and left right control
+> buttons while looking at menus like it. up down selects the different equipment and left
+> right changes the version of equipment if we have it, like swapping fishing poles. if we dont
+> have additional options yet, dont show the dots implying that there are additional equipment.
+> only show those if you have different versions to swap between."
+
+- **The Cast button over the bucket is a geometry bug I can see in his frame.** The test
+  intersects the look ray with the waterline and asks whether it lands inside the hull's
+  footprint. Looking DOWN at something on the port side, the ray carries on past the hull's
+  side and crosses the waterline outside the boat - so a bucket you are staring straight into
+  reports "water". The ray was right and the question was wrong: what matters is whether the
+  ray meets the BOAT first, not where it eventually reaches the lake.
+- **"I dont want the use button anymore"** is him finishing the idea I only half took. I made
+  the primary button say Select and left Use sitting beside it doing the same job. Two
+  buttons for one verb, which is the fault the whole context-button change was meant to
+  remove.
+- **"The fishing rod to pull up in view like you are holding it follows the cursor"** is the
+  same instinct as every good note he has given: the fiction and the mechanic should be one
+  object. The cast already goes where you look; nothing on screen says so until it is in the
+  air. The rod pointing where the cast will go IS the aiming reticle, and it costs no HUD.
+- **"Dont show the dots implying that there are additional equipment"** overrules the
+  research, and he is right for this game. I added the pip row to show the LADDER - six rungs
+  with two filled - and he reads it as "there are versions here to swap between", which is
+  what a row of dots beside a pair of arrows means. The progression belongs in the shed, not
+  under an object you cannot change.
