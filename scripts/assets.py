@@ -351,7 +351,9 @@ def get_kenney(a):
 # ── KayKit ───────────────────────────────────────────────────────────────────
 
 def search_kaykit(a):
-    repos = get_json("https://api.github.com/orgs/KayKit-Game-Assets/repos?per_page=100")
+    # KayKit-Game-Assets is a GitHub USER, not an org: /orgs/ 404s for every query, which
+    # prints an error and zero rows, and zero rows is what gets written down as "no such asset".
+    repos = get_json("https://api.github.com/users/KayKit-Game-Assets/repos?per_page=100")
     rows = [[r["name"], (r.get("description") or "")[:70], r["html_url"]] for r in repos]
     table(rows, ["repo", "description", "url"])
     print("Packs not on GitHub (Platformer, Forest Nature, Character Animations...) are free on kaylousberg.itch.io: use `get itch kaylousberg/<slug>`.")
