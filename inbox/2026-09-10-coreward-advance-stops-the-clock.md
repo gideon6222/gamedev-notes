@@ -28,10 +28,13 @@ physics or input bug and it is neither.
 - Better: **do not advance at all when you do not need time to pass.** Mine did
   not - the selection was being set directly rather than raycast, so the
   animation never had to finish. The `advance` was cargo.
-- If a harness stops the clock, **`advance` should restart it**, or the stop
-  should be an explicit separate call. A function whose failure mode is "the
-  whole game silently freezes three assertions later" is too sharp to leave
-  pointing at the caller.
+- **Do not "fix" this by making `advance` restart the clock.** That was my first
+  instinct and it is wrong: the stop is deliberate. A test that drives the loop
+  while real frames are also arriving is measuring the two of them interleaved,
+  and how many real frames got in first depends on how fast the machine booted
+  the bundle. Determinism is the whole point of the seam. The codebase already
+  provides the right escape hatch - an explicit `startClock()` - and the caller
+  is the one that knows whether it wants real time back.
 
 The repo had already written this down, beside `startClock`: *"a test helper
 advanced a few seconds and then handed back to a spec that holds a d-pad in real
