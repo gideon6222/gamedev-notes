@@ -31,3 +31,22 @@ Second restatement of the same system. The forward/behind ratio and the corner s
 repeated unchanged, so those were right; what he is naming as new is light present in the
 WHOLE tunnel rather than only near the ship, and a beam that reads as scattering rather than
 as a solid ribbon.
+
+## 2026-09-10 — first phone session on 0.9.2, four screenshots
+
+"there appears to be multiple separate beams when using the light on certain settings rather
+than a glow that extends from the front of the ship. the face of the rock looks decent as far
+as how the soft light shows. the light also appears to get caught on the edges of tunnels that
+I have made because they have random edges that stick out. digging feels very rigid and chunky.
+while I am digging, it takes large chunks out, slows me down, then speeds up. I would rather
+dig at a more consistent speed, and feel like it is consistently digging through dense mud or
+dirt. instead of taking longer to destroy a chunk I would like it to continously plow through
+but get slowed down on denser materials, and the particles or effects will sell that somwthing
+is taking a lot more work, or easy fluffy dirt. can you expand on all of thos, create a plan,
+research, then implement it into your current plan? can you also add a pause button?"
+
+Screenshots at 81 m (lamp at 11% power), 7 m, 2 m and 5 m (flying left). The starburst of
+separate hard-edged rays is clearest in the 5 m and 2 m frames. **The rock face lighting he
+explicitly approved: "looks decent". Do not change it.**
+
+First time he has named the DIGGING itself rather than the picture.
