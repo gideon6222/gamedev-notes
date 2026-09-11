@@ -34,3 +34,34 @@ health bar.
 accumulation; the shoot-to-raise-tier gate he described has no verified precedent. So unlike
 Candle Gift there is nothing to match, and the readability of the damage race is specified
 rather than copied. If it does not read on the phone, that is the place to look first.
+
+## 2026-09-11 - the first build he actually played
+
+> I was able to test the apk. the dinosaurs run backwards and the controls are backwards. it
+> is difficult to understand what is going on but that may be improved when the rest of the
+> plan is implemented.
+
+Three asks, and the first two have **one cause**.
+
+**1 and 2 are the same bug.** The track was drawn along +Z. A Godot camera looking toward +Z
+has its right hand pointing at -X, so world +X appears on the LEFT of the screen: dragging
+right moved the creature left. The same wrong axis meant the models were rotated to face the
+opposite way from the direction of travel, so they ran backwards. This is exactly the fault
+`CRAFT.md` warns about - *"pick the axis convention so no sign flip sits near the input (draw
+the street along -Z so screen right IS world +X)"* - and exactly the one Captain Run shipped
+inverted for its whole life. One flip of the renderer's axis fixes both, and there is now a
+test that drives a real drag through the input handler and asserts which way the creature
+moves ON SCREEN, which is the test that would have caught it.
+
+**Worth recording about the process, not just the bug.** The desk had every tool needed to
+catch this: filmed runs, contact sheets, screenshots of every screen. None of them caught it,
+because I only ever drove the game with scripted policies that call `steer_to()` directly and
+never once through the touch handler. **A policy that sets the value the control would set is
+not a test of the control.** The one thing no bot here does is hold a thumb.
+
+**3 is the one to act on.** "Difficult to understand what is going on" is the report that
+matters, and he has pre-excused it ("may be improved when the rest of the plan is
+implemented") - which is exactly the kind of generosity that gets a legibility problem
+deferred until it is load-bearing. The picture has no words in it: no callout when a gate
+ticks up, no callout when a stage is won or lost, unlabelled bars at the bottom, and gates
+that read as pale slabs. Taking it at face value now.
