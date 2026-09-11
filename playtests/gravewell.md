@@ -19,3 +19,15 @@ start looking thick in the tunnels. there should he a secondary light source tha
 face of the rocks when the ship is near them."
 
 A restatement from scratch, not a tuning note: five separate mechanisms named in one sentence.
+
+## 2026-09-10 — after the first lighting rework (0.9.1)
+
+"Instead of thick air, this looks more similar to a beam coming from the ship. Can you make it
+so that the there is a soft dispersed light throughout the whole tunnel and the beam coming
+from the ship looks like it's headlights cutting through the thick air? In front of the ship
+should be brighter than behind and branching paths should cast shadows as you pass them."
+
+Second restatement of the same system. The forward/behind ratio and the corner shadows he
+repeated unchanged, so those were right; what he is naming as new is light present in the
+WHOLE tunnel rather than only near the ship, and a beam that reads as scattering rather than
+as a solid ribbon.
