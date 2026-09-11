@@ -457,3 +457,38 @@ is a real shop's actual grammar, it separates fifteen upgrades into two natural 
 price rather than by an abstract category, and it gives the fixed portrait camera exactly the
 layered composition it wants: counter in the foreground, clerk's wall behind, ship parked
 outside. He designed the room; the job is to build it.
+
+## 2026-09-10 — on v0.27.0, the neon and the categories
+
+> "the neon lights look more like lights now which I like. it looks like the
+> description of the upgrade is cutting into the bottom upgrades in the cases.
+> also the ship is in front of the hull upgrade. For the neon, I was hoping for
+> more of a mix of cyberpunk, matrix, and steam punk. also for the 3 different
+> neon lights at the bottom, this normally signifies different categories of
+> gear. can you expand on my design ideas and feel, research how to give this
+> whole 3d space that feel, and find a way to split the upgrades into
+> categories, that aren't all shown at once. I want most of the upgrades to be
+> hidden for now and unlock later in the game, possibly after unlocking new
+> planets. and introduce some of the other power ups later as you make it
+> further into the first planet. find a way to make new items appearing feel
+> natural and an intuitive way to scroll or swap through upgrades. I also want
+> them to be explained in game. so you only unlock certain upgrades by finding
+> them initially, the game hints at what it does and you now own it, then you
+> can upgrade it at the shop. please explore and plan out all of these ideas and
+> how they will fit into and impact the game. research, then implement them."
+
+Answered in v0.28.0. Two notes worth keeping:
+
+**He named a complete mechanism in the last two sentences** and it turned out to
+already be latent in the data - seven of the fifteen upgrades print "Not
+installed" at level zero, which is the game saying those are devices the ship
+does not have. Those became the found ones and the other eight stayed for sale.
+Standing rule 9 again, and again he was right.
+
+**His read of the three coloured console bars was correct.** Coloured lights in
+a row do mean categories, and the room was spending them on claim strain, depth
+and store. They are aisle signs now.
+
+Both faults he reported in the same message - the card over the cases and the
+ship in front of the shelf - were one cause: the room was framed for the whole
+canvas while 40% of it was covered by the tray.
