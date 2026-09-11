@@ -79,8 +79,19 @@ only when a bullet here is not enough.
   another had two costs and no upside - and the fixes (one field each) were better design than
   what was there and were the test's idea, not the author's. A design test that has never
   failed is either protecting something genuinely stable or is written too loosely to fire.
-- A "hold the needle in the band" fight collapses to one sustained input. Make gaining
-  ground require a rhythm and assert that holding any constant value gains nothing.
+- **Any control that raises a value against a decay has an equilibrium, and you own it
+  whether or not you chose it.** Compute `input_rate / decay_rate` and check where it lands
+  against the band the player is meant to work to hold: inside it, there is a setting that
+  wins and the minigame is decoration (Stillwater's hold button settled at 0.60, mid-band, M).
+  When a control changes, the property to re-derive is the EQUILIBRIUM, not the pace - and a
+  "no setting wins" test must sweep the range, because two extremes is what a fixed input
+  looks like when you already believe the answer.
+- **When a design rule says "X is always accompanied by Y", one of them must CAUSE the
+  other.** Two independent rolls make the rule hold only when they happen to agree, and the
+  frequency of the exception is a number nobody chose; tuning then moves it between violated
+  and never-satisfied without ever making it true. The diagnostic: "X and Y both happened" is
+  not a rule, "X, therefore Y" is. Decide the one the player cares about first and let it
+  plant the other. Test what is on the ground, not what the hash says.
 - Give the player a risk dial they hold themselves. The greedy option is genuinely better
   and genuinely near the edge. The claim to test is "the reckless option never actually
   works", not "the safe option scores higher".
@@ -90,12 +101,11 @@ only when a bullet here is not enough.
 - A tell longer than human reaction time (~0.3 s, L) makes a mechanic free.
 - Never let a hazard take the run. Bound the worst case (re-run the pathfinder after a
   collapse, revert if home is unreachable) and test the bound.
-- A moving obstacle needs a provably reachable gap. Write amplitude plus half-width plus
-  tolerance against the steerable width before tuning frequency (Candle Gift's sweeper
-  covered 61% of the lane at every moment, M).
-- A hazard outside the steerable band is not a hazard. Route all placement through one lane
-  helper and test its range. Check the hitbox against the band by measuring loss while
-  dodging against standing still. (unplayed)
+- Everything dangerous lives inside the steerable band or it is not dangerous. Route all
+  placement through one lane helper and test its range, and write amplitude plus half-width
+  plus tolerance against the steerable width before tuning a moving obstacle's frequency
+  (Candle Gift's sweeper covered 61% of the lane at every moment, M). Check a hitbox by
+  measuring loss while dodging against standing still.
 - A budget (swings, fuel) is derived from the content, never set as a rate over it, and
   asserted sufficient at every level.
 - Any game with a wind-up, reload or lag must assert window > lag at the *top* of its speed
@@ -303,7 +313,27 @@ only when a bullet here is not enough.
   through open cells (flood fill), with falloff in the shader and the field uploaded as a
   small texture. `techniques/coreward-propagated-lighting.md`.
 - Surface light and air light are two lights. A corner shadow belongs only to the air
-  term. Combine beam and bounce with `max()`, never by multiplying two floors.
+  term. Combine beam and bounce with `max()`, never by multiplying two floors - except in
+  the AIR, where fog scatters the ambient and the beam at the same point and you see the
+  SUM; `max()` there leaves a seam along the cone's edge where one term overtakes the other.
+- **A lamp-centred radius always reads as light belonging to the player.** Any term whose
+  falloff is measured from the light source is a disc, and a disc follows you however gently
+  it falls. For "the whole tunnel is lit", use the propagated flood RAW with no distance term
+  of its own: it is 1 down an open passage however long, and falls only where the route
+  bends, so a side branch is dim because it bends away rather than because it is far off.
+- **A beam in a corridor narrower than its cone has no shape.** An angular test is constant
+  across a one-cell shaft, so it renders as a flat slab with a razor edge at each wall. Give
+  it a profile ACROSS itself - a Gaussian on perpendicular distance from the axis, widening
+  with distance travelled - scale it by the air density, and CUBE the distance falloff rather
+  than squaring it, or the beam has an end and an end makes it an object (squared, it was
+  still 148 of 255 where it left the frame, M). `techniques/gravewell-tunnel-light-and-beam.md`.
+- **A lighting complaint is about a RATIO, so measure two places.** Sample the screenshot at
+  fixed points ahead and behind rather than judging by eye. 100 ahead / 25 behind / 50 in the
+  shaft reads as directional while leaving the way home visible; 6:1 blacks out the route out
+  and 1.65:1 has no direction at all (M).
+- **Any change that lifts the black floor also publishes every defect the darkness was
+  covering.** Budget a pass for it. Lighting Gravewell's whole tunnel exposed a normal map
+  that had streaked every wall for nine versions.
 - A lighting multiplier is linear and then sRGB-encoded, so its dark end lifts. Square it.
   Dim emissive things on a gentler curve than surfaces, or discovery mechanics switch off in
   the dark.

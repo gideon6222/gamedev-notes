@@ -58,6 +58,11 @@ the ones already on his phone. Edited only by `/digest`.
       confirmation before erasing progress. Maaack's Menus Template or the game's own shell
       built to the same standard.
 - [ ] Version number, build stamp and patch notes reachable from the pause screen.
+- [ ] A hand-rolled crash reporter prints the **stack**, not just the message. A message names
+      what broke; a stack names what called it, and he has no console on the phone. Three hours
+      went into placing a message that one frame would have named. On a phone it must also
+      offer a way to clear the save, since a save that crashes the boot is otherwise
+      unrecoverable without going into system settings.
 - [ ] Progress saved to `user://` on every meaningful change and on
       `NOTIFICATION_APPLICATION_PAUSED`. Settings in a separate `ConfigFile`. Erase progress
       sets a one-way latch so the unload save cannot write it back.

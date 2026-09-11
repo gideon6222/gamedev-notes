@@ -173,6 +173,14 @@ How each source is reached, for when the script needs fixing:
   file references them. Name suffixes work headless: `-col`, `-convcol`, `-noimp`, `-loop`.
 - `godot --headless --path . --import` after adding files, and check the log for `ERROR`.
   Commit the `.import` files; `.godot/` is ignored.
+- **Verify every conversion in the script that does it. An exit code proves nothing.**
+  `sharp-cli` turned a 342 KB JPEG into a valid 342-byte solid-colour WebP and returned 0; use
+  Python Pillow, which is already on this machine, and assert on the artefact:
+  `ImageStat.Stat(Image.open(dst).convert('L')).stddev[0] > 3` rejects a flat fill. Baseline to
+  compare against: **~38 KB for a 384 px normal map** (M). The check earned itself on its first
+  run against ambientCG `Metal038`, which converted to 462 bytes at stddev 0.4 - not a broken
+  conversion but a source with almost no relief, which is the wrong PICK and would otherwise
+  have shipped as an invisible improvement.
 - Write the `.import` before the first import for anything large:
   PBR albedo `compress/mode=2`, `compress/high_quality=true` (ASTC on the Mobile renderer),
   `mipmaps/generate=true`, `process/size_limit=1024`; normal maps `compress/normal_map=1`;

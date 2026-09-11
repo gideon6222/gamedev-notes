@@ -91,8 +91,26 @@ scripts\device.ps1 install|launch|log|shot|record|perf                 # the pho
 scripts\check.ps1                                                       # everything above that can run on the desk, in the order that fails fastest
 ```
 
-Redirect long runs to a file with `*>` and read the FILE. A PowerShell pipeline that assigns
-to a variable buffers the whole run, so a hung command shows nothing at all.
+Redirect long runs to a file and read the FILE. A PowerShell pipeline that assigns to a
+variable buffers the whole run, so a hung command shows nothing at all.
+
+**But `*> $log` does not write what the program printed.** It sends a native command's stderr
+through PowerShell's error channel, so every line arrives as an `ErrorRecord` rendered
+`Godot...exe : SCRIPT ERROR: ...` plus a `+ CategoryInfo` block, in UTF-16. `check.ps1`
+counted `'^(SCRIPT )?ERROR'` over that file and so reported **`errors 0` for every Godot error
+in every step, in every game built from the template**. It surfaced only because a throw
+inside a smoke check skipped every assertion after it while the gate printed `smoke ok`.
+Unwrap the records and write UTF-8:
+
+```powershell
+& $godot @a 2>&1 |
+  ForEach-Object { if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.ToString() } else { $_ } } |
+  Out-File -FilePath $log -Encoding utf8
+```
+
+Same family as the `$ErrorActionPreference = 'Stop'` trap below: PowerShell treats native
+stderr as an object rather than as text. **A log written by a shell is not the program's
+output until you have decoded the bytes and looked at one known-bad line.**
 
 ## Invariants every game keeps
 
@@ -277,9 +295,24 @@ player's report was "the buttons are about half an inch too high".
   merely took ninety seconds instead of twelve. Two fixes, because they fail differently:
   `exclude_filter="build/*, *.log, *.apk, *.aab, *.idsig"` in **every** preset keeps it out of
   the package, and a `build/.gdignore` keeps it out of the import cache. The marker has to
-  survive `.gitignore`, so that needs `build/` then `!build/` then `!build/.gdignore`.
+  survive `.gitignore`, so that needs **`build/*`** then `!build/.gdignore`: `build/` ignores
+  the DIRECTORY, git then refuses to descend into it, and the negation under it can never
+  match - which is why it first got written as `!build/`, re-including every output file, so
+  one `git add -A` staged 3,905 of them.
   **This is the case for a size guard from the first commit**: nothing else in the gate had an
   opinion, and the game inside the 1.42 GB APK worked perfectly.
+- **`.gdignore` is the load-bearing half of that pair, not `exclude_filter`.** The filter
+  protects the package, which is hit on an export; the marker protects the importer, which is
+  hit on every run of the gate. Stillwater deletes its frames after each contact sheet, so it
+  was fully immune to the first and fully exposed to the second: `.godot/imported/` held
+  **1.7 GB** across 2,646 entries and the gate's import step had drifted 5.8 s -> 80 s (M).
+  Godot imports a frame the moment it appears and keeps the copy forever; deleting the source
+  reclaims nothing. **A gate step that gets slower over a session is a symptom, not a slow
+  machine** - `check.ps1` prints each step's duration, which is the only reason it was
+  recoverable. Tidying an existing repo needs `build/**/*.import` and the matching
+  `.godot/imported/` entries deleted by hand once. And when two fixes address one fault,
+  removing one and measuring proves nothing: the first "before" measurement here came out
+  identical because the other fix was still in place.
 - **AAB export is only valid with `gradle_build/use_gradle_build = true`**, and Gradle is
   the only way to set `target_sdk` (Play requires 36 and it rises every year).
 - **`--install-android-build-template` only works alongside an export command.** Alone it

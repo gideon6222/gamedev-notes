@@ -104,6 +104,44 @@ reach.** Three HUD faults shipped behind one good-looking picture.
   runs through the headless seam (`freeze()` then `advance(seconds)`), where sixty game
   seconds is sixty game seconds on every machine. Hold a real control only in the tests whose
   subject IS the wiring.
+- **When a test must wait for a state, wait on THAT state and not a proxy for it.** A depth
+  is a proxy for having drilled; the fuel gauge moving IS having drilled. A proxy has two
+  failure modes the real thing does not: the relation can be retuned out from under the test,
+  and it is reached at a different rate on a slower machine. Coreward's "until 10 m" passed
+  on the desk and failed on a GPU-less CI runner that got seven metres in the same window.
+- **A tool that drives the real code is a fuzzer whether or not you meant it to be.** When a
+  probe or harness throws, the first question is "can the game reach this state", never "how
+  do I get my tool past it". The tell is that the fix in the tool was a GUARD rather than a
+  correction: a guard says "this input is possible and I am handling it", which is a statement
+  about the code under test. Coreward guarded a probe against an unsellable hold item and the
+  same crash arrived hours later from his phone, on a black screen, every frame.
+- **A milestone that puts a screen in front of the game blinds every harness written before
+  it.** The title returns before the game ticks, on purpose, so `freeze()` + `advance()`
+  advanced nothing and captured the menu - exit 0, no error, a photograph of the title filed
+  as evidence about tunnel lighting. Fix every entry point in the same commit, and make the
+  one way in a METHOD the real button also calls, or half the scripts reach into a private and
+  half forget.
+- **Read the assertion COUNT, not just "all passing".** A throw inside a check aborts that
+  check and the harness keeps going; Gravewell's went 140 to 142 once the throw was gone, and
+  the two that had never run were regression tests written minutes earlier. In GDScript,
+  `int(null)` throws, and an unset shader uniform reads back as null: set every uniform a test
+  reads explicitly, even where the shader's default is already right.
+- **Verify the artefact, not the exit code of the tool that made it.** `sharp-cli` turned a
+  342 KB JPEG into a valid 342-byte solid-colour WebP and exited 0. Check dimensions, size
+  against a known-good baseline, and a variance measure that tells an image from a fill
+  (`ImageStat.Stat(im.convert('L')).stddev[0] > 3`), in the same script that does the
+  conversion so it cannot be skipped. It earned itself on its first run by rejecting a texture
+  with almost no relief - a real file, and the wrong pick.
+- **Anything that measures layout runs after the element is visible.** A `display:none`
+  subtree measures zero on every axis, so a "nothing is laid out yet" fallback fires on every
+  call and quietly becomes the implementation. Coreward's camera-framing fix shipped, looked
+  right, and had never once run. A guard that fires every time is not a guard.
+- **Suspect any fix you cannot make fail.** If deleting it changes nothing observable, either
+  the test is wrong or the fix is - and a test written AFTER a hand-tuned fix can be measuring
+  the tuning rather than the fix.
+- **Isolate a shader term by REPLACING it, not by reading it.** A shader has no print, so the
+  screen is its only readout. Keep a `debug_term` uniform with one branch per term
+  permanently: two frames answered in one pass what reading the code had not, twice.
 - **A poll timeout must be shorter than the test timeout**, or the failure reads "timeout"
   instead of naming the value.
 - **Assert on the reading the player sees, not on how the view draws it.** A restyle broke
@@ -115,6 +153,13 @@ reach.** Three HUD faults shipped behind one good-looking picture.
 - **Assert saturation, not a hand-derived ceiling**, for physical stability.
 
 ## Pixels versus the model
+
+**Measure BOUNDS, not origins, and demand a margin rather than a boundary.** A harness that
+projected object CENTRES against a 24-pixel margin passed a layout with two of five 136-pixel
+name plates hanging half off the screen, and a terminal a third of which was off the left
+edge. Project all eight corners of the bounding box and take the screen-space rect; anything
+carrying text needs it, because a label's origin is nowhere near its edges. And `x > 0` passes
+for a plate flush with the edge, which reads as unfinished.
 
 Test the *picture* with pixels and the *placement* with the model. Two geometry bugs (a pool
 rendering striped, a sign hung at eye height) burned three discarded frame metrics before

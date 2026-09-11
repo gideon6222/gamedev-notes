@@ -33,8 +33,13 @@ same six faults recur across different games and every one of them is listed bel
    "very bouncy when you change direction or stop." "the driving controls almost feel
    backward." "flies out too much but also feels like it doesnt have enough momentum." "The
    button icons don't line up with where you need to press ... about .5 inches too high."
-   Velocity and collision, exponential smoothing, controls anchored to the real viewport, and
-   an NDC test for handedness.
+   "digging feels very rigid and chunky ... it takes large chunks out, slows me down, then
+   speeds up. I would rather dig at a more consistent speed ... instead of taking longer to
+   destroy a chunk I would like it to continously plow through but get slowed down on denser
+   materials." Velocity and collision, exponential smoothing, controls anchored to the real
+   viewport, and an NDC test for handedness. **Anything that gates the player's motion on
+   finishing a discrete unit of work reads as chunky**, however smooth each unit is: he feels
+   the cadence, not the interpolation.
 4. **He cannot see the thing that matters.** "difficult to judge the price of the different
    blocks." "it doesnt seem very obvious that there is a distinct line." "my thumb will be
    blocking the gauge I am looking at." "i dont see any gauges and after it says tap in the
