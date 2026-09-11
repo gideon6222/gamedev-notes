@@ -247,3 +247,55 @@ Three screenshots, taken on the phone, and the first playtest of the rooms.
   permission to replace the presentation of the run, not the idea of it.
 
 Answered in: PLAN.md phase R (the rooms' three debts) and a rebuilt phase F for the fight.
+
+## 2026-09-10 - the tackle box should have things in it, and the book should be a book
+
+> "when I look at the book I cant click it but I can click it if I look forward on the boat.
+> can you move the book to an easier to see like more to the right of the boat and make it
+> clickable? when you open the tacklebox it clips into the boat. It also just has a menu in
+> it. instead can you make 3d objects for each option and make it look like they are
+> physically in the box. For the rod, just show a mini version of the rod. for the line, show
+> a small spool of line. make it so clicking the up or down arrow changes what is selected,
+> highlights it, and provides a description. show yellow arrows to the left and right of the
+> object if there are other versions I can select. if I dont have other versions yet, make the
+> arrows grey, so it is obvious that this is my only option currently. do this for all of the
+> items in the tackle box. I also want the cast button to only pop up when the cursor is above
+> the boat. if you are looking in the boat, change it to a select button. make the select
+> button grey unless there is something clickable, then change it to a yellow or other color
+> that fits the theme. go through all of my ideas, expand on them, use them to look into other
+> ideas or similar issues, so we can catch multiple issues at once. research how to do all of
+> this and how to apply it to other elements of the game like the shop and book. the book also
+> doesn't control quite right. the pages dont flip, they just change instantly, and you put it
+> down instantly after running out of pages. I want it to be full of pages that I can flip
+> through even if theh are blank and when you run iut of pages keep the book out. only exit
+> when I hit the X button. can you make it so we see the fish when we catch it and put it in
+> the live well, so that we can see every fish we catch? make sure premade assets are used for
+> everything possible. make a full detailed plan so you know exactly how to make all thos
+> possible and fit it into the rest of the game"
+
+Two screenshots carry a bug I could not have found from the desk, and the pair is the
+evidence: in one the crosshair sits on BARE FLOORBOARDS and the prompt reads "The keeper's
+logbook - 2 of 5 hands" with a Use button; in the next the book is plainly visible under the
+crosshair and there is no prompt at all. **The interaction point and the mesh are in
+different places.** Same fault as the tackle box in the hull side, one level down: I placed
+the anchor from the Room3D's position without checking where the imported model's origin
+actually puts the geometry.
+
+- **"It also just has a menu in it"** is the sharpest line. He asked for the equipment menu to
+  be a tackle box, I built a tackle box with a menu printed inside it, and he is right that
+  this misses the point by one step. A panel laid on a 3D surface is still a panel. The rule
+  in PLAN 9.4 said "an object IS what it contains" and the implementation did not honour it.
+- **The left/right arrows, grey when there is nothing else** is a mechanism he has invented
+  and it is better than what is there: it says "you own one rod" without a sentence, and it
+  makes the empty slots in the ladder visible, which is the thing the shed's list cannot do.
+- **"The cast button should only pop up when the cursor is above the boat"** - one button that
+  changes with where you are looking, greyed when there is nothing under the crosshair. That
+  is the caption-derived-from-state rule extended to the button's whole identity, and it
+  answers a fault nobody had reported: Cast is offered while looking at the floor.
+- **"The pages dont flip, they just change instantly, and you put it down instantly after
+  running out of pages"** - 11.9d, still owed, plus a real bug: running out of pages closing
+  the book is the same accidental-exit family as tapping outside, which he has now asked to
+  stop twice.
+- **"See the fish when we catch it and put it in the live well"** - the livewell is a weight
+  cap with a bucket next to it. He wants the catch to be visible and accumulating, which is
+  G1 and G2 on the plan arriving early because he can see the hole.
