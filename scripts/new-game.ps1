@@ -76,6 +76,22 @@ function Write-Text([string] $Path, [string] $Content) {
   [System.IO.File]::WriteAllText($Path, ($Content -replace "`r`n", "`n"), $Utf8)
 }
 
+# Base64 for a CI secret: pure ASCII, one line, and NO trailing newline. A CR anywhere in the
+# value makes `base64 -d` on the runner fail with "invalid input", which reads like a missing
+# or corrupt keystore rather than like a line ending.
+function Write-B64([string] $BinPath, [string] $OutPath) {
+  if (-not (Test-Path $BinPath)) { Fail "no keystore at $BinPath" }
+  $bytes = [System.IO.File]::ReadAllBytes($BinPath)
+  [System.IO.File]::WriteAllBytes($OutPath, [System.Text.Encoding]::ASCII.GetBytes([Convert]::ToBase64String($bytes)))
+}
+
+# `Get-Content -Raw | gh secret set` re-encodes through the console encoding and carries any
+# line ending with it. cmd's stdin redirect hands gh the file's bytes unchanged.
+function Set-SecretFromFile([string] $Name, [string] $Path, [string] $Repo) {
+  Native { cmd /c "gh secret set $Name -R $Repo < `"$Path`"" }
+  if ($LASTEXITCODE -ne 0) { Fail "gh secret set $Name failed" }
+}
+
 function Get-Godot {
   if ($env:GODOT -and (Test-Path $env:GODOT)) { return $env:GODOT }
   $c = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_*\Godot_v4.7.2-stable_win64_console.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -99,6 +115,19 @@ if ($Stack -eq 'godot') {
   Write-Step "Copying template to $Dest"
   robocopy $Template $Dest /E /XD .git .godot android build /XF *.apk *.aab *.idsig /NFL /NDL /NJH /NJS | Out-Null
   if ($LASTEXITCODE -ge 8) { Fail "robocopy failed ($LASTEXITCODE)" }
+
+  # build/ is excluded above because it holds the last export and thousands of
+  # filmed frames - but its .gdignore marker is NOT optional, and excluding the
+  # directory took it with it. Without the marker Godot imports and then EXPORTS
+  # whatever films leave in there: that is the bug that packed 3,720 PNGs into
+  # an APK and produced 1.42 GB against a 28 MB budget. Recreate it here, and
+  # verify it below, rather than trusting a directory exclusion to have an
+  # exception.
+  New-Item -ItemType Directory -Force -Path (Join-Path $Dest 'build') | Out-Null
+  Set-Content -Path (Join-Path $Dest 'build/.gdignore') -Value '' -NoNewline
+  if (-not (Test-Path (Join-Path $Dest 'build/.gdignore'))) {
+    Fail "build/.gdignore was not created - films and exports would be packed into the APK"
+  }
 
   Write-Step "Renaming placeholders"
   $map = @{
@@ -196,18 +225,21 @@ const RELEASES := [
     }
 
     Write-Step "Setting signing secrets"
+    # GNU base64 in CI rejects a carriage return, so a base64 file written with CRLF, or piped
+    # through PowerShell, produces a secret that decodes to "base64: invalid input" and fails
+    # the very first CI run of a new repo. Write pure ASCII with no newline at all, and hand
+    # the file to gh through a cmd redirect rather than a PowerShell pipe, which re-encodes.
     $debugB64 = Join-Path $Root 'keys\debug.keystore.base64.txt'
-    if (-not (Test-Path $debugB64)) {
-      $bytes = [System.IO.File]::ReadAllBytes((Join-Path $Root 'toolchain\debug.keystore'))
-      [System.IO.File]::WriteAllText($debugB64, [Convert]::ToBase64String($bytes))
-    }
-    Get-Content $debugB64 -Raw | gh secret set ANDROID_DEBUG_KEYSTORE_B64 -R "$Owner/$Slug"
+    Write-B64 (Join-Path $Root 'toolchain\debug.keystore') $debugB64
+    Set-SecretFromFile 'ANDROID_DEBUG_KEYSTORE_B64' $debugB64 "$Owner/$Slug"
     $uploadB64 = Join-Path $Root 'keys\upload.keystore.base64.txt'
     if (Test-Path $uploadB64) {
-      Get-Content $uploadB64 -Raw | gh secret set ANDROID_UPLOAD_KEYSTORE_B64 -R "$Owner/$Slug"
+      Set-SecretFromFile 'ANDROID_UPLOAD_KEYSTORE_B64' $uploadB64 "$Owner/$Slug"
       $readme = Get-Content (Join-Path $Root 'keys\UPLOAD-KEY-README.txt') -Raw
       $m = [regex]::Match($readme, '(?im)^\s*password\s*[:=]\s*(\S+)')
-      if ($m.Success) { $m.Groups[1].Value | gh secret set ANDROID_UPLOAD_KEYSTORE_PASSWORD -R "$Owner/$Slug" }
+      # --body, not a pipe: a PowerShell pipe appends a newline, and a trailing newline in a
+      # keystore password fails the release signing with an unhelpful message.
+      if ($m.Success) { Native { gh secret set ANDROID_UPLOAD_KEYSTORE_PASSWORD -R "$Owner/$Slug" --body $m.Groups[1].Value } }
       else { Write-Host "   could not read the upload password from UPLOAD-KEY-README.txt; set ANDROID_UPLOAD_KEYSTORE_PASSWORD by hand before a v* tag" -ForegroundColor Yellow }
     } else {
       Write-Host "   no upload keystore base64 found; only the debug secret was set" -ForegroundColor Yellow
