@@ -1,7 +1,7 @@
 ---
 name: game-researcher
 description: Researches how a genre, mechanic, reference game or technique works, for a phone game being planned or improved. Returns a concise brief with sources. Use during /game-plan and whenever a build needs to know how other games do something.
-tools: WebSearch, WebFetch, Read, Grep, Glob
+tools: WebSearch, WebFetch, Read, Write, Grep, Glob
 model: sonnet
 ---
 
@@ -25,3 +25,8 @@ Return, in under 700 words:
 
 Never invent a number. If a source disagrees with another, say so. If nothing good exists,
 say that and give the best reasoning you can, marked as reasoning.
+
+When `/game-plan` asks for a reference brief, write the same content to
+`C:\dev\plans\<slug>\REFERENCE.md` with the Write tool as well as returning it. The plan
+step reads that file; a brief that only ever existed in a reply is a brief the scaffold
+cannot pick up.

@@ -141,6 +141,16 @@ def project_root(start: Path | None = None) -> Path:
 
 
 def credit(source: str, asset: str, licence: str, url: str, into: Path):
+    """Append one row to assets/CREDITS.md.
+
+    The licence goes through check_licence() HERE rather than at each call site.
+    ASSETS.md:100 says every `get` "refuses a licence it does not recognise", and that was
+    true of three of the fourteen sources: the guard was opt-in and eleven sources never
+    opted in. A guard that has to be remembered is a guard that is not there. Putting it on
+    the one function every source must call to be credited makes the claim true by
+    construction - nothing can be written into CREDITS.md without having been checked.
+    """
+    licence = check_licence(licence)
     root = project_root(into)
     f = root / "assets" / "CREDITS.md"
     f.parent.mkdir(parents=True, exist_ok=True)
@@ -155,11 +165,27 @@ def credit(source: str, asset: str, licence: str, url: str, into: Path):
     print(f"   credited in {f.relative_to(root)}")
 
 
+# "Mixed-see-URL" is deliberately NOT in here. It was a way of writing "nobody checked" into
+# the credits column and having it read like a licence, and it is what get_itch and get_addon
+# used to fall back to. A source whose licence cannot be identified has to say so and stop.
 KNOWN_LICENCES = {"CC0", "CC0-1.0", "CC-BY-4.0", "CC-BY-3.0", "OFL", "MIT", "ISC", "Apache-2.0",
-                  "Sonniss-royalty-free", "QAL-1.0", "Pixabay", "Mixed-see-URL"}
+                  "Sonniss-royalty-free", "QAL-1.0", "Pixabay"}
+
+# Copyleft that ASSETS.md:227 says is never shipped. Checked before the permissive names,
+# because "GNU LESSER GENERAL PUBLIC LICENSE" contains neither MIT nor Apache but a naive
+# substring search over a long licence text can still surprise you.
+COPYLEFT_MARKERS = ("GNU GENERAL PUBLIC LICENSE", "GNU LESSER GENERAL PUBLIC LICENSE",
+                    "GNU AFFERO", "GPL-2.0", "GPL-3.0", "LGPL", "AGPL")
 
 
 def check_licence(lic: str, allow_by: bool = True):
+    lic = (lic or "").strip()
+    if not lic:
+        sys.exit("Refusing an asset with no licence. Read the source page and pass --license.")
+    upper = lic.upper()
+    if any(m in upper for m in COPYLEFT_MARKERS) or upper in {"GPL", "LGPL", "AGPL"}:
+        sys.exit(f"Refusing licence '{lic}'. GPL/LGPL/AGPL is copyleft and ASSETS.md:227 says it is "
+                 f"never shipped in a game: linking it would put the whole game under the same terms.")
     norm = lic.replace(" ", "-")
     if norm in KNOWN_LICENCES:
         return norm
@@ -168,7 +194,8 @@ def check_licence(lic: str, allow_by: bool = True):
     if "Attribution" in lic and "NonCommercial" not in lic and "ShareAlike" not in lic and allow_by:
         return "CC-BY-4.0"
     sys.exit(f"Refusing licence '{lic}'. Only CC0, CC-BY, OFL, MIT, ISC, Apache and Sonniss are accepted. "
-             f"NonCommercial and ShareAlike are never shipped.")
+             f"NonCommercial and ShareAlike are never shipped. If the source page says something this "
+             f"does not recognise, read it and pass --license with the SPDX name.")
 
 
 def table(rows: list[list[str]], head: list[str]):
@@ -381,24 +408,92 @@ def search_fonts(a):
     table(rows[: a.limit], ["id", "family", "category", "weights", "licence"])
 
 
+# Google Fonts names a static file by its CSS weight's style name, not by its number.
+WEIGHT_NAMES = {100: "Thin", 200: "ExtraLight", 300: "Light", 400: "Regular", 500: "Medium",
+                600: "SemiBold", 700: "Bold", 800: "ExtraBold", 900: "Black"}
+NAME_TO_WEIGHT = {v.lower(): k for k, v in WEIGHT_NAMES.items()}
+NAME_TO_WEIGHT.update({"normal": 400, "book": 400, "regular": 400, "italic": 400,
+                       "ultralight": 200, "demibold": 600, "heavy": 900, "ultrabold": 800})
+
+
+def parse_weights(spec: str) -> set[int]:
+    want = set()
+    for tok in (t.strip() for t in spec.split(",")):
+        if not tok:
+            continue
+        if tok.isdigit():
+            want.add(int(tok))
+        elif tok.lower() in NAME_TO_WEIGHT:
+            want.add(NAME_TO_WEIGHT[tok.lower()])
+        else:
+            sys.exit(f"--weights: '{tok}' is not a weight. Use numbers (100..900) or names "
+                     f"({', '.join(WEIGHT_NAMES[k] for k in sorted(WEIGHT_NAMES))}).")
+    if not want:
+        sys.exit("--weights was empty; drop it for the default 400,700.")
+    return want
+
+
+def weight_of_file(name: str):
+    """The CSS weight a static Google Fonts filename stands for, or None if unreadable.
+
+    Matched on the style TOKEN, never as a substring: 'Bold' is inside 'SemiBold' and
+    'ExtraBold', so a substring test pulls three weights in when one was asked for.
+    """
+    stem = Path(name).stem
+    tok = re.split(r"[-_\s.]+", stem)[-1] if stem else ""
+    low = tok.lower()
+    if low.endswith("italic") and len(low) > len("italic"):
+        low = low[: -len("italic")]
+    return NAME_TO_WEIGHT.get(low)
+
+
 def get_font(a):
     family = a.id
-    weights = [w.strip() for w in (a.weights or "400,700").split(",")]
+    spec = a.weights or "400,700"
+    want = parse_weights(spec)
     data = get_json("https://fonts.google.com/download/list?family=" + urllib.parse.quote(family))
     refs = data.get("manifest", {}).get("fileRefs", [])
     into = Path(a.into) / family.replace(" ", "")
-    got = []
+    got, variable, offered = [], [], {}
     for ref in refs:
         name = ref["filename"]
+        base = Path(name).name
         if name.lower().endswith((".ttf", ".otf")):
-            if "[wght]" in name or any(w in name for w in ("Regular", "Bold", "Medium", "SemiBold", "Light", "Black")) or True:
-                download(ref["url"], into / Path(name).name)
-                got.append(Path(name).name)
-        elif name.upper().startswith("OFL") or name.upper().startswith("LICENSE"):
-            download(ref["url"], into / Path(name).name)
+            # A variable font is every weight in one file, so it is always kept whatever
+            # --weights says; asking for 500 and being handed the [wght] file IS the 500.
+            if "[wght]" in base:
+                download(ref["url"], into / base)
+                got.append(base)
+                variable.append(base)
+                continue
+            w = weight_of_file(base)
+            offered.setdefault(w, []).append(base)
+            if w in want:
+                download(ref["url"], into / base)
+                got.append(base)
+        elif base.upper().startswith("OFL") or base.upper().startswith("LICENSE"):
+            download(ref["url"], into / base)
+    if not refs:
+        sys.exit("no files in the manifest; check the family name at fonts.google.com")
     if not got:
-        sys.exit("no font files in the manifest; check the family name at fonts.google.com")
-    print("   variable fonts ([wght]) cover every weight through a FontVariation resource; weights requested: " + ", ".join(weights))
+        # The studio's "a check that passes because nothing happened" fault, in its other
+        # form: a fetch that succeeds having fetched nothing. --weights used to end in
+        # `or True`, so it downloaded the whole family and this could never be noticed.
+        have = ", ".join(
+            f"{WEIGHT_NAMES.get(w, '?')}({w})" if w else "unrecognised"
+            for w in sorted(offered, key=lambda x: (x is None, x))
+        ) or "none"
+        sys.exit(f"--weights {spec} matched no file in the {family} manifest, and nothing was "
+                 f"downloaded. That family offers: {have}. Ask for one of those, or drop "
+                 f"--weights for the default 400,700.")
+    if variable:
+        print("   variable font ([wght]) covers every weight through a FontVariation resource")
+    else:
+        missing = sorted(w for w in want if w not in offered)
+        if missing:
+            print("   NOT in this family, and NOT downloaded: " +
+                  ", ".join(f"{WEIGHT_NAMES.get(w, w)}({w})" for w in missing))
+    print(f"   weights requested: {spec}; files kept: {', '.join(got)}")
     credit("Google Fonts", family, "OFL", "https://fonts.google.com/specimen/" + urllib.parse.quote(family), into)
 
 
@@ -565,8 +660,11 @@ def get_itch(a):
         if dest.suffix.lower() == ".zip" and not a.keep_zip:
             unzip(dest, into, strip_top=True)
             dest.unlink()
-    print("   licence is per pack: read the pack page and set --license, or the credit says Mixed")
-    credit("itch.io", f"{user}/{slug}", a.license or "Mixed-see-URL", f"https://{user}.itch.io/{slug}", into)
+    if not a.license:
+        sys.exit(f"itch.io licences are per pack and this one was not given. Read "
+                 f"https://{user}.itch.io/{slug} and re-run with --license <name> (e.g. --license CC0). "
+                 f"The files are downloaded into {into}; nothing was credited.")
+    credit("itch.io", f"{user}/{slug}", a.license, f"https://{user}.itch.io/{slug}", into)
 
 
 # ── OpenGameArt ──────────────────────────────────────────────────────────────
@@ -639,7 +737,21 @@ def get_addon(a):
             lic_text = zf.read(n).decode("utf-8", "replace")[:400]
     if count == 0:
         sys.exit("no addons/ folder in that release; check the repo layout")
-    lic = "MIT" if "MIT" in lic_text else ("Apache-2.0" if "Apache" in lic_text else "Mixed-see-URL")
+    # An addon is CODE that ships inside the game, so its licence is the one that matters
+    # most of any source here, and it used to be the one guessed hardest: anything that was
+    # not obviously MIT or Apache was credited "Mixed-see-URL" and shipped, GPL included.
+    if a.license:
+        lic = check_licence(a.license)
+    elif lic_text:
+        upper = lic_text.upper()
+        if any(m in upper for m in COPYLEFT_MARKERS):
+            sys.exit(f"Refusing {repo} {tag}: its LICENSE file is GPL/LGPL/AGPL. ASSETS.md:227 - a "
+                     f"copyleft addon or shader is never shipped, because it takes the game with it. "
+                     f"Nothing was credited; delete {into} if the files were already written.")
+        lic = check_licence("MIT" if "MIT" in lic_text else ("Apache-2.0" if "Apache" in lic_text else lic_text.strip().splitlines()[0]))
+    else:
+        sys.exit(f"{repo} {tag} has no LICENSE file in the release, so its licence is unknown. "
+                 f"Read the repo and re-run with --license <name>. Nothing was credited.")
     print(f"   {count} files into {into}. Enable the plugin in project.godot [editor_plugins] and re-import.")
     credit("GitHub addon", f"{repo} {tag}", lic, f"https://github.com/{repo}/releases/tag/{tag}", into)
 

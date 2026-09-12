@@ -55,11 +55,18 @@
       "Bash(git push -f *)",
       "Bash(rm -rf /*)",
       "Read(//c/dev/keys/**)",
-      "Read(//c/dev/.env)"
+      "Read(//c/dev/.env)",
+      "Bash(*/c/dev/keys/*)",
+      "Bash(*C:/dev/keys/*)",
+      "Bash(*C:\\dev\\keys\\*)",
+      "Bash(*/c/dev/.env*)",
+      "Bash(*C:/dev/.env*)",
+      "Bash(*C:\\dev\\.env*)"
     ],
     "additionalDirectories": [
       "C:/dev/gamedev-notes",
-      "C:/dev/godot-template"
+      "C:/dev/godot-template",
+      "C:/dev/plans"
     ]
   },
   "hooks": {
@@ -69,9 +76,8 @@
         "hooks": [
           {
             "type": "command",
-            "shell": "bash",
             "timeout": 60,
-            "command": "GAMEDEV_HOOK=1; n=/c/dev/gamedev-notes; if [ -d \"$n/.git\" ]; then git -C \"$n\" pull --ff-only -q 2>/dev/null || echo 'gamedev-notes: pull failed (offline or diverged); run scripts/kb.ps1 pull'; c=$(ls \"$n\"/inbox/*.md 2>/dev/null | grep -vc README.md); echo \"gamedev-notes: up to date ($(git -C \"$n\" log -1 --format=%h' '%s | cut -c1-70)); $c lesson(s) waiting in inbox\"; if [ \"$c\" -gt 10 ]; then echo 'More than ten lessons are waiting: run /digest before starting a new game.'; fi; fi"
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"{{NOTES}}\\setup\\session-start.ps1\""
           }
         ]
       }
