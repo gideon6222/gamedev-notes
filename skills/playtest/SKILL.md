@@ -12,14 +12,23 @@ six questions. The tools live in the game repo's `scripts/`.
 
 ## Desk (every visual milestone)
 
-1. Make sure `scripts\check.ps1` is green first. A filmed run of a broken build tells you
-   nothing.
-2. Pick or write the scenarios. `test/replays/*.json` are recorded touch sequences. Every
-   game keeps at least: `idle` (no input, the attract state), `first-minute` (a player's
-   first sixty seconds including the first menu open), `boundary` (finish a level and start
-   the next), `fail` (run out and retry), `shop` (open, scroll to the bottom, buy, leave).
-   Record one with `godot --path . --resolution 460x996 -- record=test/replays/<name>.json touch`
-   and play it yourself with the mouse, or write the JSON by hand from Control rects.
+1. Make sure the gate is green first: `scripts\check.ps1` in a Godot repo, `npm run check`
+   in a web one. A filmed run of a broken build tells you nothing.
+2. Pick or write the scenarios. `test/replays/*.json` are recorded touch sequences. Run
+   `ls test\replays` before you plan the shoot. Most repos carry only `idle.json`, and every
+   `idle.json` in the studio is the 3-byte stub `[]`; the only recorded replays that exist
+   are gravewell's `first-minute` and stillwater's `first-cast` and `logbook`.
+   The set a game is working toward, one recorded at a time as the milestones need them:
+   `idle` (no input, the attract state), `first-minute` (a player's first sixty seconds
+   including the first menu open), `boundary` (finish a level and start the next), `fail`
+   (run out and retry), `shop` (open, scroll to the bottom, buy, leave). Do not assume a
+   name on that list is on disk.
+   The scenario this milestone needs and the repo does not have gets recorded first, before
+   any filming:
+   `godot --path . --resolution 460x996 -- record=test/replays/<name>.json touch`, played
+   through with the mouse, or written by hand from Control rects. Commit it with the
+   milestone. A replay file that is `[]` films the idle game and the sheet looks like a
+   pass, which is the failure filming exists to catch.
 3. Film:
    ```powershell
    scripts\movie.ps1 -Replay test\replays\first-minute.json -Seconds 60 -Every 30
@@ -57,6 +66,17 @@ camera cutout or the gesture bar), the back button pauses rather than quits, hom
 resume returns to a paused game with audio ducked, haptics fire, the frame-time
 percentiles and thermal status before and after ten minutes, no `ERROR` in the log, and the
 hit boxes line up with the drawn controls (tap a control's drawn centre and watch the log).
+
+## An independent read (`all`, and before every ship)
+
+Launch the `playtester` subagent in the game repo and wait for it. It runs the gate, films
+every scenario in `test/replays/`, drives the phone if `device.ps1` is there, and returns
+numbered findings against the six questions and his recurring complaints. It fixes nothing
+and it reports every step it could not run.
+
+Read its findings against your own. The ones it found and you did not are the findings worth
+having: you already know what this build was meant to look like, and it does not. Take its
+report as evidence, not as a verdict; the fixes are yours.
 
 ## Report
 

@@ -24,6 +24,8 @@ already answers.
 
 ## 2. Resume an existing game
 
+Run `/framework-check` first, before resuming, and fix what it reports.
+
 Read, in this order, and nothing else until you need it:
 
 1. `CLAUDE.md` in the repo (game-specific invariants and commands)
@@ -52,8 +54,8 @@ For every milestone in `PLAN.md`:
 2. **Assets before polish, not after.** When the milestone introduces a thing the player
    sees at full size, fetch its asset now (`/asset-hunt` for the search, `scripts/assets.py`
    for the fetch) and wire it in, so the picture is judged with the real thing.
-3. **Run `scripts\check.ps1`** before every commit that touches `src/` or `test/`. Read the
-   top of a failing log, not the end.
+3. **Run the gate** before every commit that touches `src/` or `test/`: `scripts\check.ps1`
+   in a Godot repo, `npm run check` in a web one. Read the top of a failing log, not the end.
 4. **Film it** (`/playtest desk`) whenever the milestone changes motion, a screen, or the
    first minute. Write the six-question judgement in `NOTES.md`.
 5. **Commit with a message in the player's terms**, tick the box in `PLAN.md`, and add a

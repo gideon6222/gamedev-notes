@@ -41,7 +41,7 @@ enables GitHub Pages through the API (`build_type=workflow`).
 4. Set the phone-facing preset values the plan calls for in `export_presets.cfg`:
    `version/name`, icons (`launcher_icons/adaptive_*` once the icon exists), and
    `permissions/vibrate=true` if the game uses haptics. Commit.
-5. Install the shell if the plan chose Maaack's template:
+5. Install the shell if the plan chose Maaack's Game Template (`Maaack/Godot-Game-Template`):
    `python C:\dev\gamedev-notes\scripts\assets.py get addon Maaack/Godot-Game-Template --into addons`
    then enable it in `project.godot`. First game using it: verify the harness still boots
    the real scene and `/record-lesson` what integration cost.

@@ -144,7 +144,7 @@ so out loud.
 the first fish was a 92% win and the prize fish was 54%. One mean over a difficulty ladder
 describes none of its rungs.
 
-Measure the spread before setting the thresholds (from `PIPELINE.md`):
+Measure the spread before setting the thresholds (from `archive/PIPELINE-2026-09-09.md`):
 
 - **Measure the spread before setting the thresholds, not after.** Star ratings and grades
   are cut against a par, and the *gaps* between them have to match the real distance between
@@ -232,3 +232,46 @@ sweep and was quietly worse at connecting than the committed policy - so tests m
 "does a column take its hit points to break" were really checking "can this particular sweep
 connect at all". Export the policy's own routine and have the tests drive through it. One
 definition of how the game is played, used by the bots and the tests alike.
+
+---
+
+## Balance evidence moved out of `CRAFT.md` (2026-09-12)
+
+**A cumulative-threshold table is not a probability table.** Eleven Coreward ores, each with a
+`chance`, picked by walking the list deepest-first (`if d >= o.min && r < o.chance`). That is a
+cumulative threshold, so an entry's real share is the GAP to the one above it - except the first
+one tested, which keeps its whole number. Measured at depth: solmarrow (value 132,000)
+`chance` 0.021 for a real **2.10%**; umbrite 0.026 for **0.50%**; coreite 0.030 for **0.40%**.
+The most valuable thing in the game was four times more common than the next one down, and had
+been since the day a third ore was added, because every new deepest entry was written as "a
+smaller number than the one above" and then tested first. Two more consequences nobody noticed:
+total density was CONSTANT at every depth (always the shallowest eligible entry's threshold,
+10%), and adding a deeper entry STOLE from the one above rather than adding density, so the
+table flattened silently as it grew. Store the quantity you mean (0.002 for "0.2% of cells"),
+derive the thresholds at load, and print the derived per-entry rates at three depths in a test.
+The repo's own test had the same bug: it estimated runs-to-find as `chance * 100`.
+
+**A fixture where everybody wins cannot tell you who is better.** Wildform's boss balance test
+picked one seed, gave all four policies a fully bought-out loadout and compared damage. It
+reported all four dealing byte-identical damage to eight decimal places - reader, greedy,
+gatherer, and the dodger that never feeds a gate at all. Nothing was broken: at a bought-out
+ladder every policy kills an 864 HP boss, so every run ends at the boss's health and the fixture
+has no headroom left to measure in. Re-measured at the loadout a player actually arrives at that
+world with - coin ladder wiped by the clear that got them there, gem tree as far as the
+progression probe says - the spread came straight back: reader 254.8, greedy 249.3, gatherer
+214.5, dodger 208.0, meaned over twelve seeds. Three rules: check the losers actually lose;
+give a policy the loadout its player would really have, taken from the progression probe rather
+than from what seems fair (over-equipping flattens the field, under-equipping makes everything
+fail, and both read as "no difference"); and never compare policies on one seed, because one
+seed's gate layout can offer no real choice at all. Assert the ORDER of the whole field, not a
+single gap.
+
+**A probe that plays the META loop finds walls no single run can.** Play a run with the reading
+policy, bank, buy what is affordable, repeat, for eighty runs. Wildform's reported: world 7,
+**thirty-two consecutive runs**, 1,134 damage against 1,574 needed, coin ladder fully bought
+out, every gem ability owned since run 30, **15,730 coins on hand and nothing on any shelf to
+spend them on.** Every individual run was fine and every unit test passed; the game had simply
+stopped having a progression. Hence the permanent rung with no top on it, and the one-line
+structural test on two constants: `BLOODLINE_PRICE_STEP < BOSS_HP_STEP` (1.30 < 1.35). If the
+permanent rung's price rises faster than the difficulty, every world buys fewer ranks than the
+last and the player falls behind forever.

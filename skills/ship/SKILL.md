@@ -13,6 +13,13 @@ Every line is a yes, a no, or "not in this phase" with the phase named in `PLAN.
 is fixed now, not reported. The only lines that may be deferred are under Content and
 Shell items the plan explicitly assigned to a later phase.
 
+One carve-out, worded the same way in `POLISH.md` so the two cannot drift: **the two
+Performance and stability lines that need the device - the `perf` percentiles at the start
+and after ten minutes, and the full launch-to-quit pass on the phone - may be deferred only
+when `adb devices` is empty.** Record them in `NOTES.md` as "not run, no device", name the
+desk evidence that stood in, and run them on the next ship with the phone attached. Nothing
+else under Performance and stability may be deferred.
+
 Write the result in `NOTES.md` under `## Ship <date>`: the lines that were no and what
 fixed them, and the deferred lines with their phase.
 
@@ -50,8 +57,14 @@ Read `C:\dev\gamedev-notes\PLAY.md`. Produce, into `store/`:
 - `icon-512.png` (32-bit PNG with alpha, no rounded corners) and the adaptive icon layers
   in `export_presets.cfg`.
 - `feature-1024x500.png` (no transparency) rendered from the game with the wordmark.
-- At least four phone screenshots at 1080x2340 from `shot.gd` at the states that sell the
-  game (the first minute, the shop, a big moment, the collection).
+- At least four phone screenshots at the states that sell the game (the first minute, the
+  shop, a big moment, the collection). Grab each at the phone's native 1080x2340 from
+  `shot.gd`, then bring it inside Play's limit of no aspect wider than 2:1 before it lands
+  in `store/`. 1080x2340 is 2.167:1 and Play rejects it. Pad to **1170x2340**, which is
+  exactly 2:1 and keeps the whole frame
+  (`ffmpeg -i shot.png -vf pad=1170:2340:45:0:black store/shot-1.png`), or crop to
+  **1080x2160** when the bands top and bottom carry nothing. Check the result with
+  `ffprobe` before writing the listing.
 - `listing.md`: title, 80-character short description, 4000-character full description in
   his voice, content rating answers, the data safety answers (nothing collected), the
   privacy policy text for `PRIVACY.md` hosted on the repo's Pages.

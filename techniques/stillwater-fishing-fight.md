@@ -335,7 +335,7 @@ reed, here).
 
 ## Depth from the heightfield, not from `DEPTH_TEXTURE`
 
-(From `PIPELINE.md`.)
+(From `archive/PIPELINE-2026-09-09.md`.)
 
 Found while designing the water for a fishing game, before writing any of it. **Sampling the
 depth texture on Forward Mobile with MSAA enabled returns corrupted data** — the MSAA resolve
@@ -379,3 +379,50 @@ Four details that matter:
   in the blacks, where it is just noise.
 - **Lift the blacks toward the scene's own colour**, not toward grey. A true black
   on an OLED phone is a hole, and a hole reads as the screen being off.
+
+---
+
+## The rooms: diegetic menus run out of ANGLES before they run out of ideas (2026-09-11)
+
+Four screens became four things you look at in a rowing boat - the logbook, the tackle box, a
+chart, and the oars that row you to the shop. The design was right; the last two were most of the
+work, for a reason that was not obvious until it bit.
+
+**The seat is a fixed point, so every interactable competes for angular space.** This game's rule
+is that no two things may sit within 12 degrees of each other from the seat, or the crosshair
+cannot pick between them. Seven objects in a four-metre boat is already tight, and the eighth
+failed against three different neighbours in a row.
+
+**An object's hit box is its whole silhouette, so LONG things are expensive.** A pair of oars is
+1.34 m. Stowed flat along the port side - where oars actually live - the box spanned half the boat
+and sat six degrees from the livewell. Every position along that side failed the same way, because
+the problem was the length and not the place. Stood on end in the bow the footprint is a hand's
+width and it passed first try.
+
+**Plan the angular budget the way you would plan a screen layout.** Before adding a thing to a
+diegetic menu, ask what it costs in degrees from the one place the player sits, not where it looks
+natural. Short and upright is cheap; long and flat is not.
+
+**When a menu becomes a surface in the world, check its READING DISTANCE with arithmetic.**
+Visible width is about `d * tan(fov/2) * aspect * 2`; on a portrait phone the aspect term is 0.46
+and murders you. A 1.06 m chalkboard needs 2 m of standoff, and at 0.9 m the left half of every
+line was off the screen.
+
+**Normalise object scale by measured bounds, not per-prop guesses.** A shop counter with a
+hand-picked scale per item had a crate three times the reel beside it. One line - scale so the
+largest dimension is N - fixed it for every prop, including ones not added yet.
+
+**An object that opens itself at build time has no one to close it.** A third openable object
+called `open()` in its constructor, because at the time it had no "open" gesture and its surface
+needed to be visible for a screenshot. Nothing ever closed it, so its page - a SubViewport quad,
+deliberately `UNSHADED` so it stays readable at night - sat printed on a thwart, glowing, through
+every hour of the game. It was invisible in review for a structural reason: the call that caused
+it was in a different function from the one that should have undone it. `_open_chart` and
+`_shut_chart` read as a matched pair; the bug is forty lines away in `_build_chart` and looks like
+setup. **State entered in a builder has no natural exit:** the builder sets the CLOSED state and
+the only paths in and out are the pair of functions named for them.
+
+**The instrument that found it prints a COLUMN, not a row.** For every openable thing in the
+scene: its model, its surface, the distance between them, and whether the surface is on. One
+object's state is unremarkable; three side by side makes the odd one out obvious instantly. Worth
+building the moment a second instance of anything exists.

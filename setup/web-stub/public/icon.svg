@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- The placeholder app icon, and it is meant to look like one.
+
+       It is a real icon, not a note saying an icon is needed: the manifest
+       points at it, index.html links it, and the service worker precaches it,
+       so the scaffolded game installs to a home screen on the first push. It
+       is also the first thing to replace once PLAN.md says what the game is -
+       the icon is what the player taps before they have played anything.
+
+       Everything is inside the maskable safe zone: Android crops a maskable
+       icon to whatever shape the launcher uses, and anything outside the
+       centred circle of radius 205 can be cut off. -->
+  <rect width="512" height="512" fill="#05070d"/>
+  <rect x="128" y="128" width="256" height="256" rx="52" fill="none" stroke="#cfe3ff" stroke-width="14" opacity=".85"/>
+  <circle cx="256" cy="256" r="30" fill="#cfe3ff"/>
+</svg>

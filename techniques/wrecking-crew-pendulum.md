@@ -226,7 +226,7 @@ a true assertion.
 
 ## Do not build a gameplay pendulum out of the physics server
 
-(From `PIPELINE.md`.)
+(From `archive/PIPELINE-2026-09-09.md`.)
 
 The obvious way to hang a wrecking ball in Godot is a `RigidBody3D` on a `PinJoint3D`. That
 puts the outcome of every run inside the physics server, at the mercy of its tick rate and
