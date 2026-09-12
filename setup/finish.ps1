@@ -9,22 +9,43 @@
     powershell -ExecutionPolicy Bypass -File C:\dev\gamedev-notes\setup\finish.ps1
 #>
 $ErrorActionPreference = 'Continue'
-$repos = 'gamedev-notes', 'godot-template', 'coreward', 'stillwater', 'wrecking-crew', 'candle-gift'
+
+# Every git repo under C:\dev, discovered rather than listed. The hardcoded list
+# this replaced was written when there were six games and silently skipped
+# gravewell and wildform for two days - a list maintained by hand fails in the
+# safe-looking direction, which is the same rule the test runners follow.
+$root = 'C:\dev'
+$repos = Get-ChildItem $root -Directory |
+  Where-Object { Test-Path (Join-Path $_.FullName '.git') } |
+  Sort-Object Name
 
 Write-Host "==> Pushing main in each repo" -ForegroundColor Cyan
-foreach ($r in $repos) {
-  $p = "C:\dev\$r"
-  if (-not (Test-Path "$p\.git")) { continue }
-  Push-Location $p
+foreach ($d in $repos) {
+  $r = $d.Name
+  Push-Location $d.FullName
+  # FETCH FIRST. `origin/main` is only as current as the last fetch, so counting
+  # without one reports "nothing to push" on a repo that is ahead - which is a
+  # silent no-op dressed as a clean result.
+  git fetch origin main --quiet 2>&1 | Out-Null
+  $behind = git rev-list --count main..origin/main 2>$null
   $ahead = git rev-list --count origin/main..main 2>$null
-  if ($ahead -and [int]$ahead -gt 0) {
-    git push origin main 2>&1 | Select-Object -Last 1 | ForEach-Object { Write-Host "    $r : $_" }
+  if (-not $ahead) { Write-Host "    $r : no main, or no origin - skipped" -ForegroundColor Yellow; Pop-Location; continue }
+  if ($behind -and [int]$behind -gt 0) {
+    Write-Host "    $r : $behind behind origin - pull first, NOT pushed" -ForegroundColor Yellow
+  } elseif ([int]$ahead -gt 0) {
+    $out = git push origin main 2>&1
+    if ($LASTEXITCODE -eq 0) {
+      Write-Host "    $r : pushed $ahead commit(s)" -ForegroundColor Green
+    } else {
+      Write-Host "    $r : PUSH FAILED - $($out | Select-Object -Last 1)" -ForegroundColor Red
+    }
   } else { Write-Host "    $r : nothing to push" }
   Pop-Location
 }
 
 Write-Host "==> Installing tools and wiring ~/.claude" -ForegroundColor Cyan
-& powershell -ExecutionPolicy Bypass -File C:\dev\gamedev-notes\setup\install.ps1
+& powershell -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'install.ps1')
+if ($LASTEXITCODE -ne 0) { Write-Host "    install.ps1 exited $LASTEXITCODE - read its output above before trusting the rest" -ForegroundColor Red }
 
 # gh was just installed in user scope; pick it up without a new terminal.
 $env:Path = [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + [Environment]::GetEnvironmentVariable('Path', 'Machine')
