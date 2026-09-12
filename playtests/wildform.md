@@ -65,3 +65,30 @@ implemented") - which is exactly the kind of generosity that gets a legibility p
 deferred until it is load-bearing. The picture has no words in it: no callout when a gate
 ticks up, no callout when a stage is won or lost, unlabelled bars at the bottom, and gates
 that read as pale slabs. Taking it at face value now.
+
+## 2026-09-12 - the glow, and the phone
+
+The ask that opened the second month:
+
+> for the type, cam you add glowing colors, designs, or effects to them, instead of a flat
+> color. after that automatically continue with the next steps
+
+Done as M19b, and "the next steps" became M20-M24: shinies, fusion, the legendary, the daily
+run, and worlds 5-8 with dual-type bosses. Shipped as v0.8.0.
+
+**Worth recording about the ask itself.** He did not report a bug; he described what he wanted
+the creature to LOOK like. Taking it literally - "glowing colours, designs, or effects" as
+three separate things rather than one - is what produced veins, a rim and a pulse instead of a
+brighter albedo. Three of them, all light, over a body darkened to make room. A single
+"emissive colour" would have satisfied the sentence and not the request.
+
+Later, with the phone plugged in:
+
+> I have plugged in my phone. Are you just pushing the game to my phone for me to test, or
+> will this allow you to test additional things on your end?
+
+**He did not know what adb unlocks, and that is worth knowing.** He had been treating the
+phone as a delivery target rather than an instrument. It is the only way to measure frame time,
+thermal throttling, the real display cutout, logcat on real hardware, and the lifecycle paths -
+and it is the reason M16 exists as its own milestone. Say what the phone is FOR when asking him
+to plug it in, not just that it is needed.
