@@ -338,7 +338,21 @@ function Test-LessonFormat([object[]] $Lessons) {
   $bits = @()
   if ($noBelongs.Count -gt 0) { $bits += "$($noBelongs.Count) without 'Belongs in:' ($(Join-Some $noBelongs 4))" }
   if ($noReplaces.Count -gt 0) { $bits += "$($noReplaces.Count) of $($Lessons.Count) ($pct%) without '## Replaces or contradicts' ($(Join-Some $noReplaces 4))" }
-  Fail $KB 'lesson format' "$($bits -join '; '). Fix: add the fields from the template in skills\record-lesson\SKILL.md. Without 'Replaces or contradicts' a digest folds a correction in BESIDE the rule it corrects and both survive."
+  $detail = "$($bits -join '; '). Fix: add the fields from the template in skills\record-lesson\SKILL.md. Without 'Replaces or contradicts' a digest folds a correction in BESIDE the rule it corrects and both survive."
+  # **A gate must not fail for something the repo being gated cannot fix.**
+  #
+  # `check.ps1` runs this doctor as the last step of every game's gate, with
+  # `-Repo <slug>`. The inbox is shared, so the first time that ran, wildform's
+  # gate went red because a CONCURRENT session on a different game had filed
+  # three lessons in a different header format. Nothing about wildform was
+  # wrong and nothing wildform could do would fix it - and the only ways out of
+  # that are to edit another session's work or to stop running the gate.
+  #
+  # So: still a FAIL for the full framework audit, which is where the knowledge
+  # base is somebody's job. A WARN when one repo is being gated, which reports
+  # it at every commit without holding a sound release hostage to another
+  # game's paperwork.
+  if ($Repo) { Warn $KB 'lesson format' $detail } else { Fail $KB 'lesson format' $detail }
 }
 
 # 4. Every "Belongs in:" names a file that exists, so a digest is never sent at a target that
