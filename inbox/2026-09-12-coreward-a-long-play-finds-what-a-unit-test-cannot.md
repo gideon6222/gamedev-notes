@@ -1,6 +1,8 @@
 # One is not three: a long play finds cascades a unit test cannot
 
-**Game:** Coreward (web, three.js) · **Date:** 2026-09-12 · **Topic:** testing, design
+**Game:** coreward  **Date:** 2026-09-12  **Belongs in:** TESTING.md / Rules for the suites
+
+## What happened
 
 A campaign system where running a meter dry costs you a region of the map. The
 unit test for it was careful and it passed:
@@ -60,3 +62,22 @@ POLICY was not play:
 **A bad player is a useful probe; an incoherent one is noise.** Write the
 policy as the rules the game itself teaches, and drive movement to a
 CONDITION rather than for a duration.
+
+
+## The rule
+A test that steps a system once proves the step, never the sequence. Anything with feedback
+in it - a meter that costs you the means to refill it, an economy priced off its own output -
+needs a probe that runs the loop dozens of times, and the assertion is "does it still have a
+way forward". The cheap version is a unit test that loops the pure system until it stops
+changing and asserts the terminal state is actionable; that runs in a millisecond and asks
+the same question a browser probe took four simulated hours to answer.
+
+And a probe's policy must be the rules the game itself teaches. A bad player is a useful
+probe; an incoherent one is noise. Drive movement to a CONDITION, never for a duration.
+
+## Replaces or contradicts
+Extends this line in TESTING.md / Rules for the suites: "**Golden over a whole run, with
+policies.** `test/policies.gd` is the definition of "playing well" and lives in the repo."
+That says a policy has to exist; it does not say the policy must obey the game's own
+warnings, and a policy that ignores them produces numbers that look exactly like balance
+faults.

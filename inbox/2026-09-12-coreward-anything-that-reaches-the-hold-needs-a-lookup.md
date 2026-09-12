@@ -1,6 +1,8 @@
 # Any id that can reach the inventory must survive the inventory's lookup
 
-**Game:** Coreward (web, three.js) · **Date:** 2026-09-12 · **Topic:** engine traps, testing
+**Game:** coreward  **Date:** 2026-09-12  **Belongs in:** CRAFT.md / UI and HUD
+
+## What happened
 
 A new block type was added - cut stone, the wall of a hand-authored room. It
 was given a token weight and value, the way plain rock has:
@@ -54,3 +56,13 @@ assert.deepEqual([...bad], []);
 
 That one passes for the next block type somebody adds, or fails on it. The
 narrow version would have passed for both.
+
+
+## The rule
+Any id that can reach the inventory must have an entry in the table the inventory looks
+things up in, because the screen crashes rather than degrades. Assert it by sweeping the
+world for everything breakable and checking the lookup exists - not by naming the ids that
+caused it.
+
+## Replaces or contradicts
+nothing

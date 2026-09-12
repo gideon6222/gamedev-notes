@@ -1,6 +1,8 @@
 # When you replace an objective, delete the old one in the same round
 
-**Game:** Coreward (web, three.js) · **Date:** 2026-09-12 · **Topic:** craft, design
+**Game:** coreward  **Date:** 2026-09-12  **Belongs in:** CRAFT.md / The loop and stakes
+
+## What happened
 
 A game about a chain of planets became a game about one planet. The new ending
 - a vault at the centre, behind nine objectives spread across the world - was
@@ -40,7 +42,14 @@ is as legal as one arriving*. Removing the id reads every one of those cells as
 "the world generator changed".
 
 ## The rule
+When a new objective ships, the old one is a stand-in: the round is not done until it is
+deleted. Two objectives in one game is worse than either, because the player collects things
+that no longer do anything and the next session cannot tell which ending is real. Budget it -
+Coreward's was 1,300 lines and ninety call sites - and expect a derived stat to change, a
+file to turn out to be two features under one name, and the frozen golden to need the dead
+ids kept in its allow-list for ever.
 
-**Delete the stand-in in the same commit as the real thing** already covers
-scaffolding. This is the same rule pointed at DESIGN: when a new objective
-lands, the old one is a stand-in, and the round is not done until it is gone.
+## Replaces or contradicts
+Widens INDEX.md standing rule 12: "**Delete the stand-in in the same commit as the real
+thing.**" That reads as being about scaffolding and placeholder art; it applies to DESIGN
+just as hard, and a replaced objective is the most expensive stand-in there is.
