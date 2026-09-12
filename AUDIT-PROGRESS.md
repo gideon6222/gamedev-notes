@@ -1,135 +1,106 @@
-# Audit fixes: what is done, what is left
+# Audit fixes: what is done, what is not
 
-Companion to `AUDIT-2026-09-11.md`. Updated 2026-09-12.
+Companion to `AUDIT-2026-09-11.md`. Paused 2026-09-12 at Gideon's request.
 
 ## Where the work lives
 
 Nothing is pushed and nothing is merged. The two shared repos were NOT branched in
 place, because `C:\dev\gamedev-notes` is one working tree shared by every running
 session and `git checkout -b` there would have yanked them all onto the branch.
-The work is in two git worktrees:
+Instead the work sits in two separate git worktrees:
 
-| worktree | branch | parent |
+| worktree | branch | parent repo |
 |---|---|---|
 | `C:\dev\gamedev-notes-audit` | `framework-audit-fixes` | `C:\dev\gamedev-notes` |
 | `C:\dev\godot-template-audit` | `framework-audit-fixes` | `C:\dev\godot-template` |
 
 `main` in both is untouched. Review with
-`git -C C:\dev\gamedev-notes log main..framework-audit-fixes -p`. Merge, then
-`git worktree remove` each one.
+`git -C C:\dev\gamedev-notes log main..framework-audit-fixes -p`.
+When done, `git worktree remove` each one.
 
-## Merge these two first, in this order
+## Done and committed to the game repos (main, local, unpushed)
 
-1. **`godot-template`** — the new gates, and a fix to the template's own game.
-2. **`gamedev-notes`** — the digest, the settled contradictions, `doctor.ps1`.
-
-Until the template is merged, `doctor.ps1` reports two failures against it. They
-are accurate: the live template has the old hand-written runner and neither new
-gate.
-
-## Verified
-
-`check.ps1` was run in `C:\dev\godot-template-audit` on 2026-09-12 and is
-**green**: 40 tests, 4444 assertions, all passing, plus 19 smoke assertions. The
-glob runner discovered all seven suites including the three new gates, and the
-hand-counted `MIN_ASSERTIONS` floor of 4400 was correct.
-
-`doctor.ps1` has been run end to end against `C:\dev` and reports **66 pass,
-15 warn, 2 fail**, where both failures are the live `godot-template` being behind
-this branch. Every `.ps1` touched parses clean under PowerShell 7.
-
-Still unrun: the per-game suites. After merging, run `scripts\check.ps1` in each
-game repo — the new `test_controls.gd` in gravewell and wrecking-crew has three
-timing-dependent assertions flagged in the report, and the sim-boundary and
-version gates are new everywhere.
-
-## Done
-
-**The learning loop.** All 46 inbox lessons folded or deleted as already covered;
-`inbox/` is empty for the first time since 2026-09-10. Four live contradictions
-settled, eight duplicate groups merged, ten restatements deleted rather than
-added. Six new `techniques/` write-ups, all indexed. Topic files back under 30 KB
-by extraction, not truncation.
-
-**The watchdog.** `scripts/doctor.ps1` and `skills/framework-check` check inbox
-backlog, days since digest, lesson format, broken cross-references, both indexes,
-topic-file size, and per repo: required files, export guards, `.gitignore` form,
-`version/code`, template script drift, test discovery, the gate set, sim-wall
-purity as a text scan with comments and strings stripped, git hygiene and pack
-size, plus web port collisions. Verified by running it: it independently
-reproduced the audit's findings, and a second pass fixed three checks that fired
-on things that were correct.
-
-**The machinery.** `kb.ps1` commits by pathspec and has a 30-minute lease so two
-digests cannot overlap. `new-game.ps1` no longer ships Coreward's game as a new
-web game, picks up the plan on both stacks, and allocates ports by named role.
-`install.ps1` stops deleting a user's own skill and clobbering their `CLAUDE.md`.
-The session hook no longer reports "up to date" after a failed pull. `assets.py`
-honours `--weights` and refuses copyleft.
-
-**The games.** Every repo now passes the export guards, the `.gitignore` form,
-`version/code` and the sim wall. stillwater's gate can see Godot errors (and now
-`USER ERROR`) for the first time since it was scaffolded. `shot.gd` parses its
-arguments in every repo. The stale-APK refusal, the glob runner and
-`test_sim_boundary.gd` are ported everywhere. `rects.gd` in stillwater and
-wildform carried gravewell's control names and could never run; both replaced.
-wrecking-crew has `PRIVACY.md` and an honestly-labelled reconstructed `PLAN.md`.
-
-## Needs your judgement
-
-1. **`INDEX.md` rule 2 now settles the `FileAccess` question**: the wall excludes
-   the renderer, not the disk, so `src/sim` may touch `user://`, but
-   serialisation must be a pure `state -> Dictionary -> state` pair testable
-   without a file. The alternative was stillwater's stricter reading. gravewell
-   and candle-gift are non-compliant with the new rule (no pure pair); stillwater
-   is the exemplar.
-2. **`wrecking-crew`'s `CLAUDE.md` and `NOTES.md` describe a game that no longer
-   exists** — the v0.3.0 above-ground demolition game, not the v0.4.0 basement
-   one that shipped. The new `PLAN.md` records this rather than adopting either.
-   Nothing explains why the genre changed.
-3. **`gravewell/src/sim/save.gd`** has a corrected comment sitting uncommitted,
-   because that file also carries a paused session's in-flight refactor. Commit
-   it when you resume gravewell.
-
-## The steering decision, settled
-
-The template lays its track toward **-Z** behind one constant, `TRACK_Z`, so
-screen right IS world +X and no sign flip sits anywhere near the input. That is
-what `CRAFT.md` already prescribed and it is the version the passing run proves.
-The rejected alternative was negating `dx` in the drag handler: one character,
-but it puts the flip next to the input, and the template has two input paths
-(`drag_by` and `_read_pad`), so the flip would have to be duplicated and a third
-path added later would miss it. That is the exact mechanism behind all six
-inversions.
-
-**Existing games were NOT retrofitted to the convention.** They are correct
-today, each fixed its own way, and rewriting five camera conventions that cannot
-be run from here would risk more than it fixes. What they got instead is the
-gate. Every game now drives a real `InputEventScreenDrag` or `ScreenTouch`
-through its own handler and asserts direction on screen:
-
-| repo | gate | note |
+| repo | commit | what |
 |---|---|---|
-| candle-gift | `run_smoke.gd` | already genuine, unchanged |
-| stillwater | `run_smoke.gd` | was exercising, not asserting; assertion added |
-| wildform | `run_smoke.gd` | was partial; mirrored drag and creature position added |
-| gravewell | `test_controls.gd` | new, none existed |
-| wrecking-crew | `test_controls.gd` | new, none existed |
+| stillwater | `6ab35f3` | `check.ps1` can see Godot errors for the first time since scaffold |
+| stillwater | `cbbd648` | `.gitignore` build negation fixed, 38 loose PNGs now ignored |
+| gravewell | `76310e5` | `shot.gd` seconds/state parse |
+| gravewell | `ad7d2e6` | `device.ps1` Native wrapper, now at parity with the template |
+| gravewell | `34f13d0` | `version/code` asserted, bumped 1 to 17 |
+| wildform | `d7363f8` | `shot.gd` seconds/state parse |
+| wildform | `cc0363a` | `version/code` asserted, bumped 1 to 7 |
+| candle-gift | `e119762` | export guards, `build/.gdignore`, `shot.gd`, live exit code in `check.sh`, version test |
+| wrecking-crew | `6db325d` | export guards, `build/.gdignore`, `shot.gd` |
 
-Nothing is currently inverted, including wrecking-crew, whose handedness was the
-one genuinely open question from his "almost feel backward" report. That comment
-was about the tank-controls build that has since been replaced.
+Nothing touched a file a live session had dirty. Every commit used an explicit
+pathspec so it could not sweep up another session's staged work.
 
-**One latent recurrence risk, reported not fixed:** candle-gift compensates for a
-mirrored camera with a sign at the input (`sim.steer_to(sim.target_x - dx / span
-* ...)`). Its gate catches the problem so it is safe today, but the durable fix
-is a `TRACK_Z`-style constant that turns the camera round and deletes the minus.
+## Done on the branches
 
-## Left
+`godot-template-audit` (`2601deb`): glob test discovery with an empty-glob failure,
+an assertion-count floor in both runners and in the harness, `test_version.gd`,
+`test_sim_boundary.gd` (standing rule 2 as a real gate), `test_controls.gd` (a real
+`InputEventScreenDrag` through the handler), `shot.gd` state argument, `movie.ps1`
+log unwrap, `check_size.gd` stale-APK refusal, `rects.gd` generalised.
 
-- **A save round-trip test in the template.** The template has no save module at
-  all, so the pure-pair half of rule 2 is unenforceable until it gets one.
-- **gravewell's 1.72 GB of dead git objects**, and coreward's `public/` still
-  being inherited wholesale by a new web game.
-- `techniques/three-js-traps.md` (35 KB) and `candle-gift-reference-runner.md`
-  (33 KB) are both over the size limit and want splitting.
+`godot-template-audit` (uncommitted): `src/sim/save.gd` - the save as a pure
+`Sim` <-> `Dictionary` pair, total or false - plus `to_dict`/`apply` on `SimRng` for the
+stream position, and `test/test_save.gd`, which round-trips a played run, proves it then
+ADVANCES identically, and opens no file. That is the half of INDEX.md rule 2 the template
+could not enforce: it had no save module at all, and `Sim.state()` is a lossy HUD snapshot
+with no inverse. NOT RUN - see point 2 below.
+
+`gamedev-notes-audit` (`8dfaa4a`): `kb.ps1` pathspec commit plus a 30-minute lease,
+`new-game.ps1` web stub and named-role ports, `install.ps1` safety fixes,
+`settings.merge.json` hook honesty via `setup/session-start.ps1`, `assets.py`
+weights and licence guard, `agents/` tool and fallback fixes.
+
+`gamedev-notes-audit` (uncommitted): `setup/web-stub/public/` - a manifest named after the
+new game, a placeholder icon, and the `sw-legacy-cleanup.js` that workbox's `importScripts`
+names - and `new-game.ps1` now replaces `public/` from the stub the way it replaces `src/`,
+verifies nothing of the source game's survived there, substitutes the placeholders in it, and
+resets `assets/CREDITS.md`. A new web game no longer ships Coreward's ship models, and no
+longer precaches them.
+
+## Needs Gideon's eyes before merge
+
+1. **The template was steering inverted.** `test_controls.gd` caught it on the first
+   write, which makes the template the sixth instance of the bug that has shipped in
+   five games. The fix is in `src/game/main.gd` behind one constant, `TRACK_Z`. It is
+   a behavioural change to the template, not just a test, so read it.
+2. **Almost nothing has been executed.** `scripts\check.ps1` in
+   `C:\dev\godot-template-audit` has been run once and was green - 40 tests, 4,444
+   assertions, plus 19 smoke assertions - but that was BEFORE `src/sim/save.gd`,
+   `SimRng.to_dict`/`apply` and `test/test_save.gd`. Run it again. Expected after them:
+   **48 tests, 4,578 assertions** (133 new in `test_save.gd`, plus one more from
+   `test_sim_boundary.gd`, which asserts once per file under `src/sim` and now sees five).
+   That is under `MIN_ASSERTIONS + FLOOR_SLACK` (4,800), so the floor stays at 4,400 and the
+   runner will not nag. On the notes branch nothing has been executed at all: no PowerShell
+   has run, so `new-game.ps1` is read, not proven.
+3. ~~A web scaffold still inherits Coreward's `public/`.~~ Fixed on the branch: `public/`
+   is replaced from `setup/web-stub/public/` like `src/`, and the scaffold now fails if any
+   file of the source game's survives there. What a new web game still inherits from the
+   source game is its TOOLING, as designed - including `vite.config.js`'s `globPatterns`
+   (which still lists `glb` and `webp`: harmless once the models are gone, and the safe
+   direction to be wrong in) and its Coreward-shaped comments, and
+   `scripts/check-bundle-size.mjs`'s `DEFAULT_TOLERANCE`, which names `rock-normal.webp`.
+4. ~~`INDEX.md` rule 2 must settle the `FileAccess` question.~~ Settled in rule 2 and now
+   enforced on both sides: `test_sim_boundary.gd` records why `FileAccess` and `DirAccess`
+   are deliberately not gate tokens, and `test_save.gd` is the round-trip test the rule
+   demands. gravewell's and candle-gift's `save.gd` have NOT been read against it - the
+   standard is that `apply` restores every field or returns false, and a lenient one that
+   defaults a missing key passes nothing.
+
+## Not started
+
+- **The digest of the 44-lesson backlog.** This is the largest remaining item and the
+  root cause in the audit. It edits every topic file, so it wants the lease that is
+  now in `kb.ps1`.
+- **The doctor script** (`scripts/doctor.ps1`) and its `/framework-check` skill: the
+  standing watchdog for template drift per repo, inbox backlog, broken references,
+  missing guards and `version/code`. Agreed design, not yet written.
+- **Skill file corrections**: the POLISH phone gate carve-out, `check.ps1` versus
+  `npm run check` for web, the replay-scenario claim no repo satisfies, wiring
+  `agents/playtester.md` into `skills/playtest/SKILL.md`.
+- **Topic-file contradictions** in section 3 of the audit, and the PLAYER.md rewrite.
+- gravewell's 1.72 GB history, and wrecking-crew's missing `PLAN.md`.
