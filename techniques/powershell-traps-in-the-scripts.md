@@ -93,3 +93,27 @@ tools, or `[System.IO.File]::ReadAllText/WriteAllText` with `UTF8Encoding($false
 which rewrites `src/build_stamp.gd` on every build, is the one script that has to get this right.
 `.gitattributes` is `* text=auto eol=lf`; mixed endings inside a file defeat every exact-match
 edit silently.
+
+## A script path containing a space needs `-File`, and the error blames the wrong thing
+
+`powershell C:\dev\Claude outputs\digest-finish.ps1` does not run that script. Without `-File`,
+powershell treats its argument as a **command line**, so it splits on the space and tries to run
+`C:\dev\Claude`, reporting:
+
+```
+C:\dev\Claude : The term 'C:\dev\Claude' is not recognized as the name of a cmdlet, function,
+script file, or operable program.
+```
+
+The path in that message is a truncation of a path that exists and is spelled correctly, so the
+error invites you to go looking for a missing file. Quoting alone does not fix it either, because
+`-Command` mode would then evaluate the quoted string as an expression and simply print it. The
+form that runs the script is:
+
+```powershell
+powershell -File "C:\dev\Claude outputs\digest-finish.ps1" -DryRun
+```
+
+Same family as the rest of this file: **PowerShell parses and resolves before your code runs**, so
+a correct script can report itself as missing. Any path handed to `powershell`, `Start-Process` or a
+scheduled task gets `-File` and quotes if there is any chance of a space in it.
