@@ -27,23 +27,21 @@ Until the template is merged, `doctor.ps1` reports two failures against it. They
 are accurate: the live template has the old hand-written runner and neither new
 gate.
 
-## Run before you trust it
+## Verified
 
-Nothing in this pass was executed on Windows. Every `.ps1` touched parses clean
-under PowerShell 7 (20 files, zero errors) and `doctor.ps1` was run end to end
-against `C:\dev`, but no Godot ran at all. Before resuming the game sessions:
+`check.ps1` was run in `C:\dev\godot-template-audit` on 2026-09-12 and is
+**green**: 40 tests, 4444 assertions, all passing, plus 19 smoke assertions. The
+glob runner discovered all seven suites including the three new gates, and the
+hand-counted `MIN_ASSERTIONS` floor of 4400 was correct.
 
-```
-cd C:\dev\godot-template-audit
-scripts\check.ps1
-```
+`doctor.ps1` has been run end to end against `C:\dev` and reports **66 pass,
+15 warn, 2 fail**, where both failures are the live `godot-template` being behind
+this branch. Every `.ps1` touched parses clean under PowerShell 7.
 
-Most likely to need a nudge: `MIN_ASSERTIONS` in `test/run_tests.gd`, which was
-counted by hand off the source rather than measured. Then:
-
-```
-powershell -File C:\dev\gamedev-notes-audit\scripts\doctor.ps1
-```
+Still unrun: the per-game suites. After merging, run `scripts\check.ps1` in each
+game repo — the new `test_controls.gd` in gravewell and wrecking-crew has three
+timing-dependent assertions flagged in the report, and the sim-boundary and
+version gates are new everywhere.
 
 ## Done
 
@@ -79,29 +77,56 @@ wrecking-crew has `PRIVACY.md` and an honestly-labelled reconstructed `PLAN.md`.
 
 ## Needs your judgement
 
-1. **The template was steering inverted**, caught by the new `test_controls.gd`
-   on its first write. That makes the template the sixth instance of a bug that
-   shipped in five games, and explains why games kept inheriting it. The fix is a
-   behavioural change to `src/game/main.gd` behind one constant, `TRACK_Z`.
-2. **`INDEX.md` rule 2 now settles the `FileAccess` question**: the wall excludes
+1. **`INDEX.md` rule 2 now settles the `FileAccess` question**: the wall excludes
    the renderer, not the disk, so `src/sim` may touch `user://`, but
    serialisation must be a pure `state -> Dictionary -> state` pair testable
    without a file. The alternative was stillwater's stricter reading. gravewell
    and candle-gift are non-compliant with the new rule (no pure pair); stillwater
    is the exemplar.
-3. **`wrecking-crew`'s `CLAUDE.md` and `NOTES.md` describe a game that no longer
+2. **`wrecking-crew`'s `CLAUDE.md` and `NOTES.md` describe a game that no longer
    exists** — the v0.3.0 above-ground demolition game, not the v0.4.0 basement
    one that shipped. The new `PLAN.md` records this rather than adopting either.
    Nothing explains why the genre changed.
-4. **`gravewell/src/sim/save.gd`** has a corrected comment sitting uncommitted,
+3. **`gravewell/src/sim/save.gd`** has a corrected comment sitting uncommitted,
    because that file also carries a paused session's in-flight refactor. Commit
    it when you resume gravewell.
 
+## The steering decision, settled
+
+The template lays its track toward **-Z** behind one constant, `TRACK_Z`, so
+screen right IS world +X and no sign flip sits anywhere near the input. That is
+what `CRAFT.md` already prescribed and it is the version the passing run proves.
+The rejected alternative was negating `dx` in the drag handler: one character,
+but it puts the flip next to the input, and the template has two input paths
+(`drag_by` and `_read_pad`), so the flip would have to be duplicated and a third
+path added later would miss it. That is the exact mechanism behind all six
+inversions.
+
+**Existing games were NOT retrofitted to the convention.** They are correct
+today, each fixed its own way, and rewriting five camera conventions that cannot
+be run from here would risk more than it fixes. What they got instead is the
+gate. Every game now drives a real `InputEventScreenDrag` or `ScreenTouch`
+through its own handler and asserts direction on screen:
+
+| repo | gate | note |
+|---|---|---|
+| candle-gift | `run_smoke.gd` | already genuine, unchanged |
+| stillwater | `run_smoke.gd` | was exercising, not asserting; assertion added |
+| wildform | `run_smoke.gd` | was partial; mirrored drag and creature position added |
+| gravewell | `test_controls.gd` | new, none existed |
+| wrecking-crew | `test_controls.gd` | new, none existed |
+
+Nothing is currently inverted, including wrecking-crew, whose handedness was the
+one genuinely open question from his "almost feel backward" report. That comment
+was about the tank-controls build that has since been replaced.
+
+**One latent recurrence risk, reported not fixed:** candle-gift compensates for a
+mirrored camera with a sign at the input (`sim.steer_to(sim.target_x - dx / span
+* ...)`). Its gate catches the problem so it is safe today, but the durable fix
+is a `TRACK_Z`-style constant that turns the camera round and deletes the minus.
+
 ## Left
 
-- **`test_controls.gd` per game.** The one gate that cannot be copied, because it
-  drives each game's own handler. Every repo warns for it today. This is the
-  highest-value remaining work: it is the bug that has shipped six times.
 - **A save round-trip test in the template.** The template has no save module at
   all, so the pure-pair half of rule 2 is unenforceable until it gets one.
 - **gravewell's 1.72 GB of dead git objects**, and coreward's `public/` still
