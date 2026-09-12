@@ -372,3 +372,42 @@ His split is the fix and it is cleaner than what is there:
   phone to buzz.
 
 Answered in: PLAN.md 4.3c and phase F.
+
+## 2026-09-12 - the shed as real objects, a page in the air, and review by screenshot
+
+> "can you make all items in the shed physical 3d objects as well, then continue with the next
+> steps"
+
+The shed's stock was a list of names on a Room3D surface. It is objects on the counter now,
+five across on a measured pitch, one lit and lifted at a time, built by the same generators
+that model the tackle box's contents so the spool sold and the spool owned cannot drift. Every
+item is scaled from its OWN measured bounds to a common size, which is what stopped a crate
+sitting three times the size of a reel beside it.
+
+> "it looks like the book is on the ground but the pages are in the air on the left. there are
+> also planks and sticks sticking up on the right. can you double check to make sure everything
+> is displaying correctly and in the right spot. Then move on to the next steps automatically."
+
+**Both were real and neither was the book.** The "pages in the air" were the new chart: its
+builder called `open()` and nothing ever closed it, so an unshaded page glowed on the forward
+thwart through every hour of the game. The "planks and sticks" were the oars, stood on end in
+the bow because a metre-long oar lying down spans half the boat and crowds everything else out
+of the 12-degree angular separation the picker needs. Five stowages were tried and all five
+failed that rule, so the oars stopped being interactable, the shed moved onto the chart, and
+the rope - which did nothing - was deleted. The boat has seven interactables and has run out
+of angles: the next thing that wants one goes on the chart.
+
+> "let's continue with the next steps. at the end of every session, when you stop and check in,
+> can you provide me screen shots of how each of the changes look? I cant test right now but I
+> can check screen shots."
+
+This is a standing working rule, not a request about one session. It is now in `PLAN.md` under
+"How the work is reviewed" and filed for `PLAYER.md`. Every check-in carries a picture of every
+change with a visible result, at the device aspect - `--resolution 460x996`. The same session
+showed why the aspect is not optional: a desktop-window shot looked fine and a probe at the
+phone's real 19.5:9 found the rod's reel more than a full viewport width off the left edge.
+
+> "can you continue and just keep going until all steps are complete?"
+
+Sixteen milestones landed from this: R4-R7, R11, R12, W1, W2, W4-W7, P1, P2, P5, P6, G1-G4, T2
+and T4, all with CI green. Phases R and W are complete.
