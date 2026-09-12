@@ -526,3 +526,29 @@ run, so it takes the hold, the run and the ship and nothing else. Worth watching
 whether that reads as harsh enough to him — it is already harsher than
 SteamWorld Dig or Deep Rock, and it is the one call in this round I made for him
 rather than from his words.
+
+## 2026-09-12 - on v0.32.0, the intro
+
+Sent after the R9b report with the new captions, the first-minute film and
+the title screenshot:
+
+> "Can you redo the intro completely? I want it to have more of an eerie and
+> high quality feel to it that matches the rest of the game. If there are any
+> transitions from flying in a cutscene to landing, I want an actual
+> transition, not just a cut. I want a very short intro after hitting the
+> continue button as well. It should only take a few seconds to start playing
+> again."
+
+Three asks, and the first is a restatement from scratch, not a refinement:
+R9b rewrote the words over the same flight-past-planets picture, and he
+answered by asking for the whole thing again. The model is wrong, not the
+tuning. **The picture that does not match the rest of the game is the space
+scene itself** - a separate renderer with billiard-ball worlds and a sun,
+while everything he has praised in this game is dark rock under a lamp.
+
+**He saw the cut.** The intro's landing ends in a white flash between the
+transit scene and the game scene, and the code's own comment calls it "a cut
+it cannot hide". He named it in one sentence.
+
+**CONTINUE is a tax he pays every session.** It launches, flies and lands:
+about seven seconds before the controls wake, on every return.
