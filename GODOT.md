@@ -292,15 +292,15 @@ as "the buttons are about half an inch too high".
   Compatibility renderer** - it needs compute shaders and logs no error; Mobile, the default, is
   fine.
 - **Four ways a quad "is not drawing" that are not the quad**; print its position in CAMERA
-  space first. Writing `Node3D.rotation.y` rebuilds the WHOLE basis from `(0, y, 0)` and discards
+  space first. Writing `Node3D.rotation.y` rebuilds the WHOLE basis from `(0, y, 0)`, discarding
   the transform that laid it flat - keep a rest transform and compose. **`render_priority` only
   orders TRANSPARENT materials**, so two opaque quads with `no_depth_test` draw in undefined
   order; `transparency = TRANSPARENCY_ALPHA` (alpha still 1) makes it apply. A **`QuadMesh` faces
-  its own +Z**, so a basis reused from a surface that lies flat puts a wall board face-up at the
-  ceiling - a one-pixel strip seen edge-on; a vertical surface wants `Basis(Vector3.UP, PI)`. And
+  its own +Z**, so a basis reused from a flat surface puts a wall board face-up at the ceiling, a
+  one-pixel strip edge-on; a vertical surface wants `Basis(Vector3.UP, PI)`. And
   **`SubViewport.get_texture().get_image()` returns black** from a script. An untextured
-  `QuadMesh` particle is a hard SQUARE, fixed by a `GradientTexture2D` with `FILL_RADIAL` and
-  alpha falling to zero for no file and no APK bytes.
+  `QuadMesh` particle is a hard SQUARE - a `GradientTexture2D`, `FILL_RADIAL`, alpha to zero,
+  costs no file and no APK bytes.
 - **`Basis.scaled()` scales the WORLD axes**, not the mesh's own. A cylinder rotated to lie
   along X is scaled `(length, radius, radius)`. Getting it backwards looks like a layout bug
   and is a transform one.
@@ -334,11 +334,10 @@ as "the buttons are about half an inch too high".
   the finished colour to `ALBEDO`, or write the computed light to `EMISSION`. Nothing warns.
 - **When a value is computed correctly and displayed wrongly, RENDER THE VALUE.** A shader has
   no `print`, so the screen is its only readout: `ALBEDO = vec3(f.g, f.r, 0.0); EMISSION = same;`
-  ruled out the solver, the upload, the world-position mapping and the texture format in one
-  screenshot, after three plausible hypotheses had all fitted the symptom and none was true. Keep
-  the `flat` and `pattern` debug render modes permanently in the one-object screenshot script
-  (`techniques/wildform-creature-shader.md`). This is `CRAFT.md`'s "attribute an artefact to a
-  layer before touching the maths" one level down, and it is the first move, not the fifth.
+  ruled out the solver, the upload, the mapping and the texture format in one screenshot, after
+  three plausible hypotheses had each fitted the symptom. Keep the `flat` and `pattern` debug
+  render modes permanently in the one-object screenshot script
+  (`techniques/wildform-creature-shader.md`). It is the first move, not the fifth.
 
 ## Export, signing and the two builds
 
@@ -351,16 +350,14 @@ as "the buttons are about half an inch too high".
 
 - **Anything a tool writes INTO the project directory is a candidate for the package and for
   the import cache, and `.gitignore` has no say in either.** Both guards, in every game:
-  `exclude_filter="build/*, *.log, *.apk, *.aab, *.idsig"` in **every** preset keeps film output
-  out of the package, and `build/.gdignore` keeps it out of the import cache. The marker is the
-  load-bearing half, because the filter is hit on an export and the marker on every run of the
-  gate. For the marker to survive git the ignore must be **`build/*`** then `!build/.gdignore` -
-  `build/` ignores the DIRECTORY, git refuses to descend into it, and the negation can never
-  match. **A directory exclusion takes its exceptions with it, in every tool**, so recreate the
-  exception after any copy and **assert it exists** (`new-game.ps1` now refuses to scaffold
-  without it). Gravewell shipped a **1.42 GB** APK and Stillwater a **1.7 GB** import cache with
-  the gate's import step at 80 s, both silently: `techniques/build-output-and-the-package.md`.
-  **This is the case for a size guard from the first commit.**
+  `exclude_filter="build/*, *.log, *.apk, *.aab, *.idsig"` in **every** preset, and
+  `build/.gdignore`. The marker is the load-bearing half - the filter is hit on an export, the
+  marker on every run of the gate. For it to survive git the ignore must be **`build/*`** then
+  `!build/.gdignore`: `build/` ignores the DIRECTORY, git refuses to descend, and the negation
+  can never match. **A directory exclusion takes its exceptions with it, in every tool**, so
+  recreate the exception after any copy and assert it exists. Both failures were silent and both
+  are measured in `techniques/build-output-and-the-package.md`. **This is the case for a size
+  guard from the first commit.**
 - **AAB export is only valid with `gradle_build/use_gradle_build = true`**, and Gradle is the
   only way to set `target_sdk` (Play requires 36 and it rises every year).
   **`--install-android-build-template` only works alongside an export command** - alone it opens
