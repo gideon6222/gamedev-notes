@@ -394,7 +394,17 @@ function Test-DirectoryIndex([string] $Dir, [string] $CheckName) {
     if ($n -ne 'README.md' -and $indexed -notcontains $n) { $indexed += $n }
   }
   $notIndexed = @($files | Where-Object { $indexed -notcontains $_ })
-  $ghosts = @($indexed | Where-Object { $files -notcontains $_ -and -not (Test-Path -LiteralPath (Join-Path $Notes $_)) })
+  # A name counts as resolved if a file of that name exists anywhere under the
+  # notes repo, not only in this directory. An index legitimately names an
+  # archived file while pointing at archive/, and flagging that trains the
+  # reader to ignore this check - which is how a watchdog stops being read.
+  $ghosts = @($indexed | Where-Object {
+    $n = $_
+    if ($files -contains $n) { return $false }
+    if (Test-Path -LiteralPath (Join-Path $Notes $n)) { return $false }
+    $hit = @(Get-ChildItem -LiteralPath $Notes -Filter $n -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)
+    return ($hit.Count -eq 0)
+  })
   $bits = @()
   if ($notIndexed.Count -gt 0) { $bits += "$($notIndexed.Count) file(s) in $Dir/ with no index row: $(Join-Some $notIndexed)" }
   if ($ghosts.Count -gt 0) { $bits += "$($ghosts.Count) indexed name(s) with no file: $(Join-Some $ghosts)" }
@@ -746,13 +756,20 @@ function Test-TemplateScriptSet([string] $Area, [string] $Path, [object[]] $Temp
   }
   $missing = @()
   $shared = @()
+  $altGate = $false
   foreach ($t in $TemplateScripts) {
     $mine = Join-Path $Path ('scripts\' + $t.Name)
     if (Test-Path -LiteralPath $mine) { $shared += @{ Name = $t.Name; Mine = $mine; Theirs = $t.FullName } }
+    elseif ($t.Name -eq 'check.ps1' -and (Test-Path -LiteralPath (Join-Path $Path 'scripts\check.sh'))) {
+      # A bash gate is still a gate. What matters is that the repo HAS one.
+      $altGate = $true
+    }
     else { $missing += $t.Name }
   }
   if ($missing.Count -gt 0) {
     Fail $Area 'template scripts' "$($shared.Count)/$($TemplateScripts.Count) present; missing $(Join-Some $missing). Fix: copy each from $Template\scripts and adapt it. A game with no check.ps1 has no gate, and a game with no device.ps1 cannot be playtested on the phone at all."
+  } elseif ($altGate) {
+    Pass $Area 'template scripts' "all $($TemplateScripts.Count) accounted for; this repo gates through scripts\check.sh instead of check.ps1"
   } else {
     Pass $Area 'template scripts' "all $($TemplateScripts.Count) template scripts present"
   }
@@ -808,8 +825,27 @@ function Test-TestSet([string] $Area, [string] $Path) {
       Fail $Area 'test discovery' "run_tests.gd neither globs res://test nor names suites, so this check could not tell how suites are found. Fix: read the file; if the discovery changed shape, update this check in scripts\doctor.ps1."
     }
   }
-  $want = 'test_version.gd', 'test_sim_boundary.gd', 'test_controls.gd'
-  $missing = @($want | Where-Object { -not (Test-Path -LiteralPath (Join-Path $testDir $_)) })
+  # test_version.gd and test_sim_boundary.gd are game-independent: they parse
+  # export_presets.cfg and scan src/sim, so the template's copies drop straight
+  # in and a repo without one is simply ungated. test_controls.gd cannot be
+  # copied - it drives THIS game's input handler - so its absence is a WARN
+  # with the reason, not a FAIL. Controls have shipped inverted in five games
+  # and in the template itself, so the warning is not decoration.
+  # Detect each gate by what it asserts, not by the filename it lives in:
+  # stillwater keeps its version assertions inside test_assets.gd, and a check
+  # that demanded the filename would report a gap that is not there.
+  $want = 'test_version.gd', 'test_sim_boundary.gd'
+  $probe = @{ 'test_version.gd' = 'version/code'; 'test_sim_boundary.gd' = 'src/sim' }
+  $suiteText = ''
+  foreach ($sf in @(Get-ChildItem -LiteralPath $testDir -Filter 'test_*.gd' -File -ErrorAction SilentlyContinue)) {
+    $st = Read-TextFile $sf.FullName
+    if ($null -ne $st) { $suiteText += "`n" + $st }
+  }
+  $missing = @($want | Where-Object {
+    if (Test-Path -LiteralPath (Join-Path $testDir $_)) { return $false }
+    $needle = $probe[$_]
+    return -not ($suiteText -match [regex]::Escape($needle))
+  })
   $notes = @()
   $tv = Join-Path $testDir 'test_version.gd'
   if (Test-Path -LiteralPath $tv) {
@@ -818,14 +854,18 @@ function Test-TestSet([string] $Area, [string] $Path) {
       $notes += 'test_version.gd never mentions version/code'
     }
   }
+  $hasControls = Test-Path -LiteralPath (Join-Path $testDir 'test_controls.gd')
   if ($missing.Count -eq 0 -and $notes.Count -eq 0) {
-    Pass $Area 'test set' 'test_version.gd, test_sim_boundary.gd and test_controls.gd all present'
-    return
+    Pass $Area 'test set' 'test_version.gd and test_sim_boundary.gd present'
+  } else {
+    $bits = @()
+    if ($missing.Count -gt 0) { $bits += "missing $(Join-Some $missing)" }
+    $bits += $notes
+    Fail $Area 'test set' "$($bits -join '; '). Fix: copy them from $Template\test - both are game-independent. They gate the version code and the sim wall, two rules this studio wrote down and shipped broken anyway."
   }
-  $bits = @()
-  if ($missing.Count -gt 0) { $bits += "missing $(Join-Some $missing)" }
-  $bits += $notes
-  Fail $Area 'test set' "$($bits -join '; '). Fix: copy them from $Template\test. They are the gates for the three rules this studio wrote down and shipped broken anyway - the version code, the sim wall, and drag-right-go-right."
+  if (-not $hasControls) {
+    Warn $Area 'controls gate' "no test/test_controls.gd. It cannot be copied - it has to drive THIS game's input handler - so write it from $Template\test\test_controls.gd: a real InputEventScreenDrag through the real handler, asserting where the avatar lands ON SCREEN. Controls have shipped inverted in five games and in the template itself, every time with the rule already written down."
+  }
 }
 
 # 16. The sim wall, as a text scan, across every repo. INDEX.md rule 2 is the invariant that
@@ -1042,7 +1082,9 @@ function Test-WebRepos {
 
 function Test-GameRepo([object] $Dir, [object[]] $TemplateScripts) {
   $path = $Dir.FullName
-  $isTemplate = ($Dir.Name -eq (Split-Path $Template -Leaf))
+  # -Template may point at a worktree (godot-template-audit) while the live
+  # godot-template is also enumerated. Both are the template for these checks.
+  $isTemplate = ($Dir.Name -eq (Split-Path $Template -Leaf)) -or ($Dir.Name -like 'godot-template*')
   $area = "Game: $($Dir.Name)"
   $presetPath = Join-Path $path 'export_presets.cfg'
   $presets = $null
