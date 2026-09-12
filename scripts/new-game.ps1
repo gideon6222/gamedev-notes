@@ -224,7 +224,9 @@ const RELEASES := [
   Copy-PrePlan $Dest
   Write-Text (Join-Path $Dest 'assets\CREDITS.md') "# Credits`n`nEvery asset that was not made here. Appended by scripts/assets.py.`n`n| Date | Source | Asset | Licence | URL |`n|---|---|---|---|---|`n"
 
-  Assert-NoPlaceholders $Dest $textExt 'godot-template|godottemplate|Godot Template|\{\{[A-Z]+\}\}'
+  # The stubs legitimately say where the copy came from (`C:\dev\godot-template`); only a bare
+  # `godot-template` is a leftover name. The lookbehind lets the path through.
+  Assert-NoPlaceholders $Dest $textExt '(?<!C:\\dev\\)godot-template|godottemplate|Godot Template|\{\{[A-Z]+\}\}'
 
   Write-Step "git init"
   Push-Location $Dest
