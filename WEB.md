@@ -21,7 +21,7 @@ game that is genuinely 2D and light. Everything else is Godot.
 | 3D | **three.js pinned exactly** | Lighting values are calibrated per version |
 | PWA | **vite-plugin-pwa** `generateSW` | Never hand-write a service worker |
 | Tests | `node --test test/*.test.mjs` over pure functions, esbuild-bundled | A hand-listed test file set silently stops running new files |
-| Smoke | **Playwright** against the production build, portrait viewport **after** the device spread | The only thing that catches wiring bugs |
+| Smoke | **Playwright** against the production build, portrait viewport **after** the device spread | The only thing that catches wiring bugs. Browsers are a machine-level install, not an npm one: preflight it |
 | Gate | **`npm run check`** = typecheck, `node --test`, build, bundle size, Playwright e2e | The web equivalent of `scripts\check.ps1`; run it before every push |
 | Deploy | GitHub Actions to GitHub Pages: typecheck, golden, build, smoke, deploy | CI is the gate |
 | Audio | Synthesised at runtime with Web Audio, built on the first gesture | No files, responds to state |
@@ -43,6 +43,18 @@ does this and creates the repo, then enables Pages with
   tweak would re-download all 228 KB gzip. The budget checks PER CHUNK and fails in both
   directions: a shrink means code was tree-shaken away, growth means a value import of three.js
   reached the pure layer.
+- **A dependency that lives on the MACHINE rather than in the repo gets a preflight that fails
+  ONCE, before the suite, naming the install command.** Playwright's browser binaries are a
+  machine-level download that `npm install` does not perform and the repo does not carry, like Godot
+  or the JDK on the native side: on a fresh machine `npm run check` passed typecheck, 286 node
+  tests, build and bundle budget, then failed **39 e2e tests**, every one of them the same missing
+  executable, with `npx playwright install` drawn in a box inside failure number one and repeated 38
+  more times. Reading the tail of that tells you 39 things are broken about the game; nothing is.
+  `scripts/check-e2e-browser.mjs` checks `chromium.executablePath()` exists and exits 1 with the one
+  line to run, and `npm run e2e` is now `node scripts/check-e2e-browser.mjs && playwright test`.
+  Generally: **when a missing prerequisite makes every case in a suite fail identically, the suite
+  is reporting the prerequisite N times and the game zero times.** The Godot repos have no
+  equivalent only because `check.ps1` resolves the Godot binary by path and says so when it cannot.
 - **Error overlay handler in `<head>` before the module script.** Vite hoists the entry.
   He has no console on the phone.
 - **Build stamp via Vite `define`, a version and a changelog** in the menu. An installed PWA

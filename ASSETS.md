@@ -265,6 +265,14 @@ How each source is reached, for when the script needs fixing:
   a pulse. A drone reads as creepy. A fast attack on a high sine reads as a notification.
   When a loop from the Tallbeard bundle fits the brief, take it; it will be better than a
   first-attempt generated one and it is CC0.
+- **`ffmpeg -ss` (and `-t`/`-to`) goes BEFORE `-i` when trimming**, so ffmpeg seeks the input
+  rather than dropping decoded output frames. Written the other way round, two trimmed Stillwater
+  OGGs had exactly the right duration, imported cleanly, played in the editor and were **completely
+  silent** - `volumedetect` read them at -91 dB, digital zero, because what got encoded was the gap.
+  After any audio trim, check the level (`ffmpeg -i out.ogg -af volumedetect -f null -`) **and the
+  file SIZE against the duration**: a few KB for several seconds means the encoder was handed
+  silence, whatever the duration says. The tell was there before any measurement - 6 KB for 24
+  seconds is not audio. 9.6 MB of CC0 field recording trimmed and normalised to 240 KB (M).
 - Round-robin players, pitch jitter on repeats, separate buses so the options screen can
   set Music, SFX and UI independently.
 

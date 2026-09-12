@@ -114,3 +114,24 @@ every caption, a wordmark running off a 375 px screen, a title rendering over th
 scenario that was wrong rather than the game. Candle Gift's first filmed run, in its fifth round
 of work, failed with nothing wrong with the game at all - **the first time a tool is used in a
 repo is a test of the tool, not of the repo.**
+
+## The six questions: judging feel from a filmed run
+
+Moved here from `TESTING.md` at the 2026-09-12 digest, which needed the room. `POLISH.md` gates
+on these answers being written down.
+
+Look at the sheet and answer, in writing, in `NOTES.md` under a dated heading:
+
+1. Does every player action produce visible, audible and physical feedback in the same
+   frame? (Check the frame after each recorded tap.)
+2. Does the avatar reach speed within a fifth of a second and coast, or does it snap and
+   stop dead?
+3. Is anything popping in, sweeping through the middle of the frame, or drawn over
+   something it should be behind?
+4. Are the short states (a hook window, an impact, a transition, a reward screen) visible
+   in at least one frame? If not, film a scenario that reaches them.
+5. Is the first sixty seconds a win, and is the next goal visible?
+6. Is there a frame where the player would not know what to do?
+
+Then fix, film again, and compare sheet to sheet. Two sheets a week apart are comparable
+because cell *n* is the same moment every time.

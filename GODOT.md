@@ -31,13 +31,13 @@ Nothing is installed system-wide and nothing needed admin; everything is portabl
 | Export templates | 4.7.2.stable | `%APPDATA%\Godot\export_templates\4.7.2.stable` |
 | ffmpeg, gh, scrcpy | via winget, user scope | on the **user** PATH; a session older than the install will not see it |
 
-**Anything winget installed during a session is invisible to that session.** A process reads
-PATH once, at startup, so `Get-Command` says "not installed" about a tool that is installed.
-Never send the reader to `setup\install.ps1` for it - that is a whole-machine script that
-rewrites `~/.claude` and is shared with other running sessions. Re-read the user PATH at the top
-of any script that shells out, which fixes `gh`, `adb` and `ffmpeg` at once; then fall back to
-the winget Packages glob (`...\WinGet\Packages\<Publisher>.<Id>_*\...`, how `GODOT` is already
-resolved), and give up with `winget install --id <id> --scope user`, never the installer:
+**Anything winget installed during a session is invisible to that session**: a process reads
+PATH once, at startup, so `Get-Command` says "not installed" about a tool that is installed. Never
+send the reader to `setup\install.ps1` for it - it is a whole-machine script that rewrites
+`~/.claude` and is shared with other running sessions. Re-read the user PATH at the top of any
+script that shells out, which fixes `gh`, `adb` and `ffmpeg` at once, then fall back to the winget
+Packages glob (`...\WinGet\Packages\<Publisher>.<Id>_*\...`, how `GODOT` is resolved), and give
+up with `winget install --id <id> --scope user`, never the installer:
 
 ```powershell
 $u = [Environment]::GetEnvironmentVariable('PATH','User')
@@ -45,21 +45,38 @@ $miss = @($u -split ';' | Where-Object { $_ -and ($env:PATH -split ';') -notcont
 if ($miss.Count) { $env:PATH = ($miss -join ';') + ';' + $env:PATH }
 ```
 
-**`$ErrorActionPreference = 'Stop'` makes a native command's stderr terminate the script
-before any `$LASTEXITCODE` check below it runs.** Redirection does not save it - `*>` and
-`2>$null` move the text and the ErrorRecord still throws - so every `-AllowFail` flag and
-exit-code branch downstream is decoration. `check.ps1` died at step one on an import warning it
-was told to forgive; `new-game.ps1` died on a `gh repo view` probe that is *supposed* to fail on
-a new game; `movie.ps1` died on Godot's normal shutdown warning **after** writing all 3,840
-frames and before tiling one. Wrap every native call whose failure is expected:
+**Five PowerShell traps take a script out before it can report anything.** Mechanism, code and
+measurements: `techniques/powershell-traps-in-the-scripts.md`. The rules:
 
-```powershell
-function Native([scriptblock]$Block) {
-  $prev = $ErrorActionPreference
-  $ErrorActionPreference = 'Continue'
-  try { & $Block } finally { $ErrorActionPreference = $prev }
-}
-```
+- **`$ErrorActionPreference = 'Stop'` makes a native command's stderr terminate the script** before
+  any `$LASTEXITCODE` check below it runs, so every `-AllowFail` flag downstream is decoration.
+  Wrap any native call whose failure is expected in the `Native` helper.
+- **Never compute a `param()` default from `$PSScriptRoot`**, which binds EMPTY while defaults are
+  evaluated. `doctor.ps1` dying inside its own `param()` read as `framework FAIL exit 1` on every
+  game with nothing wrong in any of them. Default to `''` and derive in the body: a param default
+  that can throw takes the whole script with it, before its own logging exists.
+- **Quote every adb flag beginning with w, v, d or c** (`'-W'`, `'-S'`) - a bare `-W`
+  prefix-matches `-WarningAction`, and `device.ps1 launch` raised `AmbiguousParameter` against
+  itself and had never once worked. `ValueFromRemainingArguments` does not protect you.
+- **`*> $log` does not write what the program printed**: native stderr arrives as an `ErrorRecord`
+  in UTF-16. Unwrap with `$_.Exception.Message`, never `ToString()`, which returns the bare type
+  name `System.Management.Automation.RemoteException` for a BLANK line and turns every spacer in an
+  error block into a class name (PS 7.4.6, M). `check.ps1` once reported `errors 0` for every Godot
+  error in every game built from the template.
+- **A cross-cutting check must not fail a gate for a condition the gated repo cannot fix**: scope
+  it to the repo named in `-Repo`, or report a WARN. Wildform's gate went red over lessons a
+  DIFFERENT game's session had filed in the wrong format. A gate step that fails prints the reason,
+  not only the verdict.
+
+**Every temporary file outside the repo goes in the session scratchpad**, whose path is unique per
+session, never `/tmp` or any other fixed path. A gravewell loop backed each source file up to
+`/tmp/s.keep` while a stillwater session picked the same obvious short name for the same obvious
+reason; stillwater's `sim.gd` was restored over gravewell's, the suite simply stopped compiling,
+and the cause was found by grepping the file for the other game's vocabulary (`HOLDING`,
+`tension`). `git checkout --` recovered the committed part and the uncommitted milestone on top was
+lost. Same family as the per-game port rule in `WEB.md`: **any agreed-looking short name outside
+the repo is a collision waiting for the second session**, and it presents as one game's source
+appearing inside another.
 
 **Godot finds the SDK, the JDK and the debug keystore through editor settings, not
 environment variables**: `%APPDATA%\Godot\editor_settings-4.7.tres`, keys under
@@ -77,7 +94,7 @@ $godot = $env:GODOT   # set by setup/install.ps1; falls back to the winget path 
 & $godot --headless --path . --script res://test/run_smoke.gd          # boots the real scene
 & $godot --headless --path . --script res://test/run_probe.gd          # balance readings, never fails
 & $godot --headless --path . --export-debug "Android" build/<slug>.apk
-& $godot --headless --path . --script res://scripts/check_size.gd      # size guard, both directions
+& $godot --headless --path . --script res://scripts/check_size.gd      # size guard - weighs the APK in build/, so export first
 & $godot --path . --resolution 460x996 --script res://scripts/shot.gd -- 45 <state>   # screenshot at the PHONE's aspect
 & $godot --path . --resolution 460x996 -- record=test/replays/<name>.json touch  # record a scenario
 scripts\movie.ps1 -Replay test/replays/<name>.json -Seconds 20         # then film it to a contact sheet
@@ -88,23 +105,6 @@ scripts\check.ps1                                                       # everyt
 
 Redirect long runs to a file and read the FILE: a PowerShell pipeline that assigns to a
 variable buffers the whole run, so a hung command shows nothing at all.
-
-**But `*> $log` does not write what the program printed.** It sends native stderr through
-PowerShell's error channel, so every line arrives as an `ErrorRecord` rendered
-`Godot...exe : SCRIPT ERROR: ...` plus a `+ CategoryInfo` block, in UTF-16. `check.ps1` counted
-`'^(SCRIPT )?ERROR'` over it and reported **`errors 0` for every Godot error in every step, in
-every game built from the template**. Unwrap the records and write UTF-8:
-
-```powershell
-& $godot @a 2>&1 |
-  ForEach-Object { if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.ToString() } else { $_ } } |
-  Out-File -FilePath $log -Encoding utf8
-```
-
-Same family as the `$ErrorActionPreference = 'Stop'` trap: PowerShell treats native stderr as
-an object, not text. **A log written by a shell is not the program's output until you have
-decoded the bytes and looked at one known-bad line.** `check.ps1`, `movie.ps1` and `device.ps1`
-all carry the unwrap.
 
 ## Invariants every game keeps
 
@@ -131,6 +131,14 @@ all carry the unwrap.
   end of the content.
 - **Every interactable has visible mesh within arm's reach of its point.** Visible: a
   hidden mesh let a lamp that is off until bought stand in for one that is there.
+- **A change to what a saved field CONTAINS is a version bump**, the same as adding or removing
+  one. Gravewell moved `cores` from an `int` tally to an `Array[int]` of class ids and left
+  `Save.VERSION` at 2: every test wrote a NEW-shaped save and read it back, so the suite was green,
+  while a save already on a phone would have passed the version check, reached
+  `d.get("cores", []) as Array` on an integer - `null` in Godot 4 - and iterated it. Pin it with a
+  test that WRITES an old-shaped save at the old version and asserts it is refused. A
+  `VERSION + 99` test cannot catch this: it proves an unknown future version is rejected, never
+  that the current shape change was declared.
 - **A golden over floats uses `TestHarness.FLOAT_EPS`.** `snappedf` does not round-trip
   through a source literal, and goldens are recorded on Windows and checked on Linux.
 
@@ -246,98 +254,33 @@ as "the buttons are about half an inch too high".
   reports the initial value forever: Stillwater's loss-reason probe said no fish is ever lost
   anywhere in the game, which was a fact about the closure, and a model change was half built on
   top of it. Carry the result in a Dictionary or an Array, which are reference types.
-- **A value read out of a Dictionary is a Variant and `:=` cannot infer from one.** Annotate
-  the local: `var pos: Vector3 = c.pos`. `grep -rn 'var [a-z_]* := .*\["' src/ test/` finds
-  every one in a second and the failure mode is a five-minute hang each.
+- **Any `:=` on a Variant-returning expression fails the whole FILE, not the line** - a
+  Dictionary read, an untyped Array element, or `Callable.call()`, which is the one a TEST file
+  hits, because a local lambda is how a test avoids repeating itself. Annotate the local:
+  `var pos: Vector3 = c.pos`, `var hit: int = fires.call(t)`. Grep
+  `'var [a-z_]* := .*\(\.call(\|\["\)'` over `src/ test/`: the Dictionary-only version could not
+  see `fires.call(threshold)`, which cost fifteen minutes on a three-second suite misdiagnosed as a
+  quadratic hang, because the failure mode is the non-terminating run above.
 - **Godot eats a leading `--` even after the `--` separator**, so a user flag is a bare word.
 
 ## Rendering traps
 
-- `rendering/textures/vram_compression/import_etc2_astc = true` is **required** for an Android
-  export, and changing it does not re-import existing textures - delete `.godot/imported` and
-  `--import` again. `config/icon` is required or the export errors.
-- **The file Godot loads is not the file you committed: verify the artefact the engine
-  produced, never the one you wrote.** A plain texture imports `compress/mode=0` (lossless) with
-  no mipmaps, and Godot writes BOTH an `astc` and a `bptc` variant, so what ships has no
-  relationship to what the source weighs and `ls -laS .godot/imported` is the only place the cost
-  shows. Mipmaps are not optional on ground at a grazing angle. The measured costs and the bulk
-  `.import` recipe are in `ASSETS.md`, which owns them.
-- **WAVs import as QOA**, so `AudioStreamWAV.data` is compressed bytes: read as PCM, a 1.30 s
-  generated fanfare measured 0.26 s and every "not silent" assertion had been passing on
-  compressed noise. Measure the PCM off the file with `FileAccess` and the RIFF chunks, then
-  assert SEPARATELY that `get_length()` and `mix_rate` match the header. Lengths, never samples.
-- **Inverted-hull outlines do not work on a `MultiMeshInstance3D`** (the hull draws over the
-  object even six centimetres inside it). Use a fresnel rim in the material, written so that zero
-  width means no line, and **on flat-shaded low poly take the power to 4.5 or steeper** - every
-  facet has one normal, so a soft falloff paints panels rather than a rim.
-  `techniques/wildform-creature-shader.md`.
-- **`DEPTH_TEXTURE` is corrupt on Forward Mobile with MSAA**, and turning MSAA off is not the
-  answer. When a shader wants to know something about the world the simulation usually already
-  owns it: upload the heightfield as a small texture and sample by world position - exact,
-  testable headlessly, and the picture cannot disagree with the rules.
-- **The mesh AABB is useless for draw size on a skinned mesh and is the correct and only
-  source for model-space extent.** For draw size nothing you can ask describes what is drawn, so
-  set it as a measured constant per model in the content table and check it by eye against
-  something - `ASSETS.md` has the four ways of asking and what each one returned. But a uniform
-  CONSUMED in model space is tuned against `mesh.get_aabb()`, never world scale, because `VERTEX`
-  is in exactly that space and an imported model relates the two by a different unknown factor
-  each. **Assert the feature count, `uniform * extent`, not the frequency.**
-  `techniques/wildform-creature-shader.md`.
-- **Godot blend shapes cannot morph one creature into a different creature**, at all:
-  `set_blend_shape_value` interpolates vertex deltas WITHIN one mesh resource, so the target must
-  share vertex count and topology, which two authored glTF models never do. To change what a
-  character IS, **hide the swap instead of interpolating it** - dissolve out, flash over the
-  instant, reform, 0.3 s each way, both forms frozen at a matching rest pose.
-  `techniques/wildform-evolution-transform.md`. **`GPUParticles3D` draws nothing on the
-  Compatibility renderer** - it needs compute shaders and logs no error; Mobile, the default, is
-  fine.
-- **Four ways a quad "is not drawing" that are not the quad**; print its position in CAMERA
-  space first. Writing `Node3D.rotation.y` rebuilds the WHOLE basis from `(0, y, 0)`, discarding
-  the transform that laid it flat - keep a rest transform and compose. **`render_priority` only
-  orders TRANSPARENT materials**, so two opaque quads with `no_depth_test` draw in undefined
-  order; `transparency = TRANSPARENCY_ALPHA` (alpha still 1) makes it apply. A **`QuadMesh` faces
-  its own +Z**, so a basis reused from a flat surface puts a wall board face-up at the ceiling, a
-  one-pixel strip edge-on; a vertical surface wants `Basis(Vector3.UP, PI)`. And
-  **`SubViewport.get_texture().get_image()` returns black** from a script. An untextured
-  `QuadMesh` particle is a hard SQUARE - a `GradientTexture2D`, `FILL_RADIAL`, alpha to zero,
-  costs no file and no APK bytes.
-- **`Basis.scaled()` scales the WORLD axes**, not the mesh's own. A cylinder rotated to lie
-  along X is scaled `(length, radius, radius)`. Getting it backwards looks like a layout bug
-  and is a transform one.
-- **`TorusMesh` has no arc parameter**; a curved arm is a post and a leaning boom.
-- **A procedural surface can be the expensive thing.** Thirteen octaves of noise over a third
-  of the screen cost 1.60 ms a frame; two samples of a 36 KB texture cost 0.82 ms, within noise
-  of a flat material (M, vsync off). Build the cheap case with the SAME uniforms.
-- **Do not derive a normal from `dFdx`/`dFdy` on a surface seen at a grazing angle**: it is a
-  speckle generator.
-- **`fog_sky_affect` defaults to 1.0, so depth fog repaints the SKY.** The sky is at infinity, so
-  a fog tuned on the water covers the whole sky in the fog colour, and a flat cream wall where a
-  dawn gradient should be reads as a *missing skybox* - which sends you into the sky material
-  hunting a fault that is not there. Drop it to about **0.2 (T)**. General form: any effect
-  applied by distance hits the background hardest, so check the sky FIRST when tuning fog.
-  `techniques/stillwater-fishing-fight.md`.
-- **Data textures (normal, roughness, AO, masks) must NOT be sRGB-decoded; colour textures must
-  be.** A data map decoded as colour comes back with its dark end lifted, and the surface reads as
-  washed out or flat rather than as a broken import. `compress/normal_map=1` is the Godot half of
-  it; the rest of the `.import` recipe is in `ASSETS.md`.
-- **`Light3D.light_cull_mask` and `VisualInstance3D.layers` really do exclude a light from an
-  object** in Godot - one flag, not a second pass. The opposite rule in
-  `techniques/three-js-materials-and-lights.md` is a three.js limitation.
-- **Walking a path once per follower is quadratic and reads as a hang**; one backward walk
-  emits every follower as it crosses each threshold.
-- Anti-aliasing on a phone: MSAA 2x at most, or FXAA. Keep `scaling_3d/scale` around
-  0.75-0.85 for a heavy scene while the UI stays crisp.
-- **A shader that computes its own lighting must say so: `render_mode unshaded`.** `ALBEDO` in
-  a lit `shader_type spatial` is not the colour that reaches the screen, it is the base colour
-  that LIGHTS MULTIPLY - so a surface excluded from every light (`light_cull_mask`) has nothing
-  to multiply it by and renders black at every value of every constant. Go `unshaded` and write
-  the finished colour to `ALBEDO`, or write the computed light to `EMISSION`. Nothing warns.
-- **When a value is computed correctly and displayed wrongly, RENDER THE VALUE.** A shader has
-  no `print`, so the screen is its only readout: `ALBEDO = vec3(f.g, f.r, 0.0); EMISSION = same;`
-  ruled out the solver, the upload, the mapping and the texture format in one screenshot, after
-  three plausible hypotheses had each fitted the symptom. Keep the `flat` and `pattern` debug
-  render modes permanently in the one-object screenshot script
-  (`techniques/wildform-creature-shader.md`). It is the first move, not the fifth.
+Thirteen measured traps, the arithmetic and the dead ends are in
+`techniques/godot-rendering-traps.md`. The ones that have cost this studio the most time:
+
+- **Four ways a quad "is not drawing" that are not the quad** - print its position in CAMERA
+  space before touching the material.
+- **When a value is computed correctly and displayed wrongly, RENDER THE VALUE.** Keep a
+  `debug_term` uniform with one branch per term permanently; isolate a term by REPLACING it, not
+  by reading it.
+- **A shader that computes its own lighting must say so: `render_mode unshaded`**, and
+  `rendering/textures/vram_compression/import_etc2_astc = true` is required for an Android export.
+- **`DEPTH_TEXTURE` is corrupt on Forward Mobile with MSAA**, and `fog_sky_affect` defaults to
+  1.0, so depth fog repaints the SKY. Godot blend shapes cannot morph one creature into another
+  at all (`techniques/wildform-evolution-transform.md`).
+- **Walking a path once per follower is quadratic and reads as a hang**, not as slowness.
+- **`Basis.scaled()` scales the WORLD axes**, WAVs import as QOA, and `TorusMesh` has no arc
+  parameter.
 
 ## Export, signing and the two builds
 
@@ -386,12 +329,22 @@ as "the buttons are about half an inch too high".
 
 ## Measured on the phone
 
-S26 Ultra, 2026-09-08, placeholder scene: Vulkan 1.4.295, Forward Mobile, Adreno 840,
-`dumpsys gfxinfo` over 44 frames gave 5 ms at the 50th, 90th and 95th percentiles, one janky
-frame, 1 ms GPU at the median. That is the engine and the pipeline, not a game, and the ceiling
-is nowhere near. Thermal throttling after five to ten minutes of sustained rendering is the
-constraint that matters; fill rate feeds it, draw calls do not (`WEB.md` has the measurement
-that put the "50 to 100 calls" folklore off by 30x).
+**Measure frames with SurfaceFlinger `--timestats`, never `dumpsys gfxinfo`.** gfxinfo
+instruments HWUI, the Android View hierarchy, and a Godot game draws to its own `SurfaceView`, so
+none of its frames pass through the thing being measured. Asked for percentiles straight after a
+run that had drawn 2,117 frames it answered `Total frames rendered: 0`, `Janky frames: 0 (0.00%)`
+and `4950ms` at every percentile - 4950 ms is its no-data sentinel, and zero janky out of zero
+frames is the most reassuring output there is. **Every frame-time number this studio has printed
+for a Godot game came from gfxinfo and meant nothing**, including the 5 ms p50/p90/p95 for this
+phone that used to be quoted here. `device.ps1` carried a caution beside the number and the
+caution prevented nothing: print the right number or print nothing.
+
+Wildform on an S26 Ultra, measured the right way: 2,117 frames, 2,115 in the 8 ms bucket and 2 in
+the 7 ms bucket and none anywhere else, 0 dropped, 0 janky, 125 FPS average on a 120 Hz panel, so
+every percentile is 8 ms (M). Recipe, histogram arithmetic and the layer-name trap:
+`techniques/measuring-frames-on-the-phone.md`. Thermal throttling after five to ten minutes of
+sustained rendering is still the constraint that matters; fill rate feeds it, draw calls do not
+(`WEB.md` has the measurement that put the "50 to 100 calls" folklore off by 30x).
 
 ## CI
 

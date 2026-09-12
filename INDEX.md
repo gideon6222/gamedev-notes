@@ -63,7 +63,10 @@ a plan.
     quantity.
 11. **A construct that cannot fail is untested, not safe.** Verify every regression test by
     reintroducing the bug. Never re-record a golden without reading the diff.
-12. **Delete the stand-in in the same commit as the real thing.**
+12. **Delete the stand-in in the same commit as the real thing**, and that includes DESIGN, not
+    only scaffolding and placeholder art. A replaced objective is the most expensive stand-in there
+    is: two endings in one game is worse than either, because the player collects things that no
+    longer do anything and the next session cannot tell which one is real (`CRAFT.md`).
 13. **The framework is checked, not assumed.** `/framework-check` is the gate on these rules
     themselves and runs before planning, before resuming a game and before a ship. A rule that
     nothing looks at is the failure this whole base keeps paying for.

@@ -30,8 +30,8 @@ deferred. Read the same way at plan time: phase one owes every line that is not 
       is exponential and assigned, not added.
 - [ ] Controls are thumb-sized, at the bottom, anchored to the real viewport, safe-area
       aware, and each control owns its input. The hit box is the drawing.
-- [ ] Filmed run reviewed against the six questions in `TESTING.md` and the answers are in
-      `NOTES.md`.
+- [ ] Filmed run reviewed against the six questions (`TESTING.md`, spelled out in
+      `techniques/filming-a-run.md`) and the answers are in `NOTES.md`.
 - [ ] `test_controls.gd` passes: a real drag event through the real input handler moves the
       avatar the right way ON SCREEN, and the camera's own right vector satisfies
       `basis.x.x > 0.5`. Contact sheet re-shot after the last change to any length. Five games
@@ -62,6 +62,11 @@ deferred. Read the same way at plan time: phase one owes every line that is not 
 - [ ] A control that cannot do anything is visibly grey and one that can is not - the arrows, the
       select button, the primary button. No pips or arrows implying options that do not exist.
 - [ ] Every screen has been looked at once as a picture at the phone's aspect.
+- [ ] A phase check partitions over whatever the UI root actually holds, so a control added to one
+      phase and forgotten in the other fails the moment it is added rather than drawing over the
+      game for a release (`TESTING.md` has the shape, and `is_visible_in_tree()` is the test). Every
+      node has a `name`. Nothing is drawn in both phases that is not on the written allow-list, and
+      nothing is drawn in neither.
 
 ## Audio
 
@@ -104,14 +109,21 @@ deferred. Read the same way at plan time: phase one owes every line that is not 
 ## Performance and stability
 
 - [ ] `scripts\device.ps1 perf` with the screen full, at the start of a session and again after
-      ten minutes of play, both recorded in `NOTES.md`: **95th-percentile frame time under
-      16.7 ms** (60 fps) in both, the ten-minute p95 **no more than 20% above** the opening one,
-      and `dumpsys thermalservice` no worse than `THROTTLING_LIGHT` at the ten-minute mark. The
-      engine and pipeline alone measure 5 ms at p50, p90 and p95 on this phone (M), so the whole
-      budget below 16.7 ms belongs to the game.
+      ten minutes of play, both recorded in `NOTES.md`: **95th-percentile present-to-present frame
+      time under 16.7 ms** (60 fps) in both, the ten-minute p95 **no more than 20% above** the
+      opening one, and `dumpsys thermalservice` no worse than `THROTTLING_LIGHT` at the ten-minute
+      mark. **The numbers must come from SurfaceFlinger `--timestats`, never `gfxinfo`**, which
+      instruments HWUI and reports a confident `0 frames, 0 janky, 4950ms` for a Godot game - a
+      gfxinfo reading is not a measurement and does not satisfy this line (`GODOT.md`,
+      `techniques/measuring-frames-on-the-phone.md`). Wildform measured properly: every percentile
+      8 ms over 2,117 frames, 0 dropped, 0 janky (M).
 - [ ] No `ERROR:` lines in logcat across a full play session. No resources still in use at
       exit.
-- [ ] Textures sized and compressed per `ASSETS.md`. APK inside its size budget.
+- [ ] Textures sized and compressed per `ASSETS.md`. APK inside its size budget, **weighed after an
+      export in this commit**: the guard reads whatever APK is in `build/`, so run the check with
+      `-Export` in any commit that adds, removes or reimports an asset and treat a green size step
+      over a stale APK as no measurement at all. A shed of props went 35.6 to 64.58 MB, 81% past
+      budget, green locally and red in CI a minute later (M).
 - [ ] Launch, play through a level boundary, die, retry, buy, home, resume, back, quit: all
       exercised on the phone with `scripts/device.ps1` before shipping.
 - [ ] **The one carve-out, worded the same way in `skills/ship/SKILL.md` so the two cannot

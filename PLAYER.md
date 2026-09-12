@@ -55,8 +55,12 @@ was eight playtest entries behind.
    green ... I cant recast or anything." "i cant see the log book on the ground" - said while
    the prompt in the same frame named the logbook, so the crosshair was on it and his eye could
    not find it. "it is difficult to understand what is going on." Every state names a visible
-   action, every gauge sits where the thumb is not, and a screenshot of every screen at the
-   phone's aspect is looked at before shipping.
+   action, every gauge sits where the thumb is not, and **every check-in carries a picture of every
+   change with a visible result, shot at the device aspect** - not before shipping, which is too
+   late and too narrow. He asked for it directly: "at the end of every session, when you stop and
+   check in, can you provide me screen shots of how each of the changes look? I cant test right now
+   but I can check screen shots." He said "I can't test currently" three times in one session, so
+   **the screenshot is not a ship artefact, it IS the review**.
 5. **An animation does the physically wrong thing.** "it looks like it is just fast forwarding."
    "The ship should turn to face the direction it is digging in." "the rod should pull up and
    back when preparing to cast but it pushes down and flings up." "the pages dont flip, they
@@ -215,3 +219,12 @@ was a tackle box with a list inside it. The object IS what it contains.
   actually coming from an object or light in the room, not an overlay."
 - A game keeps growing. Plan the second month's content in the first plan, even if it is not
   built.
+- **Every screenshot is at the device aspect** (`--resolution 460x996` for a 1080x2340 phone). A
+  desktop-window capture is nearly square and hides anything near an edge, so it cannot be used to
+  sign off placement: a roughly square shot showed Stillwater's rod in the player's hands correctly
+  while a probe at the real 19.5:9 found the reel **more than a full viewport width off the left
+  edge**, so the rod bend, the line reddening, the reel animation and the new haptics had all been
+  signed off on a picture that could not show them. Two of his complaints that session ("the pages
+  are in the air on the left", "planks and sticks sticking up on the right") were both things a
+  device-aspect shot showed immediately. If a change exists only mid-animation, add a screenshot
+  mode that freezes the clock inside it rather than reporting that it cannot be captured.

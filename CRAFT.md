@@ -46,6 +46,16 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   over-digging a cost. Derive its number from the physical story (released water raises the level
   by the cell's water fraction, 15%), keep it derived not stored, and count against the ORIGINAL
   threshold or the flood feeds itself.
+- **When a new objective ships, the old one is a stand-in and the round is not done until it is
+  deleted.** Two objectives in one game is worse than either alone: the player collects components
+  that now do nothing and the next session cannot tell which ending is real. Coreward's cost 1,300
+  lines and ninety call sites across nineteen files, about two hours with the typechecker doing the
+  finding. Budget it, and expect three things: **a derived stat quietly changes** (a drill formula
+  lost its shards term, and the re-recorded golden matching the old `shards == 0` row exactly is what
+  makes the removal safe rather than a silent rebalance), **a file turns out to be two features under
+  one name** (deleting `transit.ts` took the title screen with it), and **a frozen golden keeps the
+  dead ids in its allow-list for ever**, since an overwriter leaving a cell is as legal as one
+  arriving.
 - Build the meta-game early. A price next to an income is the first thing that shows the income
   is wrong; a hyper-inflationary curve (1.55x per level, M) makes any price list meaningless.
   Fix the curve upstream, not the prices.
@@ -125,19 +135,14 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   dodging against standing still.
 - A budget (swings, fuel) is derived from the content, never set as a rate over it, and asserted
   sufficient at every level.
-- Any game with a wind-up, reload or lag must assert window > lag at the *top* of its speed
-  ladder. Five percent compounding per level quietly removed the game around level ten (M).
-- Every improvement to how hard a hit lands changes how long a level takes: rebalance both.
-- Difficulty is usually the product of two fields. Assert the content table is a monotonic ladder
-  in the order it is written.
-- Measure per item, never as one mean, against five or six procedural seeds - single-level
-  numbers swing 25% on layout luck (M). Removing an obstacle kind removes its share of the
-  danger; do not backfill the slot.
-- **Check the losers actually lose in the fixture before comparing play styles**, at the loadout
-  a player really arrives with and over a spread of seeds; four policies dealing byte-identical
-  damage meant a bought-out fixture, not four equal policies (M). Assert the ORDER of the field.
-  A flat spread IS the finding - fix the game, not the thresholds.
-  `techniques/human-bot-policies.md`.
+- Any game with a wind-up, reload or lag must assert window > lag at the *top* of its speed ladder:
+  five percent compounding per level quietly removed the game around level ten (M). Difficulty is
+  usually the product of two fields, so assert the content table is a monotonic ladder in the order
+  it is written, and remember every improvement to how hard a hit lands changes how long a level
+  takes - rebalance both.
+- Measure per item, never as one mean, against five or six procedural seeds: single-level numbers
+  swing 25% on layout luck (M). Removing an obstacle kind removes its share of the danger, so do not
+  backfill the slot.
 ## Feel
 
 - Feel is layered and ordered: physicality (what moves), then amplification (juice), then
@@ -230,35 +235,33 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   playing - a way out only the simulation knows about is not a way out. Finishing a level starts
   the next; running out restarts. This has shipped as a frozen HUD twice.
 
-## Camera and light (arithmetic: `techniques/phone-camera-and-light.md`)
+## Camera and light (rules here, arithmetic and evidence: `techniques/phone-camera-and-light.md`)
 
-- Portrait's horizontal cone is tiny (58 deg vertical is ~28 deg horizontal; 46 is ~22). Compute
-  visible width at the distance a thing sits before placing it, and rack shops vertically. Measure
-  screen pixels per world unit at EVERY depth the layout uses - 122 px/unit at a 7.6 m wall
-  against 245 at a 0.5 m drawer, on a 360 px screen (M) - and project the bounding BOX, not
-  object centres.
-- A first-person camera carried by a moving object gets its own transform: ~0.9 of POSITION,
-  20-30% of ROTATION, damped at 0.5-1 s. **Peak angular RATE predicts discomfort and is the number
-  nobody looks at** (41.9 deg/s to 3.1 deg/s, hull MORE visible, M).
-- Name the end at risk before measuring a frame - for anything trailing a chase camera it is the
-  LAST element - and check framing at the size where it BREAKS. **A probe that disagrees with a
-  picture you are looking at is measuring the wrong quantity, and the picture wins.**
-- State the framing promise and solve for it with one constant and a bisection, eased out fast and
-  in slow; do not tune two constants toward it. Re-shoot after any change to a length.
-- Inverting a follow is a two-part edit and the second part is a deletion. Every RELATIVE assertion
-  passes while the pair drift sixteen metres out of the boat (M); test an ABSOLUTE claim.
-- Pick the axis convention so no sign flip sits near the input, assert it in `test_controls.gd`,
-  and cull scenery against the camera rather than the player.
-- Light through a grid propagates through open cells; a lamp-centred falloff is a disc, and a disc
-  follows the player. Surface light and air light are two lights. A shadow fan is smoothed by
-  filtering the lit-or-not ANSWER across bearings, never by more rays.
-- **A lighting complaint is about a RATIO, so measure two places** (100 ahead / 25 behind / 50 in
-  the shaft reads as directional; 6:1 blacks out the way home, 1.65:1 has no direction, M), and
-  **any change that lifts the black floor publishes every defect the darkness was covering.**
-- A fix that improves every scene equally is a dimmer switch. Attribute an artefact to a *layer*
-  before touching any maths; when the toggles run out, render the term to ALBEDO.
-- Post-processing (vignette, mid-tone grain, a little aberration, blacks lifted toward the scene
-  colour) is the cheapest mood tool going. Put it under the HUD.
+- Portrait's horizontal cone is tiny (58 deg vertical is ~28 horizontal; 46 is ~22). Compute visible
+  width at the distance a thing sits, rack shops vertically, measure px per world unit at EVERY depth
+  used (122 at a 7.6 m wall against 245 at a 0.5 m drawer, M), and project the BOX.
+- A first-person camera carried by a moving object gets its own transform: ~0.9 of POSITION, 20-30%
+  of ROTATION, damped at 0.5-1 s. **Peak angular RATE predicts discomfort and nobody looks at it.**
+- **An object the player holds up to look at is part of the CAMERA rig, not of the world.** Parent
+  it to the camera, and solve its distance from its own measured bounds and the camera's half-angle
+  rather than picking a number: Stillwater's fixed held position was 56 degrees below a 37-degree
+  half-angle, off the bottom of the frame in the one moment the game asks him to look at it, and one
+  distance cannot frame a bluegill and a carp three times its length (`d = 2.57 * L`, 0.75-2.40 m).
+- Name the end at risk before measuring a frame, and check framing at the size where it BREAKS. **A
+  probe that disagrees with a picture you are looking at is measuring the wrong quantity, and the
+  picture wins.** Solve a framing promise with one constant and a bisection, not two.
+- Inverting a follow is a two-part edit and the second part is a deletion: every RELATIVE assertion
+  passes while the pair drift sixteen metres out of the boat (M), so test an ABSOLUTE claim. Put no
+  sign flip near the input, assert the convention in `test_controls.gd`, cull against the camera.
+- **A lighting complaint is about a RATIO, so measure two places** (6:1 blacks out the way home,
+  1.65:1 has no direction, M), and **any change that lifts the black floor publishes every defect
+  the darkness was covering.** A fix that improves every scene equally is a dimmer switch: attribute
+  an artefact to a *layer* first, and render the term to ALBEDO when the toggles run out.
+- Light through a grid propagates through open cells, a lamp-centred falloff is a disc and a disc
+  follows the player, surface and air light are two lights, and a shadow fan is smoothed by
+  filtering the lit-or-not ANSWER across bearings rather than by more rays.
+- Post-processing is the cheapest mood tool going, and it goes under the HUD (`POLISH.md` gates the
+  stops).
 
 ## Visual legibility and art direction
 
@@ -356,6 +359,14 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - Give the game ONE `close_any_room()` and one `any_room_open()`. A check keeping its own list of
   what might be open goes stale the first time a room is added, and the failure lands six checks
   later looking like a missing button.
+- **Anything that can reach the inventory must have an entry in the table the inventory looks
+  things up in**, because the screen crashes rather than degrades. A new cut-stone block got a
+  weight and a value but no `DEF` entry, so the manifest opened or did not depending on whether the
+  player had cut through a wall since last looking. Both halves were covered and the join was not:
+  **every fixture that cut stone never opened the manifest, and every fixture that opened the
+  manifest never cut stone.** Assert it by sweeping the world for everything breakable into the hold
+  and checking the lookup exists, not by naming the ids that caused it - the narrow version passes
+  for the next block type somebody adds.
 - A screen you invented is invisible to you: list what the reference does *not* have, and do not
   copy a monetisation mechanic into a game with no monetisation.
 - Preferences are not progress. Settings get their own file, and "erase progress" next to the
@@ -385,6 +396,15 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   Stamp after every one-of-a-kind cell and before everything that generates; drop a colliding room
   ENTIRELY rather than clipping it, because half a room is a wall with no room behind it. Keep a
   third empty, and never let a locked door lock the world. `techniques/coreward-authored-rooms.md`.
+- **Anything permanently impassable that sits INSIDE the route to later content will block that
+  content**, which is the "never let a locked door lock the world" rule applied to furniture rather
+  than doors. Coreward buried nine objectives as single unbreakable cells across only three columns,
+  and a cell that never breaks is a permanent plug in its column: **six of the nine became
+  unreachable by digging to them**, and a long-play probe read it as a balance problem for four
+  simulated hours. A "you cannot cheat your way to this" rule only needs to hold until the thing is
+  CLAIMED - unbreakable while unclaimed, merely very hard (3x the local rock) after - because a
+  claimed monument in the way is one the player may move. Write the test that drives the player to
+  **each** instance in turn, never to one.
 - **Once a mechanic puts the player INSIDE material, every "is this cell clear" test written
   before that mechanic is suspect.** Three Gravewell faults were this: a lamp buried in the rock
   it was cutting got no light, collision asked about whole metres and wedged the ship on slivers,

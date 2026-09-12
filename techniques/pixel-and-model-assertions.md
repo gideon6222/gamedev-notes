@@ -69,3 +69,15 @@ player exists.
   chosen moments is not a sweep.
 - **Keep it local.** Thresholds derived on Vulkan do not transfer to a GPU-less CI runner, and two
   sets of numbers for one check is how a check stops meaning anything.
+
+## Projecting by hand, and why it is better than `unproject_position`
+
+- **Project by hand rather than calling `unproject_position`, and it is better, not merely
+  equivalent.** Headless there is no viewport and `global_transform` is IDENTITY, so a guard
+  written for CI either throws (suite prints "all passing", check never ran) or reports every
+  point BEHIND the camera. Multiply local transforms up the parent chain and project with
+  `tan(fov/2)` against the PHONE's aspect (`keep_aspect` is KEEP_HEIGHT, so `fov` is vertical):
+  that tests the aspect the player has, not whatever window a desktop run opened, and it runs in
+  CI. Verified against the windowed probe, -1.25/-0.91 by hand against -1.20/-0.85 rendered.
+
+Moved out of `TESTING.md` at the 2026-09-12 digest; the one-line rule stays there.

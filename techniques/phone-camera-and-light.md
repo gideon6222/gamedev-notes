@@ -110,3 +110,41 @@ wrong; any lighting complaint; a "circle of light", "beam", "too dark" or "carto
   a *layer* (toggle `.visible` per candidate) before touching any maths; when the toggles run out,
   render the suspect term straight to ALBEDO.
 
+## The CRAFT.md rules in full, with their evidence
+
+Moved here at the 2026-09-12 digest, which needed the room in `CRAFT.md`. Every rule below is still
+listed there in one line; this is the measurement and the reasoning behind each.
+
+- Portrait's horizontal cone is tiny (58 deg vertical is ~28 deg horizontal; 46 is ~22). Compute
+  visible width at the distance a thing sits before placing it, rack shops vertically, measure screen
+  pixels per world unit at EVERY depth the layout uses (122 px/unit at a 7.6 m wall against 245 at a
+  0.5 m drawer on a 360 px screen, M), and project the bounding BOX, not object centres.
+- A first-person camera carried by a moving object gets its own transform: ~0.9 of POSITION, 20-30%
+  of ROTATION, damped at 0.5-1 s. **Peak angular RATE predicts discomfort and is the number nobody
+  looks at** (41.9 deg/s to 3.1 deg/s, hull MORE visible, M).
+- **An object the player holds up to look at is part of the CAMERA rig, not part of the world.**
+  Parent it to the camera so looking around cannot lose it, and solve its distance from its own
+  measured bounds and the camera's half-angle rather than picking a number. Stillwater's held fish
+  sat at a fixed world position chosen when the hold lasted 2.4 seconds on a timer; once the hold
+  became an untimed decision the same position measured 0.27 m from the lens and 0.40 m below the
+  view axis, **56 degrees down against a vertical half-angle of 37**, so it was off the bottom of the
+  frame in the one moment the game asks the player to look at it. One distance cannot frame a
+  bluegill and a carp three times its length: `d = 2.57 * L` clamped to 0.75-2.40 m frames both.
+- Name the end at risk before measuring a frame - for a chase camera it is the LAST element - and
+  check framing at the size where it BREAKS. **A probe that disagrees with a picture you are looking
+  at is measuring the wrong quantity, and the picture wins.** State the framing promise and solve it
+  with one constant and a bisection, eased out fast and in slow, and re-shoot after any length change.
+- Inverting a follow is a two-part edit and the second part is a deletion. Every RELATIVE assertion
+  passes while the pair drift sixteen metres out of the boat (M); test an ABSOLUTE claim. Pick the
+  axis convention so no sign flip sits near the input, assert it in `test_controls.gd`, and cull
+  scenery against the camera rather than the player.
+- **A lighting complaint is about a RATIO, so measure two places** (100 ahead / 25 behind / 50 in the
+  shaft reads as directional; 6:1 blacks out the way home, 1.65:1 has no direction, M). **Any change
+  that lifts the black floor publishes every defect the darkness was covering**, and a fix that
+  improves every scene equally is a dimmer switch. Attribute an artefact to a *layer* before touching
+  any maths; when the toggles run out, render the term to ALBEDO. Light through a grid propagates
+  through open cells, a lamp-centred falloff is a disc and a disc follows the player, surface light
+  and air light are two lights, and a shadow fan is smoothed by filtering the lit-or-not ANSWER
+  across bearings rather than by more rays.
+- Post-processing (vignette, mid-tone grain, a little aberration, blacks lifted toward the scene
+  colour) is the cheapest mood tool going, and it goes under the HUD.
