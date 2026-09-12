@@ -86,5 +86,8 @@ $verdict | Set-Content -LiteralPath $latest -Encoding UTF8
 # 4. prune
 Get-ChildItem -LiteralPath $reports -Filter 'doctor-*.txt' | Sort-Object Name -Descending | Select-Object -Skip $Keep | Remove-Item -Force -ErrorAction SilentlyContinue
 
+# One line for the dashboard's robots log.
+try { Add-Content -LiteralPath (Join-Path $reports 'robots.log') -Value ("{0}|doctor|{1}|weekly check: {2}" -f [datetimeoffset]::Now.ToString('o'), $(if ($code -eq 0) { 'ok' } else { 'fail' }), $summary.Trim()) -Encoding UTF8 } catch { }
+
 Write-Host ($verdict -join "`n")
 exit $code

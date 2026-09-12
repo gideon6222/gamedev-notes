@@ -12,6 +12,13 @@ default moved.
 - On demand: `/framework-check` (judgement on the doctor), `/digest` (fold the inbox), `/studio-admin` (this).
 - Nothing in Cowork runs on a schedule. The old Cowork weekly task was deleted on 2026-09-12; it burned Fable tokens, needed the PC linked, and left git locks behind.
 
+## The dashboard (`C:\dev\studio-dashboard`, private site on Cloudflare Pages behind Access)
+
+- Shows every robot (the machinery, one card each, defined in `agent\robots.json`), the rules log (inbox lessons by game, waiting or folded), activity, games, and the questions and suggestions Gideon sends from the site.
+- The Courier: Task Scheduler task "studio-dashboard agent", every 10 min, `agent\run.ps1`. Collects stats (no tokens), then handles `queue\*.json`: a question goes to Haiku, Sonnet or Opus by `Select-Model` in `agent\process-queue.ps1` (the reason is shown on the site), a suggestion is evaluated by Opus (`agent\prompts\suggestion-evaluate.md`) and, if approved, implemented by Sonnet or Opus (`suggestion-implement.md`) in this repo and the template, never in a game repo, followed by a full doctor run.
+- Feeds: `reports\robots.log` (one line per run, written by `session-start.ps1`, `weekly-check.ps1` and the Courier), git history here (Lesson:, Digest:, Admin: subjects), each game's `build\check-*.log`, `reports\LATEST.txt`.
+- A suggestion implemented from the site shows up here as an `Admin:` commit, so name commits that way.
+
 ## Thresholds (all in `scripts\doctor.ps1` unless noted)
 
 - Inbox backlog: PASS up to 10, WARN over 10, FAIL over 40 (`Test-InboxBacklog`). The documented digest trigger is ten (`INDEX.md`, `session-start.ps1`).

@@ -78,6 +78,13 @@ if ($count -gt 10) { Write-Output "More than ten lessons are waiting: run /diges
 # THE LAST ROUTINE CHECK. scripts\weekly-check.ps1 runs on a Windows scheduled task and
 # leaves its verdict in reports\LATEST.txt. One line here is how a FAIL reaches a session
 # without anyone re-running the doctor.
+# One line for the dashboard's robots log (C:\dev\studio-dashboard reads reports\robots.log).
+try {
+  New-Item -ItemType Directory -Force -Path (Join-Path $notes 'reports') | Out-Null
+  $extra = if ($cleared.Count -gt 0) { ", cleared locks in $($cleared -join ', ')" } else { '' }
+  Add-Content -LiteralPath (Join-Path $notes 'reports\robots.log') -Value ("{0}|sentry|ok|greeted a session: {1} lesson(s) waiting{2}" -f [datetimeoffset]::Now.ToString('o'), $count, $extra) -Encoding UTF8
+} catch { }
+
 $latest = Join-Path $notes 'reports\LATEST.txt'
 if (Test-Path -LiteralPath $latest) {
   $first = (Get-Content -LiteralPath $latest -TotalCount 1 | Out-String).Trim()
