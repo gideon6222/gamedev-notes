@@ -16,6 +16,14 @@ as advice about a convention rather than as a test that fails, so a session that
 the line repeated the bug. Everything doctor checks was a real defect that a correct,
 written-down rule failed to prevent.
 
+
+Every game's `scripts\check.ps1` already runs `doctor.ps1 -Repo <slug> -Quiet`
+as its last step, so the mechanical half fires before every commit without
+anyone asking for it. That pass skips cross-references, template content drift,
+sim purity and git hygiene for speed. This skill is the full pass and the
+judgement on top of it: run it at the start of a game, before a ship, and
+whenever the quiet run has been failing and nobody has looked at why.
+
 ## 1. Run it
 
 ```powershell
