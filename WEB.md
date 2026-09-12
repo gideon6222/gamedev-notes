@@ -4,7 +4,8 @@ Read only when a game is built for the web. Coreward ships on this stack and is 
 maintained; nothing here is deprecated, it is just the right answer for fewer things now.
 The full web-era notes are in `archive/PIPELINE-2026-09-09.md`, and every three.js and DOM
 trap is in `techniques/three-js-traps.md` and its two companions,
-`three-js-renders-as-nothing.md` and `three-js-materials-and-lights.md`. Edited only by `/digest`.
+`techniques/three-js-renders-as-nothing.md` and
+`techniques/three-js-materials-and-lights.md`. Edited only by `/digest`.
 
 ## When to choose it
 
