@@ -38,6 +38,17 @@ script rejects sends every future digest down a hand-rolled path.
 base earns its place by having failed. This one was written, reviewed, and never executed, which is
 the same defect as a test nobody has watched go red.
 
+## Status 2026-09-12 (later the same day)
+
+Both halves are fixed. `kb.ps1 commit` now accepts a named file that is tracked (in the index
+or in HEAD) but absent from disk and stages it as a deletion with `git rm --cached`, verified
+end to end against a throwaway repo with a bare remote: two deletions and one edit in one
+commit, pushed, and a re-run reporting nothing to commit. Step 7 of the digest skill now says
+so. Stale zero-byte `index.lock` files are cleared by `setup\session-start.ps1` and
+`scripts\weekly-check.ps1` when older than ten minutes, and the Cowork project rules forbid
+running git against the mounted folder from the Linux side at all. What is left to fold is the
+rule below, not the defect.
+
 ## Replaces or contradicts
 
 `skills/digest/SKILL.md` step 7, quoted above, which cannot work as written. The fix is in

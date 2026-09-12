@@ -11,7 +11,8 @@
   Actions:
     pull     rebase onto origin and report the head commit
     status   short status and the last five commits
-    commit   -Files <paths> -Message <text>; stages, commits and pushes exactly those files
+    commit   -Files <paths> -Message <text>; stages, commits and pushes exactly those files.
+             A named file that is tracked but no longer on disk is committed as a deletion.
     lease    take the /digest lease, so two digests cannot run over each other. Refuses while
              someone else's lease is less than 30 minutes old, naming the holder and the
              expiry. A lease older than that is stale and is taken over, loudly.
@@ -40,8 +41,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # How long a lease is worth. Longer than any digest has taken; short enough that a session
-# killed mid-digest does not lock the repo for the rest of the day.
-$LeaseMinutes = 30
+# killed mid-digest does not lock the repo for the rest of the day. 30 was tight for a
+# digest of twenty-plus lessons, so it is 45. A stale lease is taken over, never a blocker.
+$LeaseMinutes = 45
 
 # git writes progress, "Everything up-to-date" and expected failures to stderr, and
 # $ErrorActionPreference = 'Stop' turns any of that into a terminating NativeCommandError
@@ -113,8 +115,15 @@ try {
       }
     }
     'commit' {
+      # `powershell kb.ps1 commit -Files a,b` binds two files. `powershell -File kb.ps1 ...
+      # -Files a,b` binds ONE string with a comma in it, because -File hands arguments over
+      # without PowerShell's own parsing. Both spellings are in use, so split here and the
+      # difference disappears. No filename in this repo contains a comma.
+      # Forward slashes: git on Windows accepts both, git anywhere else accepts one.
+      $Files = @($Files | ForEach-Object { $_ -split ',' } | ForEach-Object { ($_.Trim() -replace '\\', '/') } | Where-Object { $_ })
       if (-not $Files -or $Files.Count -eq 0) { throw "commit needs -Files (stage by name; a blanket add here has swept up another session's work before)" }
       if (-not $Message) { throw "commit needs -Message" }
+      $removed = @()
       foreach ($f in $Files) {
         if ($f -match '^\s*(-A|--all|-u|\.|\*)\s*$') { throw "refusing blanket add '$f'" }
         # A pattern is a blanket add wearing a narrower name: `inbox/*` passes a literal
@@ -123,13 +132,38 @@ try {
         if ($f -match '[\*\?\[\]]') { throw "refusing pattern '$f': name each file. A glob here stages whatever else happens to match, including another session's work." }
         # `:(exclude)`, `:!` and `:/` are git pathspec magic, not filenames.
         if ($f.TrimStart() -like ':*') { throw "refusing pathspec magic '$f': name a plain file path." }
-        if (-not (Test-Path -LiteralPath $f)) { throw "no such file: $f" }
+        if (-not (Test-Path -LiteralPath $f)) {
+          # A file that is not on disk but IS tracked is a deletion (git rm, or a plain
+          # delete). `git add -- <path>` stages a removal for a tracked path, so it is
+          # named and committed exactly like an edit. Before this branch existed, /digest
+          # step 7 (delete the folded inbox files, then commit them by name) could not be
+          # run through this script at all.
+          # Tracked means in the index (a plain delete) OR in HEAD (after `git rm`, which
+          # has already taken it out of the index). Either way `git add -- <path>` stages
+          # the removal.
+          Native { git ls-files --error-unmatch -- $f 2>$null | Out-Null }
+          $inIndex = ($LASTEXITCODE -eq 0)
+          Native { git cat-file -e ("HEAD:" + $f.TrimStart('./')) 2>$null }
+          $inHead = ($LASTEXITCODE -eq 0)
+          if (-not $inIndex -and -not $inHead) { throw "no such file: $f (not on disk and not tracked, so there is nothing to commit)" }
+          $removed += $f
+          continue
+        }
         if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { throw "'$f' is a directory; name the files inside it. A directory stages everything under it, which is the blanket add by another route." }
       }
       Native { git pull --rebase --autostash --quiet }
       if ($LASTEXITCODE -ne 0) { throw "pull --rebase failed before commit" }
-      Native { git add -- $Files }
-      if ($LASTEXITCODE -ne 0) { throw "git add failed" }
+      # Deletions are staged with rm --cached, which is a no-op for a path `git rm` already
+      # took out of the index; `git add` on such a path errors "did not match any files".
+      if ($removed.Count -gt 0) {
+        Native { git rm --cached --quiet --ignore-unmatch -- $removed }
+        if ($LASTEXITCODE -ne 0) { throw "git rm --cached failed for $($removed -join ', ')" }
+      }
+      $present = @($Files | Where-Object { $removed -notcontains $_ })
+      if ($present.Count -gt 0) {
+        Native { git add -- $present }
+        if ($LASTEXITCODE -ne 0) { throw "git add failed" }
+      }
       # Both the probe and the commit are scoped to $Files. Without the pathspec the probe
       # passes on somebody else's staged change and the commit then carries it.
       Native { git diff --cached --quiet -- $Files }

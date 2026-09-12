@@ -13,7 +13,7 @@ window is short.
 1. **Take the lease before you read anything.**
    `powershell C:\dev\gamedev-notes\scripts\kb.ps1 lease -Owner digest`. Two digests
    running at once overwrite each other's folds. It refuses while another session's lease is
-   under thirty minutes old and prints who holds it and when it expires; if it refuses,
+   under forty-five minutes old and prints who holds it and when it expires; if it refuses,
    stop and say so. Then `kb.ps1 pull`, and list `inbox\*.md` (ignore `README.md`).
    Nothing there: release the lease and stop.
 2. Read every inbox file. Group duplicates: two sessions often learn the same thing.
@@ -42,17 +42,23 @@ window is short.
    merge lines that say one thing, drop a caution a measurement replaced, move detail to
    `techniques/`.
 6. Re-read `INDEX.md`. Only change it when a standing rule or a file's purpose changed.
-7. Delete each folded inbox file with `git rm`, then commit everything by name:
+7. Delete each folded inbox file (`git rm`, or just delete it), then commit everything by
+   name in one call, edits and deletions together:
    `kb.ps1 commit -Files CRAFT.md,GODOT.md,inbox\<a>.md,... -Message "Digest: <n> lessons (<topics>)"`.
+   `kb.ps1` treats a named file that is tracked but gone from disk as a deletion. The commit
+   message must contain the word `Digest`; the doctor's digest-age check greps for it.
    A push rejection means another digest ran; pull, re-apply, push.
 8. **Release the lease the moment the push lands:**
    `powershell C:\dev\gamedev-notes\scripts\kb.ps1 release -Owner digest`.
 9. Report the lines that changed, in one message, so he can veto. Include the restatements
    from step 3 and the contradictions you resolved, naming the line you deleted.
 
+**Model:** this is editorial work with a written procedure. Sonnet is enough; start the
+session with `claude --model sonnet` or say `/model sonnet` before step 1.
+
 **Release the lease on the way out of any failure too** - a conflict you cannot resolve, a
 red gate, his veto, a lesson you decided not to fold. A lease left behind by a stopped
-session blocks every other digest for thirty minutes.
+session blocks every other digest for forty-five minutes.
 
 `--dry-run`: pull, then do steps 2 and 3 as a proposed diff in chat and change nothing. Do
 not take the lease for a dry run; it reads and writes nothing.

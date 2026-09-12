@@ -24,7 +24,11 @@ already answers.
 
 ## 2. Resume an existing game
 
-Run `/framework-check` first, before resuming, and fix what it reports.
+Glance at `C:\dev\gamedev-notes\reports\LATEST.txt` (the SessionStart output already
+printed its first line). If it shows `0 fail` and is under nine days old, the framework is
+checked and you resume. Run `/framework-check` only when it shows a FAIL, is stale or
+missing, or the last `check.ps1` in this repo ended with `framework FAIL`. A full framework
+audit at the top of every game session was costing more than it caught.
 
 Read, in this order, and nothing else until you need it:
 

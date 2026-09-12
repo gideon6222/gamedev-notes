@@ -24,7 +24,21 @@ sim purity and git hygiene for speed. This skill is the full pass and the
 judgement on top of it: run it at the start of a game, before a ship, and
 whenever the quiet run has been failing and nobody has looked at why.
 
+## 0. Read the last routine result first
+
+`scripts\weekly-check.ps1` runs the full doctor every Sunday on a Windows scheduled task
+and leaves `reports\LATEST.txt`. Read it (or ask the `doctor-runner` agent for `latest`).
+If it is under nine days old and shows `0 fail`, and nothing in the inbox or the template
+has changed since, that IS the check: say so in one line and go on with the work. Only
+run the doctor yourself when the report is stale, shows a FAIL, or you have just changed
+something it looks at.
+
 ## 1. Run it
+
+Delegate the run to the `doctor-runner` agent (Haiku) with `full`, a game name, `fix` or
+`quiet`. It returns the summary and the WARN and FAIL lines verbatim and costs almost
+nothing. Reading a 1200-line script's output in the main session is what this skill's
+judgement is for, not its context. Running it by hand when you must:
 
 ```powershell
 powershell C:\dev\gamedev-notes\scripts\doctor.ps1
@@ -69,7 +83,9 @@ that passes because nothing happened is the fault this whole script exists to ca
 
 - template drift (WARN): a game may legitimately diverge. Read the diff and say which side
   is right. A fix made in the template and never forward-ported looks identical from here to
-  a deliberate divergence, and only reading tells them apart.
+  a deliberate divergence, and only reading tells them apart. Once a difference is read and
+  accepted, list the script in that game's `scripts\DIVERGENCE.md` and the line stops naming
+  it. Do not list a script there to silence an owed forward-port.
 - an engine reference inside `src/sim`: moving it is an architecture change. Say what it is,
   where it should live, and what it would cost.
 - a `.git` over the size warning, a game missing half the template, a port that has to change

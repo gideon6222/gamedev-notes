@@ -8,7 +8,7 @@ this directory it is either digesting the inbox, editing the framework, or readi
   running session, so a branch checked out in place yanks all of them onto it mid-build.
   Framework work goes in a worktree:
   `git worktree add C:\dev\gamedev-notes-<topic> -b <branch>`, then work there.
-- **`/digest` takes the lease first** (`scripts/kb.ps1 lease -Owner digest`, 30-minute TTL)
+- **`/digest` takes the lease first** (`scripts/kb.ps1 lease -Owner digest`, 45-minute TTL)
   and releases it after the push and on every failure path. Two digests at once overwrite
   each other's folds.
 - `git pull --rebase --autostash` before any edit to a topic file, and push immediately
@@ -20,6 +20,11 @@ this directory it is either digesting the inbox, editing the framework, or readi
 - Keep every topic file under about 30 KB. When a section grows, condense it or move the
   detail to `techniques/`.
 - Prefer a measurement to a caution. Delete a guess when a number replaces it.
+- "Another git process seems to be running" with a **zero-byte** `.git/index.lock` older
+  than a few minutes is a stale lock, not a live process. Delete the file and carry on. The
+  session-start hook and the weekly check do this for you.
+- Changes to the machinery (thresholds, lease, schedule, skills, agents, models) go through
+  `/studio-admin`, which reads `ADMIN.md` and `MODELS.md` rather than the topic files.
 - Line endings are LF (`.gitattributes`). Do not rewrite files through PowerShell
   `Get-Content`/`Set-Content`.
 - `skills/*/SKILL.md` are live: `~/.claude/skills/<name>` is a junction to them, so an edit

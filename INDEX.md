@@ -15,7 +15,7 @@ That only works if this knowledge base is read at the start and written to as yo
 
 | Step | Skill | What happens |
 |---|---|---|
-| **0. Check** | `/framework-check` | Runs first, always: `scripts\doctor.ps1` over this base, the template and every game repo, then act on what it fails |
+| **0. Check** | `/framework-check` | Before a new game or a ship: `scripts\doctor.ps1` over this base, the template and every game repo, then act on what it fails. A resume reads `reports\LATEST.txt` (the weekly run) instead of re-running |
 | 1. Understand | `/new-game <idea>` | Reads this base, expands the idea, picks the engine (Godot unless the game truly wants to be a web link) |
 | 2. Research | `/game-plan` | Searches for the genre's loop, reference games, one new technique, and runs the asset scout |
 | 3. Plan | `/game-plan` | Writes `PLAN.md`: loop, feel, first minute, content, systems, assets, tests, polish, milestones |
@@ -24,7 +24,8 @@ That only works if this knowledge base is read at the start and written to as yo
 | 5. Build | `/game-studio` | Milestone by milestone, sim first, tests alongside, assets in, polish pass |
 | 6. Play | `/playtest` | Headless suites, filmed runs on the desk, then on the phone over adb. Judge feel, not just pass/fail |
 | 7. Ship | `/ship` | CI green, APK on a Release, screenshot and changelog to Gideon, playtest notes filed |
-| Always | `/record-lesson` | Write what you learned the moment you learn it (see below) |
+| Always | `/record-lesson` | Write what you learned the moment you learn it (see below). The `lesson-filer` agent does the paperwork |
+| Machinery | `/studio-admin` | Changing how the studio is managed: thresholds, schedule, skills, agents, models. Reads `ADMIN.md`, never the topic files |
 
 Resuming an existing game: read its `CLAUDE.md`, `NOTES.md`, `PLAN.md` and
 `playtests/<game>.md`, then continue from its milestone list. Do not re-plan a game that has
@@ -67,9 +68,13 @@ a plan.
     only scaffolding and placeholder art. A replaced objective is the most expensive stand-in there
     is: two endings in one game is worse than either, because the player collects things that no
     longer do anything and the next session cannot tell which one is real (`CRAFT.md`).
-13. **The framework is checked, not assumed.** `/framework-check` is the gate on these rules
-    themselves and runs before planning, before resuming a game and before a ship. A rule that
-    nothing looks at is the failure this whole base keeps paying for.
+13. **The framework is checked, not assumed.** `scripts\doctor.ps1` runs weekly on a
+    scheduled task (`reports\LATEST.txt`), on every game commit through `check.ps1`, and in
+    full through `/framework-check` before a new game or a ship. A rule that nothing looks
+    at is the failure this whole base keeps paying for.
+14. **Cheap work goes to cheap models.** Running the doctor and filing a lesson are Haiku
+    agents (`doctor-runner`, `lesson-filer`); a digest is a Sonnet session. `MODELS.md` is
+    the table.
 
 ## Where knowledge lives (read what the step needs, not everything)
 

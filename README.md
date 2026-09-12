@@ -21,8 +21,10 @@ by the step that needs it.
 | `inbox/` | Lessons waiting to be folded in. One file each | any session, create only |
 | `skills/` | The Claude Code skills that run the process. Junctioned into `~/.claude/skills` | this repo |
 | `agents/` | Subagents (researcher, asset scout, playtester). Copied into `~/.claude/agents` | this repo |
-| `scripts/` | `new-game.ps1`, `kb.ps1`, `assets.py`, `doctor.ps1`. `movie.ps1` and `device.ps1` are not here: they are per-game, in each repo's own `scripts/` | this repo |
-| `setup/` | `install.ps1` and the files it writes into `~/.claude` | this repo |
+| `ADMIN.md`, `MODELS.md` | The map of the machinery (every threshold, schedule, hook and knob) and the model routing table. Read by `/studio-admin`, not by build sessions | `/studio-admin` |
+| `reports/` | Output of the weekly scheduled check (`LATEST.txt` plus the last eight full runs). Gitignored, this machine only | `scripts/weekly-check.ps1` |
+| `scripts/` | `new-game.ps1`, `kb.ps1`, `assets.py`, `doctor.ps1`, `weekly-check.ps1`. `movie.ps1` and `device.ps1` are not here: they are per-game, in each repo's own `scripts/` | this repo |
+| `setup/` | `install.ps1` and the files it writes into `~/.claude`, and `install-schedule.ps1` for the weekly Task Scheduler job | this repo |
 | `archive/` | The previous generation of these notes, kept whole | never |
 
 ## Setup on a fresh machine, or after pulling a change to `setup/`
@@ -37,9 +39,11 @@ gh auth login      # once
 `skills/` and copies `agents/` into `~/.claude`, and creates `C:\dev\.env` from
 `setup/env.example` if it does not exist. It is safe to re-run.
 
-Then run `/framework-check` (it runs `scripts/doctor.ps1`) and fix what it reports. That is
-the standing check on this repo and the games under `C:\dev`, not a one-off after install:
-every `/new-game` and every `/game-studio` resume starts with it.
+`install.ps1` also registers the weekly scheduled task (`setup\install-schedule.ps1`), which
+runs `scripts\doctor.ps1` every Sunday evening with no Claude involved and leaves its verdict
+in `reports\LATEST.txt`. Every session prints that verdict at startup. `/framework-check` is
+the full run plus judgement, for before a new game, before a ship, and whenever the verdict
+shows a FAIL.
 
 **To change anything in this repo, work in a git worktree, never a branch in place.**
 `C:\dev\gamedev-notes` is one working tree shared by every running session, so a

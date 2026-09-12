@@ -241,6 +241,12 @@ Get-ChildItem (Join-Path $Notes 'agents') -Filter *.md | ForEach-Object {
   Copy-Item $_.FullName (Join-Path $claude "agents\$($_.Name)") -Force; Note $_.BaseName
 }
 
+# ── 6b. the weekly check, on Task Scheduler ─────────────────────────────────
+Step "Weekly framework check (Task Scheduler, no Claude)"
+try {
+  & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Notes 'setup\install-schedule.ps1') 2>&1 | ForEach-Object { Note $_ }
+} catch { Warn "could not register the scheduled task: $($_.Exception.Message). Run setup\install-schedule.ps1 by hand." }
+
 # ── 7. .env and plans ───────────────────────────────────────────────────────
 Step "C:\dev\.env and C:\dev\plans"
 if (-not (Test-Path 'C:\dev\.env')) { Copy-Item (Join-Path $Notes 'setup\env.example') 'C:\dev\.env'; Note "created C:\dev\.env: add the API keys when you have them" } else { Note ".env exists" }

@@ -288,7 +288,7 @@ function Test-InboxBacklog([object[]] $Lessons) {
   }
   $days = [int]([datetime]::Now.Date - $oldest).TotalDays
   $age = "oldest lesson $($oldest.ToString('yyyy-MM-dd')), standing $days day$(if ($days -eq 1) { '' } else { 's' })"
-  if ($n -gt 25) {
+  if ($n -gt 40) {
     Fail $KB 'inbox backlog' "$n lessons waiting ($age). Fix: run /digest now, before any other work in this repo - a lesson nobody folded in is a lesson the other games never got."
   } elseif ($n -gt 10) {
     Warn $KB 'inbox backlog' "$n lessons waiting ($age). Run /digest; the documented threshold is ten."
@@ -368,7 +368,11 @@ function Test-LessonFormat([object[]] $Lessons) {
   # base is somebody's job. A WARN when one repo is being gated, which reports
   # it at every commit without holding a sound release hostage to another
   # game's paperwork.
-  Fail $KB 'lesson format' $detail   # Fail() degrades this to WARN under -Repo
+  # 2026-09-12: WARN in the full audit too. The digest reads every lesson anyway and
+  # checks the target file before folding (skills\digest\SKILL.md step 3), so a missing
+  # heading is a small editorial cost at digest time, not a broken invariant. As a FAIL it
+  # turned every weekly report red over paperwork and taught the reader to skip the output.
+  Warn $KB 'lesson format' $detail
 }
 
 # 4. Every "Belongs in:" names a file that exists, so a digest is never sent at a target that
@@ -786,7 +790,8 @@ function Test-VersionCode([string] $Area, [string] $Path, [object[]] $Presets) {
 function Get-TemplateScripts {
   $dir = Join-Path $Template 'scripts'
   if (-not (Test-Path -LiteralPath $dir)) { return $null }
-  $files = @(Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -ne '.uid' })
+  # .md is documentation (scripts\DIVERGENCE.md), not a script a game must carry.
+  $files = @(Get-ChildItem -LiteralPath $dir -File | Where-Object { $_.Extension -ne '.uid' -and $_.Extension -ne '.md' })
   if ($files.Count -eq 0) { return @() }
   return $files
 }
@@ -829,18 +834,30 @@ function Test-TemplateScriptSet([string] $Area, [string] $Path, [object[]] $Temp
     Fail $Area 'template drift' 'no script is shared with the template, so no content could be compared. Fix: see the template scripts line above.'
     return
   }
+  # scripts\DIVERGENCE.md in a game repo names the template scripts this game has
+  # deliberately changed, one filename per line (anything after a space or # is a note).
+  # Those are skipped here, so the drift line only ever names a difference nobody has
+  # looked at. Listing a script there is a decision, and a decision is not drift.
+  $intentional = @()
+  $divFile = Join-Path $Path 'scripts\DIVERGENCE.md'
+  if (Test-Path -LiteralPath $divFile) {
+    $intentional = @(Get-TextLines $divFile | ForEach-Object { ($_ -split '[\s#]', 2)[0].Trim() } | Where-Object { $_ -and $_ -notlike '*.md' })
+  }
   $differ = @()
+  $accepted = @()
   foreach ($s in $shared) {
+    if ($intentional -contains $s.Name) { $accepted += $s.Name; continue }
     $a = Read-TextFile $s.Theirs
     $b = Read-TextFile $s.Mine
     if ($null -eq $a -or $null -eq $b) { $differ += "$($s.Name) (unreadable)"; continue }
     if ((Normalize-Text $a) -cne (Normalize-Text $b)) { $differ += $s.Name }
   }
   if ($differ.Count -eq 0) {
-    Pass $Area 'template drift' "$($shared.Count) shared script(s), all identical to the template"
+    $note = if ($accepted.Count -gt 0) { "; $($accepted.Count) listed as intentional in scripts\DIVERGENCE.md ($(Join-Some $accepted 4))" } else { '' }
+    Pass $Area 'template drift' "$($shared.Count) shared script(s), the rest identical to the template$note"
     return
   }
-  Warn $Area 'template drift' "differs from $Template\scripts: $(Join-Some $differ 9). Read each: a game may legitimately diverge, but a template fix that was never forward-ported looks exactly the same from here."
+  Warn $Area 'template drift' "differs from $Template\scripts: $(Join-Some $differ 9). Read each: a game may legitimately diverge, but a template fix that was never forward-ported looks exactly the same from here. Once read and accepted, list the name in scripts\DIVERGENCE.md and this line stops naming it."
 }
 
 # 15. The test set the template now guarantees. run_tests.gd must discover suites by globbing

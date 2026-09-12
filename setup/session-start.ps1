@@ -16,6 +16,27 @@ $ErrorActionPreference = 'Continue'
 $notes = Split-Path $PSScriptRoot -Parent
 if (-not (Test-Path (Join-Path $notes '.git'))) { exit 0 }
 
+# STALE GIT LOCKS, cleared before anything tries to write.
+#
+# A zero-byte .git\index.lock older than ten minutes is not a running git process. It is
+# what a killed session leaves, and what Cowork's Linux sandbox leaves every time it runs
+# git against the mounted folder (it cannot delete the lock it made). Either way it blocks
+# every git write in that repo with "another git process seems to be running", which reads
+# like a concurrency bug and is not one. Ten minutes is far longer than any real git
+# operation here holds the index.
+$root = Split-Path $notes -Parent
+$cleared = @()
+Get-ChildItem -LiteralPath $root -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+  $lock = Join-Path $_.FullName '.git\index.lock'
+  if (Test-Path -LiteralPath $lock) {
+    $i = Get-Item -LiteralPath $lock
+    if ($i.Length -eq 0 -and $i.LastWriteTime -lt (Get-Date).AddMinutes(-10)) {
+      try { Remove-Item -LiteralPath $lock -Force; $cleared += $_.Name } catch { }
+    }
+  }
+}
+if ($cleared.Count -gt 0) { Write-Output "gamedev-notes: cleared stale .git\index.lock in $($cleared -join ', ') (zero bytes, over ten minutes old)" }
+
 git -C $notes pull --ff-only --quiet 2>$null
 if ($LASTEXITCODE -eq 0) {
   $head = (git -C $notes log -1 --format='%h %s' 2>$null | Out-String).Trim()
@@ -53,4 +74,18 @@ if ($count -gt 0) {
   if ($count -gt $show) { Write-Output "    ... and $($count - $show) more in inbox\" }
 }
 if ($count -gt 10) { Write-Output "More than ten lessons are waiting: run /digest before starting a new game." }
+
+# THE LAST ROUTINE CHECK. scripts\weekly-check.ps1 runs on a Windows scheduled task and
+# leaves its verdict in reports\LATEST.txt. One line here is how a FAIL reaches a session
+# without anyone re-running the doctor.
+$latest = Join-Path $notes 'reports\LATEST.txt'
+if (Test-Path -LiteralPath $latest) {
+  $first = (Get-Content -LiteralPath $latest -TotalCount 1 | Out-String).Trim()
+  $age = [int]((Get-Date) - (Get-Item -LiteralPath $latest).LastWriteTime).TotalDays
+  Write-Output "gamedev-notes: weekly check: $first"
+  if ($first -match ' [1-9]\d* fail') { Write-Output "  The last routine check had FAILs. Read reports\LATEST.txt; run /framework-check if you are the session that should act on them." }
+  if ($age -gt 9) { Write-Output "  That report is $age days old. The scheduled task may not be running: setup\install-schedule.ps1 re-registers it." }
+} else {
+  Write-Output "gamedev-notes: no routine check has run yet. Register it once: powershell -ExecutionPolicy Bypass -File $notes\setup\install-schedule.ps1 -RunNow"
+}
 exit 0
