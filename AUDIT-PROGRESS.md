@@ -104,3 +104,64 @@ longer precaches them.
   `agents/playtester.md` into `skills/playtest/SKILL.md`.
 - **Topic-file contradictions** in section 3 of the audit, and the PLAYER.md rewrite.
 - gravewell's 1.72 GB history, and wrecking-crew's missing `PLAN.md`.
+
+---
+
+## Merged, 2026-09-12
+
+Both branches are merged into `main` and the worktrees are gone. The branch refs
+`framework-audit-fixes` are kept in both repos as a safety net, so any of this can
+still be read or reverted with
+`git -C C:\dev\gamedev-notes diff framework-audit-fixes~9 framework-audit-fixes`.
+
+| repo | merge | commits |
+|---|---|---|
+| `godot-template` | fast-forward to `8bc689b` | 5 (21 files, +1680 −52) |
+| `gamedev-notes` | merge commit `c58a23f` | 9 (114 files, +5927 −4033) |
+
+Neither is pushed. `gamedev-notes` is 13 commits ahead of origin and
+`godot-template` is 7.
+
+### Two things still to run, both on Windows
+
+**1. `install.ps1`, and this one is not optional.**
+
+```
+powershell -ExecutionPolicy Bypass -File C:\dev\gamedev-notes\setup\install.ps1
+```
+
+Until it runs, three things are stale. `~/.claude/skills` has no junction for the
+new `framework-check`, so `/framework-check` does not exist in a session. The
+SessionStart hook in `~/.claude/settings.json` is still the old bash one-liner
+that reports "up to date" after a failed pull, and the new one is a
+`powershell -File` invocation whose path `install.ps1` injects in place of
+`{{NOTES}}` — copying the merge file by hand will not work. And `~/.claude/agents`
+still holds the old `game-researcher` (no `Write` tool) and `playtester`.
+
+It is safe to re-run, and safer than it was: it now renames an existing skill
+directory aside rather than deleting it, always backs up a modified `CLAUDE.md`,
+backs up `settings.json` before rewriting, and only writes the user `Path` when
+something actually changed.
+
+**2. The per-repo suites.** Only the template's has been run. In each game repo:
+
+```
+scripts\check.ps1
+```
+
+The new arrivals are `test_sim_boundary.gd` everywhere, the glob runner in
+stillwater, wildform and wrecking-crew, `test_controls.gd` in gravewell and
+wrecking-crew, and the stale-APK refusal in every `check_size.gd`. The three
+assertions most likely to need a nudge are flagged in the session notes: two
+timing-dependent ones in gravewell and wrecking-crew's new gates, and gravewell's
+`test_the_pad_has_a_real_size_outside_the_tree`.
+
+Note the stale-APK refusal changes behaviour: `check.ps1` now goes red after any
+source edit if an old APK is sitting in `build/`, and the fix is `-Export`, not
+deleting the APK.
+
+### Then
+
+`powershell -File C:\dev\gamedev-notes\scripts\doctor.ps1` should come back clean
+apart from unpushed-commit warnings. It was 66 pass / 15 warn / 2 fail before the
+merge, and both failures were the template being behind the branch.
