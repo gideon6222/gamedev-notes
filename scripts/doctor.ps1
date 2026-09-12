@@ -59,7 +59,13 @@ param(
   [string] $Root = 'C:\dev',
   # The notes repo this script lives in, so the copy in a worktree checks that worktree
   # rather than reporting on a tree nobody is editing.
-  [string] $Notes = (Split-Path $PSScriptRoot -Parent),
+  #
+  # **Resolved in the body, not here.** `$PSScriptRoot` is empty while parameter
+  # defaults are being bound under some hosts - launched through `powershell -File`
+  # from a non-PowerShell shell it binds to '', and `Split-Path ''` is a terminating
+  # error, so the script died on its own param block before running a single check.
+  # Every game's gate reported `framework FAIL` and none of them had anything wrong.
+  [string] $Notes = '',
   [string] $Template = 'C:\dev\godot-template',
   [string] $Repo,
   [switch] $Fix,
@@ -68,6 +74,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# `$PSScriptRoot` is reliable HERE even when it was empty during parameter binding.
+# `$MyInvocation.MyCommand.Path` is the fallback for the hosts where neither is set.
+if (-not $Notes) {
+  $here = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path $MyInvocation.MyCommand.Path -Parent }
+  $Notes = Split-Path $here -Parent
+}
+
 $Utf8 = New-Object System.Text.UTF8Encoding($false)
 $script:Results = New-Object System.Collections.ArrayList
 $script:Fixed = New-Object System.Collections.ArrayList
