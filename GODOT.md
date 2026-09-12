@@ -45,7 +45,7 @@ $miss = @($u -split ';' | Where-Object { $_ -and ($env:PATH -split ';') -notcont
 if ($miss.Count) { $env:PATH = ($miss -join ';') + ';' + $env:PATH }
 ```
 
-**Five PowerShell traps take a script out before it can report anything.** Mechanism, code and
+**Seven PowerShell traps take a script out before it can report anything.** Mechanism, code and
 measurements: `techniques/powershell-traps-in-the-scripts.md`. The rules:
 
 - **`$ErrorActionPreference = 'Stop'` makes a native command's stderr terminate the script** before
@@ -67,6 +67,19 @@ measurements: `techniques/powershell-traps-in-the-scripts.md`. The rules:
   it to the repo named in `-Repo`, or report a WARN. Wildform's gate went red over lessons a
   DIFFERENT game's session had filed in the wrong format. A gate step that fails prints the reason,
   not only the verdict.
+- **Never name a wrapper after the command it wraps** (`RunGit`, not `Git`): PowerShell prefers a
+  function over the same-named executable, so `& git` inside `function Git` calls itself - symptom
+  is a stream of zeros, a two-minute hang, or a call-depth overflow, never a message naming the
+  function. And a wrapper returns the exit code ALONE: a native command's stdout joins the
+  function's own output, so `git status --porcelain` came back as an `Object[]` with the exit code
+  appended, and `-ne 0` against that array is truthy - a clean call reported as a failure. Capture
+  output, read `$LASTEXITCODE` on the very next line, print the captured lines yourself; never pipe
+  to `Out-Host`, which deadlocks inside an `if`.
+- **A guard that rejects a missing path must still permit a deletion**: `kb.ps1 commit`'s
+  `Test-Path` check refused a file `git rm` had just removed, so the digest's own documented step 7
+  (fold, delete and commit in one call) could never run as written. Check what git already knows
+  is gone (`git diff --cached --diff-filter=D`, the index, HEAD) and reject only a path that is
+  missing AND untracked.
 
 **Every temporary file outside the repo goes in the session scratchpad**, whose path is unique per
 session, never `/tmp` or any other fixed path. A gravewell loop backed each source file up to

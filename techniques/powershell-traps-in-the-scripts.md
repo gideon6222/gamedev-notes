@@ -117,3 +117,38 @@ powershell -File "C:\dev\Claude outputs\digest-finish.ps1" -DryRun
 Same family as the rest of this file: **PowerShell parses and resolves before your code runs**, so
 a correct script can report itself as missing. Any path handed to `powershell`, `Start-Process` or a
 scheduled task gets `-File` and quotes if there is any chance of a space in it.
+
+## A wrapper named after the command it wraps calls itself
+
+A script written to check a native call's exit code wrapped `git`:
+
+```powershell
+function Git { param([string] $Repo, [string[]] $Arguments) & git -C $Repo @Arguments; return $LASTEXITCODE }
+if ((Git $Repo @('add','--','CRAFT.md')) -ne 0) { ... }
+```
+
+Two separate faults, neither visible in a parse check, both found only by running it.
+
+**The function shadows the command.** PowerShell resolves names case-insensitively and prefers a
+function over an external executable, so `& git` inside `function Git` calls **itself**. Measured
+symptoms, in order of discovery: a stream of zeros where one exit code was expected, then a
+two-minute hang, then `The script failed due to call depth overflow` once output was captured to a
+file rather than read from a terminated pipe. None of the three names the cause.
+
+**The wrapper returned the tool's stdout along with the exit code.** A native command's output
+becomes part of the enclosing function's own output, so the caller received an array of git's
+lines with the exit code appended - `git status --porcelain` came back an `Object[]` of six
+elements, and `-ne 0` against an array is truthy, so a clean call was reported as a failure
+(measured against the fixed form, which returns a bare `Int32 0`).
+
+The obvious fix, piping to `Out-Host`, introduces a third fault: `Out-Host` **deadlocks** inside an
+`if` condition, which is how every call in the script was written.
+
+**Never name a wrapper after the command it wraps** - `RunGit`, not `Git`. **A wrapper returns the
+exit code and nothing else**: capture the output (`$out = & tool args 2>&1`), take
+`$code = $LASTEXITCODE` on the very next line before anything else can reset it, print the
+captured lines yourself, and return `$code`. Never pipe to `Out-Host` to get text onto the console.
+Same family as the rest of this file: PowerShell resolves names and routes streams before your
+code runs, so a script that looks correct can never have executed the thing you meant. And a
+parse check is not a test - all three broken versions parsed clean; only running the script
+against a throwaway git repo found any of this.

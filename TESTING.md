@@ -61,7 +61,11 @@ reach.** Three HUD faults shipped behind one good-looking picture.
   push a real `InputEventScreenDrag`. First run on wildform: the evolution transform covered the
   whole screen for 5.08 s, three times, a fifth of the run unreadable, while all 4,800 assertions
   passed - every one drove the sim and none drove the picture. Recorded touch replays do not
-  replace it: they stop being valid the moment the layout moves, and a policy adapts.
+  replace it: they stop being valid the moment the layout moves, and a policy adapts. The driver
+  and the `bot_drag_pixels(policy, mem, span) -> Vector2` contract a game supplies now live in
+  `godot-template` with their own test gate - contract and mechanism in
+  `techniques/filming-a-run.md`. Wildform has the behaviour bespoke; candle-gift, gravewell,
+  stillwater and wrecking-crew still owe their own seam.
 - **A fixture where every policy succeeds measures nothing.** Four policies on a bought-out ladder
   dealt byte-identical damage to eight decimals, because every one kills an 864 HP boss and every
   run ends at the boss's health. Check the losers actually lose, and give a policy **the loadout its

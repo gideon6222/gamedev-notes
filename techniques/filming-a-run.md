@@ -64,6 +64,51 @@ prints each control's rect, centre, visibility and `mouse_filter`. Three details
 - It **fails loudly on finding no Control at all**, since an empty listing and a broken walk look
   identical from outside.
 
+## The live-policy seam: `policy=<name>` and `bot_drag_pixels`
+
+A third mode alongside `replay=` and `record=`. `replay_player.gd` owns everything that is the
+same in every game - the `policy=<name>` arg, the frame gate, the clamp on how fast a thumb can
+move (54 px per physics frame, 1080 px in a third of a second at 60 Hz), building the
+`InputEventScreenDrag` and pushing it at the viewport. The game supplies one method:
+
+```gdscript
+## Required. The drag, in pixels, the real handler would need this frame to get where the
+## named policy wants to be. Must not leave the simulation changed.
+func bot_drag_pixels(policy: String, mem: Dictionary, span: float) -> Vector2
+
+## Optional. False during an interlude and after the run is over.
+func bot_can_drive() -> bool
+```
+
+Found by `has_method("bot_drag_pixels")`, not a class or node name, so the seam can live on the
+main scene or a rig node - and it refuses loudly once when nothing implements it, since silence
+there is a filmed run of a game nobody is playing, which looks exactly like a filmed run of a game
+that ignores input.
+
+Three details cost time on wildform, all now in `godot-template`:
+
+- **Write the pixel conversion from the handler's OWN constants, inverted.** The template's
+  `drag_by` does `dx / span * Tuning.LANE_HALF_WIDTH * 3.4`, so `bot_drag_pixels` does
+  `world_dx * span / (Tuning.LANE_HALF_WIDTH * 3.4)`. A measured fudge factor drifts the moment the
+  control is retuned, and a bot that steers almost right films a plausible run of a broken game.
+- **Put the simulation back.** `Policies.steer` mutates the sim to answer, so the wanted target is
+  read and the old one restored - left set, the bot takes the shortcut AND films it, the exact
+  thing the seam exists to stop.
+- **Clamp to what a thumb can do in one frame**, or it teleports and the film says nothing about
+  whether the control is reachable.
+
+`test/test_replay_policy.gd` gates the seam itself: the method exists, asking does not move the
+sim, a policy that wants nothing asks for nothing, and - the one that matters - the drag the bot
+asks for, pushed through the real handler, leaves the policy with nothing left to ask for. That
+last one is a property rather than a restatement of the formula, so it catches an inverted control
+without naming one: a wrong sign moves the avatar the other way and the second ask comes back
+LARGER, not zero.
+
+**Owed, not yet paid.** candle-gift, gravewell, stillwater and wrecking-crew each grew their own
+control seam under their own name, and none has the template's `drag_by`: each needs its own small
+bespoke `bot_drag_pixels` and gate. Wildform has the behaviour already and should move onto the
+template's shared contract so there is one shape rather than two.
+
 ## Scenarios
 
 Named scenarios (`test/replays/*.json`) make a repro a command rather than a paragraph. Scenarios
