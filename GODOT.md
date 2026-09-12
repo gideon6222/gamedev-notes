@@ -192,6 +192,13 @@ as "the buttons are about half an inch too high".
   a silent no-op for the whole `_initialize` stage of a suite**. So a smoke harness runs in **two
   stages**: what must work outside the tree in `_initialize()`, and everything guarded in
   `_process()` on frame one.
+- **A Control's own `gui_input` handler is drivable headless; `accept_event()` is not.**
+  `accept_event()` is wrapped in `if (is_inside_tree())` upstream (4.3 through master), so off
+  the tree it is a silent no-op. That is a reason to call the handler the `gui_input` signal
+  calls, not to stop short of it: `test_controls.gd` reaches a d-pad this way with no viewport.
+  `_size_changed()` is NOT gated, so a Control whose two anchors on an axis are equal has a real
+  `size` off the tree - assert that size first, because one reading zero takes a thumb resting
+  dead centre as a full push.
 - **Guard on the node, never on what the call gives back.** One family, one cause - an API that
   needs the node in the tree, called from a harness where it is not. `Node3D.look_at` errors (use
   `Transform3D.looking_at`); `Camera3D.unproject_position` errors, returns a meaningless vector,

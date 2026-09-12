@@ -854,7 +854,16 @@ function Test-TestSet([string] $Area, [string] $Path) {
       $notes += 'test_version.gd never mentions version/code'
     }
   }
-  $hasControls = Test-Path -LiteralPath (Join-Path $testDir 'test_controls.gd')
+  # Detect the controls gate by what it DOES, not by its filename: wildform's
+  # lives in run_smoke.gd and is a real gate. What makes it a gate is driving a
+  # real InputEventScreenDrag or InputEventScreenTouch through the game's own
+  # handler - a policy that calls steer_to() is not a test of the control, which
+  # is the sentence this studio has now paid for six times.
+  $hasControls = $false
+  foreach ($tf in @(Get-ChildItem -LiteralPath $testDir -Filter '*.gd' -File -ErrorAction SilentlyContinue)) {
+    $tt = Read-TextFile $tf.FullName
+    if ($null -ne $tt -and $tt -match 'InputEventScreen(Drag|Touch)') { $hasControls = $true; break }
+  }
   if ($missing.Count -eq 0 -and $notes.Count -eq 0) {
     Pass $Area 'test set' 'test_version.gd and test_sim_boundary.gd present'
   } else {
