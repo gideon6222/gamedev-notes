@@ -297,7 +297,7 @@ of a report as seriously as the symptom half.
 
 ## Diagnosing a rendering artefact: layer first, then maths
 
-(From `PIPELINE.md`; both were learned on this feature.)
+(From `archive/PIPELINE-2026-09-09.md`; both were learned on this feature.)
 
 Five playtest rounds went into "there is a circle of light around the ship", and four
 different causes were found and correctly fixed before the fifth one was the real one. Every

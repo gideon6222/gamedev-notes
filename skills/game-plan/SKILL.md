@@ -71,7 +71,8 @@ The table of levels / species / buildings / planets, monotonic, each row's unloc
 ## Presentation
 Camera (angle, FOV arithmetic for portrait), light, sky, palette, materials, post, HUD
 placement (what is by the thumb, what is opposite it), the shop as a place, the shell
-(Maaack's Menus Template or custom), fonts, audio plan (sampled versus generated).
+(Maaack's Game Template (`Maaack/Godot-Game-Template`) or custom), fonts, audio plan
+(sampled versus generated).
 
 ## Assets
 Per need: source, id, licence, fetch command, target folder, import settings.

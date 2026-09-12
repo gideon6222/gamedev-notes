@@ -1,464 +1,407 @@
-# CRAFT.md - what makes a game good, learned by building six of them
+# CRAFT.md - what makes a game good, learned by building eight of them
 
-One rule per line, grouped by topic. Numbers marked **(M)** were measured on a real game,
-**(T)** are tuned values that survived play, **(L)** come from the literature and have not
-been tested here. Rules from Captain Run and Wick were never playtested by Gideon (both games
-were redirected before he played them) and are marked **(unplayed)**. Long write-ups live in
-`techniques/`; this file is the distilled version and is edited only by `/digest`.
-
-The original 2,258-line version of this file is in `archive/` and in git history. Read it
-only when a bullet here is not enough.
+One rule per line, grouped by topic. **(M)** was measured on a real game, **(T)** is a tuned value
+that survived play, **(L)** comes from the literature and is untested here, **(unplayed)** marks
+Captain Run and Wick rules Gideon never played. Long write-ups are in `techniques/`; the original
+2,406-line version is in `archive/CRAFT-2026-09-09.md`. Edited only by `/digest`.
 
 ---
 
+## The rule this base keeps paying for
+
+- **A rule written as advice about a convention prevents nothing. Write the test that fails, then
+  point at the test instead of restating the advice.** Controls have shipped inverted in five
+  games - Captain Run, Coreward, Wrecking Crew, Stillwater, Wildform - with the convention in this
+  file the whole time, and the template was found steering inverted in the audit, making six.
+- The tests live in `godot-template/test/` so a scaffolded game inherits them: `test_controls.gd`,
+  `test_sim_boundary.gd` (the `src/sim` wall), `test_version.gd` (the three version strings).
+- The repeating classes are each a test nobody wrote: a check that passes because nothing
+  happened, "is this cell open" after the player is inside the material, a quantity computed
+  twice, the instrument being the thing that is wrong. When a class repeats, the fix is a file in
+  `test/`. `techniques/diagnosis-and-rework.md`.
+
 ## The loop and stakes
 
-- Ask of any gathering or destruction loop: what happens if the player ignores it entirely?
-  If nothing, the game has no stakes. Destruction became a game the moment it was the only
-  way forward and the only thing scored (Wrecking Crew changed genre three times to find that).
+- Ask of any gathering or destruction loop: what happens if the player ignores it entirely? If
+  nothing, the game has no stakes. Destruction became a game the moment it was the only way
+  forward and the only thing scored (Wrecking Crew changed genre three times to find that).
 - Ask what the player controls *continuously*. If the answer is "nothing", no amount of juice
   will make it feel like a game (Stillwater was "clunky" with a working sim and a film grade).
-- Give the run-scoped resource and the persistent one different jobs. Leftover run resource
-  converts at the end so nothing is wasted. (unplayed)
-- One resource that all converts to the same number is a difficulty slider in a resource
-  system's clothes. Three distinct resources is about the ceiling for comprehension and the
-  floor for a real decision.
+- Give the run-scoped resource and the persistent one different jobs; leftover run resource
+  converts at the end so nothing is wasted. (unplayed) One resource that all converts to the same
+  number is a difficulty slider in disguise, and three distinct resources is the ceiling for
+  comprehension and the floor for a real decision.
 - A secondary objective must be a thing you *keep* (a collection, a logbook, one relic per
-  planet), never a number that will look small next week. Make the best reward missable.
-- Rare surprises aimed at the current bottleneck stop routine work going stale. Rare enough
-  that they cannot be planned around, or they become a resource.
+  planet), never a number that will look small next week. Make the best reward missable. Rare
+  surprises aimed at the current bottleneck stop routine work going stale - rare enough that they
+  cannot be planned around, or they become a resource.
 - A dominant strategy with no cost is not a mechanic. Ask what a wild version of the input
-  costs. If nothing, add selectivity: targets worth different amounts, a cost per action, a
-  cap. Thinning density makes it worse.
-- Name the setting where a condition fires about half the time before building it. If none
+  costs; if nothing, add selectivity (targets worth different amounts, a cost, a cap). Thinning
+  density makes it worse.
+- Name the setting where a condition fires about half the time before building it; if none
   exists it is a wall wearing a decision's clothes.
-- Interruption is a feature: let the player stop a commitment and keep the partial progress.
-- Build the meta-game early. A price next to an income is the first thing that shows the
-  income is wrong, and a hyper-inflationary value curve (1.55x per level, M) makes any price
-  list meaningless. Fix the curve upstream, not the prices.
+- Interruption is a feature: let the player keep the partial progress of a stopped commitment.
+- **The best pressure is one the player CAUSES.** A pressure on a schedule happens whether or
+  not the player acts, so it is not a decision; water that rises because you cut the rock makes
+  over-digging a cost. Derive its number from the physical story (released water raises the level
+  by the cell's water fraction, 15%), keep it derived not stored, and count against the ORIGINAL
+  threshold or the flood feeds itself.
+- Build the meta-game early. A price next to an income is the first thing that shows the income
+  is wrong; a hyper-inflationary curve (1.55x per level, M) makes any price list meaningless.
+  Fix the curve upstream, not the prices.
 
 ## Progression and economy
 
-- Gate an upgrade behind a *place*, not a price: the counter to a threat costs a material
-  found inside the threat. Two gates on one thing means one is decoration. Assert the gating
-  material lives near the unlock depth.
-- Depth, or any unfarmable record, is the cheapest structural gate. Show it.
-- Show everything unlocked plus exactly one teaser, the shallowest thing still out of reach.
-  Assert at most one sealed row and never zero while something is gated. A rule about how
-  much to show is a ratio and silently expires when the content count doubles.
-- A weight or slot cap is what turns "which is worth more" into a decision.
-- Consumables and permanent upgrades sit on different axes. Small stacks, priced above the
-  first upgrade rung.
-- Quality is a *multiplier* on quantity, never an amount added, so both axes stay alive at
-  every scale. Keep the price spread on a premium resource under about 2x (M, bots) or
-  material value swamps every design bonus. (unplayed)
-- Three reasons to buy one upgrade beats three upgrades with one reason each. An upgrade
-  you cannot see is bought on trust. Make it change the framing, the beam, the finder.
-- Cap a visible resource at the number you can render. Overflow converts to currency with a
-  visible popup. (unplayed)
-- Measure a progression by simulating play, bank, buy, next level, and reporting the level
-  each thing is reached at. Dividing a late price by early income measures a player who
-  never got better.
-- When copying a reference, keep money in its units so its prices remain usable calibration.
-  One scale constant, applied at one point.
-- Contaminated-state bugs (the bank counted as earnings) need an invariance test: same
-  level, different starting bank, same reward.
+- Gate an upgrade behind a *place*, not a price: the counter to a threat costs a material found
+  inside the threat, and two gates on one thing means one is decoration. Depth, or any unfarmable
+  record, is the cheapest structural gate. Show it.
+- Show everything unlocked plus exactly one teaser, the shallowest thing still out of reach:
+  at most one sealed row, never zero while something is gated.
+- Drip-feed what is buyable rather than showing the whole shop: unlock a device by FINDING it,
+  hint at what it does, then let it be upgraded. He has asked for this in two games.
+- A weight or slot cap turns "which is worth more" into a decision. Consumables and permanent
+  upgrades sit on different axes: small stacks, priced above the first upgrade rung.
+- Quality is a *multiplier* on quantity, never an amount added, so both axes stay alive at every
+  scale. Price spread on a premium resource under ~2x (M, bots). (unplayed)
+- Three reasons to buy one upgrade beats three upgrades with one reason each. An upgrade you
+  cannot see is bought on trust. Make it change the framing, the beam, the finder.
+- Cap a visible resource at the number you can render; overflow converts to currency with a
+  popup. (unplayed)
+- Measure a progression by simulating play, bank, buy, next level, and reporting the level each
+  thing is reached at. Dividing a late price by early income measures a player who never improved.
+- When copying a reference, keep money in its units so its prices remain usable calibration: one
+  scale constant, applied at one point.
+- Contaminated-state bugs (the bank counted as earnings) need an invariance test: same level,
+  different starting bank, same reward.
+- **A thing can only be destroyed once, and the check belongs on the thing, not the shooter.**
+  Any damage-over-time, aura, burn or chain effect is a SECOND caller into a payout path written
+  for one: a burn ticking a broken crate brought a run home with 19,128 coins against ~340 (M).
+  An invariance test cannot see it - assert the RATE, coins per crate broken.
+- **Every prestige game needs one permanent rung with no top on it**, on a curve that rises
+  forever, and its price step must be SMALLER than the difficulty step (1.30 < 1.35) or every
+  world buys fewer ranks than the last. Play the meta loop far enough to find where the curve
+  STOPS: eighty runs found a wall twenty did not (M).
 
 ## Difficulty and balance
 
-- Split *frequency* from *severity*. How often the dangerous thing happens teaches it, how
-  much it hurts punishes it. Tutorial is often and weak, endgame is rarer and strong.
+- Split *frequency* from *severity*: how often the dangerous thing happens teaches it, how much
+  it hurts punishes it. Tutorial is often and weak, endgame is rarer and strong.
 - One knob that swamps the others is a design bug, not a tuning problem (Stillwater:
-  win ~= 1.06 - 1.15 x run_chance, M). A new knob must be a dial, not a cliff. Give it an
-  arithmetic ceiling and assert it.
-- **Write a table's balance property as an assertion in the same commit as the table**, not
-  after a playtest says something feels off: no row dominates, every row is reachable, every
-  entry costs something. It runs in milliseconds and reads the WHOLE table rather than the row
-  you happen to be looking at. Coreward's fired on its first run against five world traits
-  their author had just proofread - one row had more geodes and a better price for no cost,
-  another had two costs and no upside - and the fixes (one field each) were better design than
-  what was there and were the test's idea, not the author's. A design test that has never
-  failed is either protecting something genuinely stable or is written too loosely to fire.
-- **Any control that raises a value against a decay has an equilibrium, and you own it
-  whether or not you chose it.** Compute `input_rate / decay_rate` and check where it lands
-  against the band the player is meant to work to hold: inside it, there is a setting that
-  wins and the minigame is decoration (Stillwater's hold button settled at 0.60, mid-band, M).
-  When a control changes, the property to re-derive is the EQUILIBRIUM, not the pace - and a
-  "no setting wins" test must sweep the range, because two extremes is what a fixed input
-  looks like when you already believe the answer.
-- **When a design rule says "X is always accompanied by Y", one of them must CAUSE the
-  other.** Two independent rolls make the rule hold only when they happen to agree, and the
-  frequency of the exception is a number nobody chose; tuning then moves it between violated
-  and never-satisfied without ever making it true. The diagnostic: "X and Y both happened" is
-  not a rule, "X, therefore Y" is. Decide the one the player cares about first and let it
-  plant the other. Test what is on the ground, not what the hash says.
-- Give the player a risk dial they hold themselves. The greedy option is genuinely better
-  and genuinely near the edge. The claim to test is "the reckless option never actually
-  works", not "the safe option scores higher".
-- Doing nothing must lose. A wear clock (~46 s, T) makes caution a cost.
-- A sudden event hits hardest at its start (a surge decaying over ~0.3 s) so reading the
-  warning beats reacting to it. That took a fish from 96% to 54% landed (M).
-- A tell longer than human reaction time (~0.3 s, L) makes a mechanic free.
-- Never let a hazard take the run. Bound the worst case (re-run the pathfinder after a
-  collapse, revert if home is unreachable) and test the bound.
-- Everything dangerous lives inside the steerable band or it is not dangerous. Route all
-  placement through one lane helper and test its range, and write amplitude plus half-width
-  plus tolerance against the steerable width before tuning a moving obstacle's frequency
-  (Candle Gift's sweeper covered 61% of the lane at every moment, M). Check a hitbox by
-  measuring loss while dodging against standing still.
-- A budget (swings, fuel) is derived from the content, never set as a rate over it, and
-  asserted sufficient at every level.
+  win ~= 1.06 - 1.15 x run_chance, M). A new knob is a dial, not a cliff, with a ceiling asserted.
+- **Write a table's balance property as an assertion in the same commit as the table**: no row
+  dominates, every row is reachable, every entry costs something. A design test that has never
+  failed is protecting something stable or is too loose to fire.
+- **Store the quantity you mean and derive the thresholds at load.** A first-match-wins scan over
+  `chance` fields is a CUMULATIVE threshold, and the first row tested keeps its whole number: the
+  rarest ore was four times more common than the next down (2.10% against 0.50%, M). Print the
+  derived rates. `techniques/human-bot-policies.md`.
+- **The threshold an action unlocks at is not the level an alarm fires at.** Two facts sharing a
+  value are two constants: the unlock from what the action should cost, the alarm from how much
+  time the warning buys. An alarm on for most of a meter's working range trains the player to
+  ignore it.
+- **Measure the stretch the player actually reaches, not the whole content.** A mean of 1.55 m/s
+  over a 200 m descent describes a run nobody has had; all four of Gravewell's faults sat in the
+  first forty metres. Print the first ten seconds, per second, with the derived feel parameters
+  beside the numbers.
+- **When a request names a property the player should feel, check it is a VARIABLE in the data
+  before tuning.** "Slowed down on denser materials" could not happen while hardness came from
+  the depth band alone.
+- **Any control raising a value against a decay has an equilibrium, and you own it whether or not
+  you chose it.** `input_rate / decay_rate` inside the band the player must hold means one setting
+  wins and the minigame is decoration (0.60, mid-band, M). Re-derive the EQUILIBRIUM when a
+  control changes, and sweep the range.
+- **When a design rule says "X is always accompanied by Y", one of them must CAUSE the other.**
+  Two independent rolls make it hold only when they agree, and the exception's frequency is a
+  number nobody chose. Test what is on the ground, not what the hash says.
+- Give the player a risk dial they hold themselves, and test "the reckless option never actually
+  works", not "the safe option scores higher". Doing nothing must lose; a wear clock (~46 s, T)
+  makes caution a cost.
+- A sudden event hits hardest at its start (a surge decaying over ~0.3 s) so reading the warning
+  beats reacting to it - 96% to 54% landed (M). A tell longer than reaction time (~0.3 s, L)
+  makes a mechanic free. Never let a hazard take the run: bound the worst case and test it.
+- Everything dangerous lives inside the steerable band, routed through one lane helper. Write
+  amplitude plus half-width plus tolerance against the steerable width before tuning frequency (a
+  sweeper covered 61% of the lane at all times, M), and check a hitbox by measuring loss while
+  dodging against standing still.
+- A budget (swings, fuel) is derived from the content, never set as a rate over it, and asserted
+  sufficient at every level.
 - Any game with a wind-up, reload or lag must assert window > lag at the *top* of its speed
   ladder. Five percent compounding per level quietly removed the game around level ten (M).
-- Every improvement to how hard a hit lands changes how long a level takes. Rebalance both.
-- Difficulty is usually the product of two fields. Assert the content table is a monotonic
-  ladder in the order it is written.
-- Measure per item, never as one mean. Calibrate against five or six procedural seeds, never
-  one. Single-level numbers swing 25% on layout luck (M).
-- Removing an obstacle kind removes its share of the danger. Do not backfill the slot, and
-  re-measure the system that competes for the same seconds.
-- Measure the spread across scripted play styles before setting thresholds. When every style
-  scores the same, fix the game, not the thresholds. That flat spread IS the finding.
-
+- Every improvement to how hard a hit lands changes how long a level takes: rebalance both.
+- Difficulty is usually the product of two fields. Assert the content table is a monotonic ladder
+  in the order it is written.
+- Measure per item, never as one mean, against five or six procedural seeds - single-level
+  numbers swing 25% on layout luck (M). Removing an obstacle kind removes its share of the
+  danger; do not backfill the slot.
+- **Check the losers actually lose in the fixture before comparing play styles**, at the loadout
+  a player really arrives with and over a spread of seeds; four policies dealing byte-identical
+  damage meant a bought-out fixture, not four equal policies (M). Assert the ORDER of the field.
+  A flat spread IS the finding - fix the game, not the thresholds.
+  `techniques/human-bot-policies.md`.
 ## Feel
 
-- Feel is layered and ordered: physicality (what moves) then amplification (juice) then
-  support (invisible forgiveness). Polish on top of no first layer looks good in a screenshot
-  and feels the same in the hand.
-- Fire visual, audio, camera and haptic channels as one event. Any one alone reads as cheap.
+- Feel is layered and ordered: physicality (what moves), then amplification (juice), then
+  support (invisible forgiveness). Polish on top of no first layer looks good in a screenshot and
+  feels the same in the hand.
+- Fire visual, audio, camera and haptic channels as one event; any one alone reads as cheap. For
+  CONTINUOUS effort drive all four from one 0..1 load parameter in the sim, and make it a LOOP
+  that is modulated rather than a one-shot retriggered per hit. Four channels agreeing is what
+  makes effort read.
+- **A 0..1 feel parameter normalised across a content table reads zero at the bottom of that
+  table, which is where every player starts.** Give it a floor.
+- **Anything that gates the player's motion on completing a discrete unit of work reads as
+  chunky, however smooth each unit is** - he feels the period, not the shape of one step. Derive
+  the verb's speed from the bill it pays, and make any floor a property the content table asserts
+  rather than a clamp. `techniques/gravewell-continuous-digging.md`.
 - Hit-stop is the highest value per line of code. Freeze the *presentation* for 35-80 ms (L)
-  scaled to the event, never the simulation clock, so the golden stays valid.
-- Keep juice medium (L): a couple of degrees of shake decaying in about a third of a second.
-- Movement on a cell timer reads as a spreadsheet. A velocity and a collision box was the
-  largest single feel change in Coreward. Fly *along* the grid: free travel on the pushed
-  axis, continuous pull onto the centre line of the other. Assert momentum, acceleration and
-  coast distance.
-- Reach top speed in about a fifth of a second and coast under a cell (T). On a thumb,
-  momentum reads as latency.
-- Smooth with `1 - exp(-rate * dt)`, never `min(1, dt * rate)`. When converting, translate
-  tuned constants to the equivalent per-frame fraction so feel does not move.
-- A smoothing term must be *assigned*, not added to an existing velocity, or it is an
-  undamped spring ("bouncy").
-- Apply corrections as a velocity through the normal collision path, never as a position
-  write, or they are invisible to collision and to tests.
-- Never correct anything while the player is coasting. Snap on the next input.
-- High speed alone reads as fast-forward. A spline with ease in and out and a heading that
+  scaled to the event, never the simulation clock, so the golden stays valid. Keep the rest of
+  the juice medium (L): a couple of degrees of shake decaying in about a third of a second.
+- Movement on a cell timer reads as a spreadsheet; a velocity and a collision box was the largest
+  single feel change in Coreward. Fly *along* the grid: free travel on the pushed axis,
+  continuous pull onto the other's centre line. Assert momentum, acceleration, coast.
+- Reach top speed in about a fifth of a second and coast under a cell (T); on a thumb, momentum
+  reads as latency.
+- Smooth with `1 - exp(-rate * dt)`, never `min(1, dt * rate)`. When converting, translate tuned
+  constants to the equivalent per-frame fraction so feel does not move.
+- A smoothing term is *assigned*, not added to an existing velocity, or it is an undamped spring
+  ("bouncy").
+- Apply corrections as a velocity through the normal collision path, never as a position write,
+  or they are invisible to collision and to tests. Never correct while the player is coasting:
+  snap on the next input.
+- High speed alone reads as fast-forward; a spline with ease in and out and a heading that
   follows velocity reads as piloted.
-- Indirect control (a tool driven by lag or acceleration) needs the lag set as a feel
-  constant (~1 s for a thumb, T), the correct technique discoverable by accident, and the
-  expert version reaching noticeably further. Approach a target *velocity* exponentially,
-  never a target position, or the tool gets one kick and hangs.
-- A saturating value is only a mechanic in the range it moves through. Cap where it rarely
+- Indirect control needs the lag set as a feel constant (~1 s for a thumb, T), the correct
+  technique discoverable by accident, and the expert version reaching further. Approach a target
+  *velocity* exponentially, never a target position, or the tool gets one kick and hangs.
+- A saturating value is only a mechanic in the range it moves through: cap where it rarely
   reaches and measure how often the cap binds.
-- Two motions sharing one variable will eventually be shown doing each other's job (a rod
-  that bends on the cast). Give each motion its own state.
+- Two motions sharing one variable will be shown doing each other's job (a rod that bends on the
+  cast). Give each motion its own state.
 - An idle world reads as a screenshot. Float the vehicle on the same wave function the water
   shader uses, generated from one source so they cannot drift.
 
 ## Controls and touch
 
-- The frame the control speaks in must match the frame the camera speaks in. A fixed camera
-  with vehicle-relative input is tank controls, and the report is "almost feels backward".
+- The frame the control speaks in must match the frame the camera speaks in. A fixed camera with
+  vehicle-relative input is tank controls, and the report is "almost feels backward".
+- **Name the direction of travel as ONE constant** and derive the camera, the track, every
+  placement and every facing from it. One place to be wrong instead of nine.
+- Every game gets `test_controls.gd`: a real `InputEventScreenDrag` through the real handler
+  asserting the avatar moves the right way ON SCREEN, plus the camera's right vector
+  (`basis.x.x > 0.5`, which read -1.00 on Wildform). A suite made entirely of scripted policies
+  tests only the simulation - no bot here holds a thumb. Assert the ART's forward, not the
+  node's, normalised.
 - A one-dimensional quantity gets a one-dimensional control (a slider, not a dial). Width is
   precision for free.
 - Put the lagging thing on the control next to the thing being controlled, driven from the
-  simulation's own state, so the player reads their aim without looking up.
-- On-screen controls are absolute, not relative, or the picture stops saying where the
-  machine is pointing.
-- A readout glanced at can sit under the thumb. A readout watched continuously cannot. If
-  they fight for space, change the verb (a tap has no position) rather than the layout.
-- Indirect control needs a visible intermediary (the boom, not just the ball), and the
-  machine needs a part that shows its facing from behind.
-- One finger, three verbs, discriminated by movement not time: drag looks, still-hold
-  charges, tap taps. A verb hidden behind a gesture that already means something else is not
-  a verb the player has.
-- The action button's caption is derived by the same function that performs the action.
-- "It drifts" usually means the *path* curves (a throttle floor through a turn), not that
-  the physics slide. Check the path before the integrator.
-- A tracked vehicle is one constant from a car: an alignment cone outside which it only
-  rotates, plus a turn rate fast at rest and slow at speed.
-- Lay out touch controls against the *real* viewport, never the project's base size, and
-  test the hit region against the drawn control on a tall phone. Every control handles its
-  own input so hit box and drawing are one object.
-- Test steering by driving real pointer events and asserting where the avatar lands *in the
-  frame*. World-coordinate tests pass on inverted controls (Captain Run shipped inverted for
-  its whole life).
-- Thumb-sized targets (at least 48 dp), bottom of the screen, safe-area aware.
+  simulation's own state, so the player reads their aim without looking up. On-screen controls
+  are absolute, not relative, or the picture stops saying where the machine is pointing.
+- A readout glanced at can sit under the thumb. A readout watched continuously cannot. If they
+  fight for space, change the verb (a tap has no position) rather than the layout.
+- Indirect control needs a visible intermediary (the boom, not just the ball), and a part that
+  shows the machine's facing from behind.
+- One finger, three verbs, discriminated by movement not time: drag looks, still-hold charges,
+  tap taps. A verb behind a gesture that already means something else is not a verb.
+- The action button's caption is derived by the function that performs the action - and so is its
+  whole identity. One button that becomes Cast over water and Select over the boat, grey when
+  nothing is under the crosshair, beats two buttons for one verb.
+- "It drifts" usually means the *path* curves (a throttle floor through a turn), not that the
+  physics slide. Check the path before the integrator.
+- A tracked vehicle is one constant from a car: an alignment cone outside which it only rotates,
+  and a turn rate fast at rest and slow at speed.
+- Lay out touch controls against the *real* viewport, never the project's base size, and test
+  the hit region against the drawn control on a tall phone. Every control handles its own input
+  so hit box and drawing are one object. `POLISH.md` gates the sizes.
+- **Every menu is also drivable with up/down/left/right and a confirm**, selection highlighted and
+  described, and closes on an explicit X. Asked three times in two days, for every room.
 
 ## Onboarding and the first minute
 
-- He plays the opening and opens the menus first. The shallow part and the screens are what
-  get played.
-- Playable within ten seconds of opening. HOME is the game with `advance` not being called,
-  not a menu: the level you are about to play is already behind the cards.
-- A forgiving tutorial must still charge *time* for ignoring a mechanic, or it trains the
-  player to ignore it and the next area punishes the habit.
-- A station or pickup whose lowest tier is a no-op teaches the player to stop reading
-  signs. Floor every station at its first real effect.
-- A transformation big enough to divide a level into before and after must be a wall that
-  cannot be missed, not an optional station.
-- Every state names a visible action, and pressing the one visible control always leads back
-  to playing. A way out only the simulation knows about is not a way out. Finishing a level
-  starts the next; running out restarts. This has shipped as a frozen HUD twice.
-- Teach through safe practice, escalate one variable at a time, never text-dump. The first
-  thirty seconds are playable with zero reading.
-- Version number and patch notes in the pause screen from the first build.
+- The shallow part and the screens are what get played, so weight the effort there (`PLAYER.md`).
+- HOME is the game with `advance` not being called, not a menu: the level you are about to play is
+  already behind the cards, which makes "playable in ten seconds" a consequence of the structure
+  rather than a target to hit. `POLISH.md` gates it.
+- A forgiving tutorial must still charge *time* for ignoring a mechanic, or it trains the player
+  to ignore it and the next area punishes the habit. A station whose lowest tier is a no-op
+  teaches the player to stop reading signs: floor every station at its first real effect.
+- A transformation big enough to divide a level into before and after is a wall that cannot be
+  missed, not an optional station.
+- Every state names a visible action, and pressing the one visible control always leads back to
+  playing - a way out only the simulation knows about is not a way out. Finishing a level starts
+  the next; running out restarts. This has shipped as a frozen HUD twice.
 
-## Camera
+## Camera and light (arithmetic: `techniques/phone-camera-and-light.md`)
 
-- Portrait's horizontal cone is tiny (58 deg vertical is ~28 deg horizontal; 46 is ~22).
-  Compute visible width at the distance a thing sits before placing it, and rack shops
-  vertically.
-- Horizontal detail wants a low camera, vertical detail a high one. The angle is part of
-  the art.
-- Seat a first-person camera at seated height and draw the vehicle as an edge (gunwales),
-  not a surface.
-- **A first-person camera carried by a moving object gets its own transform, derived from the
-  carrier rather than parented to it.** Inherit ~0.9 of its POSITION (translation is what
-  sells "afloat" and does not make people ill), take **20-30% of its ROTATION**, and damp with
-  a time constant of 0.5-1 s so the head lags the deck. A neck holds a head level whether it
-  likes it or not, so the passenger sees the gunwales swing against a steady horizon - the
-  exact opposite of what a hull-locked camera renders. Bolted to the hull, honest motion is
-  invisible (both move together, and the report is "the boat is flat"), so the only lever left
-  is to exaggerate the hull until it reads, and then the report is "the movement feels odd".
-  Stillwater, measured: 20.0 deg camera peak-to-peak at 41.9 deg/s before, 1.1 deg at 3.1 deg/s
-  after, with the hull MORE visible than before (M). **Peak angular rate predicts discomfort
-  and is the number nobody looks at** - a forty-line headless probe reporting peak-to-peak,
-  RMS, frequency and peak rate is what makes any of it defensible. And check the WATER as well
-  as the rig: Stillwater's waves summed to a 32 cm swell on a lake at dawn, so the hull was
-  honestly riding something far too big and no camera constant could have settled it (M).
-- **Name the end at risk before measuring a frame.** For anything trailing a chase camera the
-  nearest element is the LAST one, and the two differ by the whole length of the thing. Candle
-  Gift's probe measured the leader, reported a comfortable 0.71 across three levels, and the
-  contact sheet plainly showed the tail clipped: a probe that disagrees with a picture you are
-  looking at is measuring the wrong quantity, and the picture wins.
-- **State the framing promise and solve for it; do not tune two constants toward it.** A
-  pullback of `11.5 + tail * 0.45` is two numbers keeping one promise between them and never
-  holds across a range. One constant for how far down the frame the last element may sit, plus
-  a bisection, is deterministic (the golden still agrees), monotonic, and lower-bounded at the
-  old value: worst position went 0.98 / 1.08 / 1.42 / 1.37 to 0.95 at every level (M). **Ease
-  such a solve asymmetrically** - out fast, in slow, since lagging on the way out IS the
-  clipping it exists to prevent (1.37 symmetric vs 0.95 at 9.0 out / 1.6 in, M).
-- **Check framing at the size where it breaks.** Level one measured 0.98, just inside the
-  edge, and hid this for four rounds. A fixture where the bug barely shows reports it as tuning.
-- **Inverting a follow is a two-part edit, and the second part is a deletion.** When "A is
-  positioned from B" becomes "B is positioned from A", grep every other place A is written in
-  the same frame and remove it. Stillwater's logbook became a held object hanging off the
-  camera while a per-frame branch still placed the camera from the book: positive feedback
-  with a gain just over one, and the pair were sixteen metres outside the boat within two
-  hundred frames (M). It is silent - no error, and every RELATIVE assertion between the two
-  still passes because they move together. Test it with an ABSOLUTE claim ("the camera is
-  still within 25 cm of the seat"), which is the one that failed.
-- A tight frame reads as "camera too close" unless darkness justifies it. Make framing an
-  upgrade and let the light's reach explain it.
-- Any end-of-run camera move is a second placement pass over everything near the finish.
-  Put the camera behind the subject.
-- Re-shoot after any change to a length. Framing calibrated on old dimensions is wrong.
-- Check a chase camera's handedness with the NDC test, and pick the axis convention so no
-  sign flip sits near the input (draw the street along -Z so screen right IS world +X).
-- Cull scenery against the camera position, not the player. A chase camera sits ten metres
-  back, so anything culled at the player is still in front of the lens.
+- Portrait's horizontal cone is tiny (58 deg vertical is ~28 deg horizontal; 46 is ~22). Compute
+  visible width at the distance a thing sits before placing it, and rack shops vertically. Measure
+  screen pixels per world unit at EVERY depth the layout uses - 122 px/unit at a 7.6 m wall
+  against 245 at a 0.5 m drawer, on a 360 px screen (M) - and project the bounding BOX, not
+  object centres.
+- A first-person camera carried by a moving object gets its own transform: ~0.9 of POSITION,
+  20-30% of ROTATION, damped at 0.5-1 s. **Peak angular RATE predicts discomfort and is the number
+  nobody looks at** (41.9 deg/s to 3.1 deg/s, hull MORE visible, M).
+- Name the end at risk before measuring a frame - for anything trailing a chase camera it is the
+  LAST element - and check framing at the size where it BREAKS. **A probe that disagrees with a
+  picture you are looking at is measuring the wrong quantity, and the picture wins.**
+- State the framing promise and solve for it with one constant and a bisection, eased out fast and
+  in slow; do not tune two constants toward it. Re-shoot after any change to a length.
+- Inverting a follow is a two-part edit and the second part is a deletion. Every RELATIVE assertion
+  passes while the pair drift sixteen metres out of the boat (M); test an ABSOLUTE claim.
+- Pick the axis convention so no sign flip sits near the input, assert it in `test_controls.gd`,
+  and cull scenery against the camera rather than the player.
+- Light through a grid propagates through open cells; a lamp-centred falloff is a disc, and a disc
+  follows the player. Surface light and air light are two lights. A shadow fan is smoothed by
+  filtering the lit-or-not ANSWER across bearings, never by more rays.
+- **A lighting complaint is about a RATIO, so measure two places** (100 ahead / 25 behind / 50 in
+  the shaft reads as directional; 6:1 blacks out the way home, 1.65:1 has no direction, M), and
+  **any change that lifts the black floor publishes every defect the darkness was covering.**
+- A fix that improves every scene equally is a dimmer switch. Attribute an artefact to a *layer*
+  before touching any maths; when the toggles run out, render the term to ALBEDO.
+- Post-processing (vignette, mid-tone grain, a little aberration, blacks lifted toward the scene
+  colour) is the cheapest mood tool going. Put it under the HUD.
 
 ## Visual legibility and art direction
 
-- Do not invent a symbol for something you can show. A bar is right only when the quantity
-  has no physical form.
-- Silhouette carries more than colour. A hazard must not resemble a reward. Separate play
+- Do not invent a symbol for something you can show. A bar is right only when the quantity has no
+  physical form.
+- Silhouette carries more than colour, and a hazard must not resemble a reward. Separate play
   space from background by *lightness*, not hue, and test the gap.
-- The most valuable thing on screen is the brightest. The hazard only has to be
-  unmistakable. Every hazard in one colour family; variety goes in silhouette and behaviour.
-- A cue that teases before it commits is a judgement; a cue that fires once is a reaction
-  test. Draw the difference in two dimensions (depth and duration) and vary the count.
-- A sphere reads as a bubble at any size. Prisms with hard corners catch light on one face
-  and not the next.
-- When a change must be noticed from memory, change the amount (3x the sparks), not the
-  shade. Repainting a thirty-pixel drill per tier was invisible.
+- The most valuable thing on screen is the brightest. Every hazard in one colour family; variety
+  goes in silhouette and behaviour.
+- A cue that teases before it commits is a judgement; a cue that fires once is a reaction test.
+  Draw the difference in two dimensions (depth and duration) and vary the count.
+- A sphere reads as a bubble at any size; prisms with hard corners catch light on one face and
+  not the next.
+- When a change must be noticed from memory, change the amount (3x the sparks), not the shade:
+  repainting a thirty-pixel drill per tier was invisible.
 - Give each pressure its own channel. A number beats a bar when the player needs causation
-  (`HULL -3.4/s`). Put the gauge on the thing it eats without covering it.
-- Derive the picture and the score from one state so they cannot disagree. Let damage
-  reveal history (shaved layers). When the accurate model and the readable model disagree,
-  build the readable one (bands, not shells).
-- **One threshold for "gone", named once, and everything else reads that constant.** Two
-  pieces of code that each decide when a thing has been destroyed will disagree eventually,
-  and the disagreement is a band of values neither can see. Gravewell's passability used
-  `<= 1e-4` and its drill broke at exactly `0.0`, so a cell landing in that gap was flyable,
-  had never broken, still reported its ore forever, and a scripted miner ping-ponged between
-  two cells it had already dug out. Whether a cut lands in the gap is arithmetic, so it never
-  happened on one world class and happened constantly on the next. The fix is never to make
-  the two numbers match; it is for the second to read the first one's constant. **Second time
-  in that one file** - the first was passability at 0.5 against a drill breaking at 0.0, and a
-  miner reached 86 m having mined nothing.
-- A formation needs per-unit state and more than one unit wide to be readable. Rows with
-  offset alternate rows beat a scatter. (unplayed)
-- Make failure a *shape* (lean over a neighbour), not a number, with something visible to
-  fail onto, painted lighter than the target.
-- A transformation is worth ten multipliers. The screenshot before and after a station must
-  be obviously different pictures.
-- A liquid is motion and answers (a scrolling surface, entry rings, a tool that follows),
-  not a texture.
-- A HUD is a claim about what the player should think about. The reference shows three
-  things. Do not keep adding readouts.
-- A prop that occludes the thing the game is about is a bug. A chain of short boxes reads
-  as debris; sweep a mesh along the path.
-- "Unavailable" and "not a control" are two booleans. Only refusal is grey. Enabled and
-  disabled say it three ways (colour, text, value), and ordering matters: sealed beats
-  affordable, maxed beats affordable, name the missing material before the money.
-- "Cartoony" from him means under-lit and under-textured, not the model style. A normal map
-  on the largest surface, a real light source with falloff and a considered sky do more than
-  any model swap.
-
-## Lighting
-
-- A point light does not know the geometry is there. Light through a grid must propagate
-  through open cells (flood fill), with falloff in the shader and the field uploaded as a
-  small texture. `techniques/coreward-propagated-lighting.md`.
-- Surface light and air light are two lights. A corner shadow belongs only to the air
-  term. Combine beam and bounce with `max()`, never by multiplying two floors - except in
-  the AIR, where fog scatters the ambient and the beam at the same point and you see the
-  SUM; `max()` there leaves a seam along the cone's edge where one term overtakes the other.
-- **A lamp-centred radius always reads as light belonging to the player.** Any term whose
-  falloff is measured from the light source is a disc, and a disc follows you however gently
-  it falls. For "the whole tunnel is lit", use the propagated flood RAW with no distance term
-  of its own: it is 1 down an open passage however long, and falls only where the route
-  bends, so a side branch is dim because it bends away rather than because it is far off.
-- **A beam in a corridor narrower than its cone has no shape.** An angular test is constant
-  across a one-cell shaft, so it renders as a flat slab with a razor edge at each wall. Give
-  it a profile ACROSS itself - a Gaussian on perpendicular distance from the axis, widening
-  with distance travelled - scale it by the air density, and CUBE the distance falloff rather
-  than squaring it, or the beam has an end and an end makes it an object (squared, it was
-  still 148 of 255 where it left the frame, M). `techniques/gravewell-tunnel-light-and-beam.md`.
-- **A lighting complaint is about a RATIO, so measure two places.** Sample the screenshot at
-  fixed points ahead and behind rather than judging by eye. 100 ahead / 25 behind / 50 in the
-  shaft reads as directional while leaving the way home visible; 6:1 blacks out the route out
-  and 1.65:1 has no direction at all (M).
-- **Any change that lifts the black floor also publishes every defect the darkness was
-  covering.** Budget a pass for it. Lighting Gravewell's whole tunnel exposed a normal map
-  that had streaked every wall for nine versions.
-- A lighting multiplier is linear and then sRGB-encoded, so its dark end lifts. Square it.
-  Dim emissive things on a gentler curve than surfaces, or discovery mechanics switch off in
-  the dark.
-- Ambient is the one light that reaches every surface equally, which is the opposite of a
-  lamp in a hole. Make it fall away fast. Three stops in a vignette.
-- Do not light the player's vehicle with the gameplay light (its range is an upgrade). Give
-  the vehicle its own key light and exclude the world's. In Godot that is `light_cull_mask`
-  and `layers`, one flag, no second pass.
-- Put the sun *ahead* of the camera for anything wet. A specular streak is sun, surface, eye.
-- Any effect applied by distance hits the background hardest. Check the sky first when
-  tuning fog (Godot `fog_sky_affect` ~0.2, T).
-- Keep light fields at several texels per cell, and brightness and shape in separate
-  channels. The one-toggle diagnosis is switching to nearest filtering.
-- A metal with nothing to reflect is black plus hotspots. It needs an environment, and data
-  textures (normal, roughness) must not be sRGB-decoded.
-- A normal map is how photographed texture enters a stylised game. Sample by world position
-  and expect a much higher strength than usual, judged under a moving lamp.
-- Ambient particles are anchored in the world and wrapped around the player, lit by the
-  world's light model on a harder curve, drawn behind terrain, faded wherever the beam is
-  not the light. Dust you can see needs a dark room and a beam.
-- Post-processing (vignette, animated mid-tone grain, a touch of aberration, blacks lifted
-  toward the scene colour) is the cheapest mood tool there is. Put it under the HUD.
-- A fix that improves every scene equally is a dimmer switch, not a fix. Attribute an
-  artefact to a *layer* (toggle `.visible` per candidate) before touching any maths.
-
+  (`HULL -3.4/s`); put the gauge on the thing it eats without covering it.
+- **Derive the picture and the score from one state: one function computes the quantity, one
+  applies it, and a test asserts the applied equals the displayed.** A derived quantity is a pure
+  function of state, not of when you ask - one reading a cached flag hands every caller outside
+  the tick last frame's answer.
+- Let damage reveal history (shaved layers). When the accurate model and the readable model
+  disagree, build the readable one (bands, not shells).
+- **A derived index lives in the module that OWNS the data, never in the one that asks the
+  question.** A `Set` mirroring a saved list is a second source of truth: `load()` replaces the
+  list wholesale, an index built in the frame loop never hears about it, and after a reload every
+  new entry looked already-seen so nothing was ever written again. Export a `mark()` that writes
+  both and a `reset()` that rebuilds, called from every path that replaces the list - load, wipe,
+  new game. **When adding a field to a save, grep the RESET path, not just the load path**; the
+  same sweep found a "wipe everything" that had never wiped three discovery lists.
+- **One threshold for "gone", named once, and everything else reads that constant.** Two pieces
+  of code that each decide when a thing is destroyed disagree eventually, and the disagreement is
+  a band neither can see: passability at `<= 1e-4` against a drill breaking at `0.0` left cells
+  flyable, unbroken and still reporting their ore forever. The fix is for the second to read the
+  first one's constant. Second time in that one file.
+- **Any "take the best of N" over frequently-uniform data is a hidden dependence on iteration
+  order**, surfacing the first time the geometry hiding it changes. Weight-average instead, and
+  make the case that must win outright an override, not a tie-break.
+- **Destruction granularity has to match the rendering STYLE, and the ratio is the number.**
+  Character width against cell width: ~18:1 Worms, ~32:1 Noita (continuous), ~1:1 SteamWorld Dig,
+  ~0.5:1 Terraria (blocky on purpose). Gravewell at 0.76:1 drew smooth contours, promising Worms
+  and delivering Dig Dug. A finer TICK cannot help; the limit is spatial.
+- **Unexplored ground is ruled squares, not black.** A map painted only where the player has been
+  reads as the map failing. A survey grid at the tile pitch, a depth rule every 50 m across the
+  WHOLE world, and a surveyed percentage.
+- A formation needs per-unit state and more than one unit wide to be readable. (unplayed)
+- Make failure a *shape* (lean over a neighbour), not a number, with something visible to fail
+  onto, painted lighter than it. A liquid is motion and answers (a scrolling surface, entry
+  rings, a tool that follows), not a texture.
+- A transformation is worth ten multipliers: the screenshot before and after a station must be
+  obviously different pictures.
+- A HUD is a claim about what the player should think about. The reference shows three things.
+- A prop that occludes the thing the game is about is a bug. A chain of short boxes reads as
+  debris; sweep one mesh along the path.
+- "Unavailable" and "not a control" are two booleans; only refusal is grey. Enabled and disabled
+  say it three ways (colour, text, value), and ordering matters: sealed beats affordable, maxed
+  beats affordable, name the missing material before the money.
+- "Cartoony" from him means under-lit and under-textured, not the model style: a normal map on the
+  largest surface, a real light with falloff and a real sky do more than any model swap. That is
+  the design reading; `POLISH.md` gates it and `PLAYER.md` holds his words.
 ## Audio and music
 
-- Sample where a sample is better; synthesise where the sound must answer the game. A tap
-  or a knock is better from Kenney's packs than from a sine. A dip pitched by state is
-  better generated. `techniques/generated-audio.md`.
-- Randomise pitch and filter on repeated sounds. A round-robin pool of players, or one
-  restarted player cuts its own tail off.
-- A texture reads as ambience; only a rhythm reads as movement. A loop with no pulse floats.
-  What makes music happy rather than ambient is a tempo you can nod to: a progression with a
-  cadence, movement eight times a bar, a soft kick.
-- A written theme beats random notes. Without repetition there is no phrase, and a fast
-  attack on a high sine is a notification sound (his one outright dislike).
-- A mood arc is a crossfade on a gameplay quantity, never a playlist. The layer that leaves
-  does more than any that arrives. Assert monotonicity and a real span.
-- Fade times should not match: places arrive slowly (~1.5 s), alarms snap in (~0.25 s) and
-  leave lazily. Route an alarm past whatever is muffling everything else.
-- Give the settings panel nothing to switch that does not exist. If there is a music toggle,
-  there is music.
-
+- Round-robin the players and jitter the pitch on repeats, or a restarted player cuts its own
+  tail off. `ASSETS.md` decides sampled against generated; `techniques/generated-audio.md` has
+  the arithmetic.
+- A texture reads as ambience; only a rhythm reads as movement. What makes music happy rather
+  than ambient is a tempo you can nod to: a cadence, movement eight times a bar, a soft kick. A
+  written theme beats random notes - without repetition there is no phrase, and a fast attack on
+  a high sine is a notification sound (his one outright dislike).
+- A mood arc is a crossfade on a gameplay quantity, never a playlist; the layer that leaves does
+  more than any that arrives. Assert monotonicity and a real span. Fade times should not match:
+  places arrive slowly (~1.5 s), alarms snap in (~0.25 s) and leave lazily, routed past whatever
+  is muffling everything else.
+- **Haptics are a readout channel, not a garnish.** Two levels matched to two states, as he asked:
+  a small pulse when the thing pulls, a sustained heavier one as it nears breaking.
 ## UI and HUD
 
 - Where a readout sits matters more than how it looks. The top of the screen is where nobody
-  looks. Gauges by the thumb, or opposite the thumb if watched continuously. A gauge checked
-  under pressure must not move for unrelated reasons.
-- A pressed control reads as pushed in, not lit up. Give a needle mass, damped to what it
-  shows. A HUD on a textured world needs its own material, with grain felt not seen.
-- Labels in a 3D scene are sized by the pixels they occupy. Measure before choosing words.
-- A shop the player is meant to be *in* is geometry, a room with the real object in it, not
-  a panel and not a styled list. Hide the game entirely behind it, put the exit where a door
-  would be. `techniques/coreward-shop-room-and-hud.md`.
-- Pin the primary button (START, BUY, RECAST) to the bottom of any scrolling sheet.
-- A screen you invented is invisible to you. List what the reference does *not* have.
-- Do not copy a monetisation mechanic (a multiplier wheel) into a game with no monetisation.
-- Preferences are not progress. Settings get their own file, and "erase progress" next to
-  the sound switches only holds if the two are separate.
+  looks; gauges go by the thumb, or opposite it if watched continuously, and must not move for
+  unrelated reasons. On a portrait phone the left column is action buttons and the bottom is the
+  d-pad, so **the largest clear area is upper-right**.
+- A pressed control reads as pushed in, not lit up; give a needle mass, damped to what it shows.
+  A HUD over a textured world needs its own material, grain felt not seen, and labels in a 3D
+  scene are sized by the pixels they occupy.
+- A shop the player is meant to be *in* is geometry, a room with the real object in it, not a
+  panel and not a styled list. Hide the game entirely behind it, put the exit where a door would
+  be. `techniques/coreward-shop-room-and-hud.md`.
+- **A panel printed on a 3D surface is still a panel.** An object IS what it contains: the tackle
+  box holds a small rod and a spool of line, not a list of their names.
+- **A diegetic menu runs out of ANGLES before it runs out of ideas**, and a surface in the world
+  has a reading distance you check with arithmetic. No two interactables within 12 degrees of the
+  seat, hit box = whole silhouette (so long things are expensive), visible width
+  `d * tan(fov/2) * aspect * 2` with a 0.46 aspect term in portrait.
+  `techniques/stillwater-fishing-fight.md`.
+- Give the game ONE `close_any_room()` and one `any_room_open()`. A check keeping its own list of
+  what might be open goes stale the first time a room is added, and the failure lands six checks
+  later looking like a missing button.
+- A screen you invented is invisible to you: list what the reference does *not* have, and do not
+  copy a monetisation mechanic into a game with no monetisation.
+- Preferences are not progress. Settings get their own file, and "erase progress" next to the
+  sound switches only holds if the two are separate.
 
 ## Level and world design
 
-- Put the reward on the ground with extent, give the player a formation with lag, and let
-  the geometry make the decision (weaving measured 2.6x over straight, M).
-- The thing you protect trails along your path rather than clustering around you, so size
-  costs agility. Obstacles must test every unit.
-- Starting with one of the collectible instead of eight makes the first pickup the most
-  valuable object in the game. Cap flat damage as a fraction of the batch.
-- An obstacle anchored to the track edge guarantees its own gap, and its hitbox derives from
-  the drawing.
-- Attrition asks one question ("leave sooner"). A rhythmic announced event makes depth a
-  bet (a tremor every ~27 s past 85 m, T).
-- Announce a zone before charging for it, and make several things land on the same metre.
-  A threshold the player cannot see is not a mechanic.
-- Look for one hazard being the answer to another before adding a third.
-- Every content band must be reachable in both directions, and every row in a content table
-  must be reachable at all. The bluegill shipped uncatchable with every subsystem working.
-- If the game names a thing, the thing exists as visible geometry within reach of its
-  interaction point. Three interactables shipped as prompts pointing at empty air.
-- A first-person interior, a vehicle you sit in, a dock you tie up to: anything on screen
-  for the whole game at full size is where imported assets earn their place.
+- Put the reward on the ground with extent, give the player a formation with lag, and let the
+  geometry make the decision (weaving measured 2.6x over straight, M). The thing you protect
+  trails along your path rather than clustering around you, so size costs agility, and obstacles
+  must test every unit.
+- Starting with one of the collectible instead of eight makes the first pickup the most valuable
+  object in the game. Cap flat damage as a fraction of the batch.
+- An obstacle anchored to the track edge guarantees its own gap; its hitbox derives from the
+  drawing.
+- Attrition asks one question ("leave sooner"). A rhythmic announced event makes depth a bet (a
+  tremor every ~27 s past 85 m, T). Announce a zone before charging for it, land several things
+  on the same metre, and look for one hazard answering another before adding a third. A threshold
+  the player cannot see is not a mechanic.
+- Every content band must be reachable in both directions, and every row in a content table at
+  all. The bluegill shipped uncatchable with every subsystem working.
+- If the game names a thing, it exists as visible geometry within reach of its interaction point,
+  and the anchor is placed from where the imported model's geometry sits, not from its node's
+  position. Three interactables shipped as prompts pointing at empty air, and a logbook prompted
+  over bare floorboards a metre away.
+- **Authored mystery in a seeded world is hand-written room templates dropped at seeded slots.**
+  Stamp after every one-of-a-kind cell and before everything that generates; drop a colliding room
+  ENTIRELY rather than clipping it, because half a room is a wall with no room behind it. Keep a
+  third empty, and never let a locked door lock the world. `techniques/coreward-authored-rooms.md`.
+- **Once a mechanic puts the player INSIDE material, every "is this cell clear" test written
+  before that mechanic is suspect.** Three Gravewell faults were this: a lamp buried in the rock
+  it was cutting got no light, collision asked about whole metres and wedged the ship on slivers,
+  and a drowning check asked whether the metre the ship occupied was open - precisely the metre it
+  is still cutting.
 
-## Process lessons that have each been paid for more than once
+## Diagnosis and rework (more: `techniques/diagnosis-and-rework.md`)
 
-- Write the lesson the moment you learn it. Several games run at once.
-- A complaint that survives a correct fix is about something else. When a symptom survives
-  two fixes, stop fixing and measure: hide a layer, read a pixel, print the buffer.
-- **When the fix for one complaint reliably causes another, stop tuning the number and look
-  for the missing degree of freedom.** Two things that must differ are being driven by one
-  value. This is the harder sibling of the rule above: the complaint did not survive a correct
-  fix, it survived a fix that was correct given a structure that was wrong.
-- **Put a rule where the file system can see it, then write the test that reads it, then break
-  the code five times to prove the test is awake.** A boundary in a comment is a request, not a
-  boundary: Coreward's thirteen pure modules sat beside the renderer with a paragraph asking
-  the next person to keep them apart, and nothing would have failed at the moment of the
-  mistake. Moving them into `src/sim/` cost 77 import lines and converted the rule into a
-  location.
-- **The process is a list of filenames, so the filename is the interface.** The plan goes in
-  `PLAN.md`, his words in `playtests/<slug>.md`, decisions and measurements in `NOTES.md`. A
-  29 KB plan called `DESIGN.md` is reachable only by listing the directory and guessing;
-  nothing in the process opens it. A document that earns a different name is linked from
-  `CLAUDE.md` or it does not exist, and a rename is a `git mv` plus a grep for the old name in
-  the same commit. `PLAN.md` earns its keep when the first unticked box answers "what now" -
-  put the checklist at the top.
-- **When a game moves to a new repo, mark the old one dead in the same commit as the new one's
-  first.** A banner at the top of its `CLAUDE.md` and `README.md` saying where the game went
-  and that this is read-only. The pointer has to be written backwards, from the replacement to
-  the thing replaced, because forwards is the direction nobody is standing in - a session
-  opened in the old folder reads three files that agree with each other and all point at the
-  dead build. This is "delete the stand-in in the same commit as the real thing" applied to a
-  whole repo, where the banner is what deletion would have been.
-- **After reorganising the shared notes, grep every game repo for the old filenames.** Moving
-  files into `archive/` leaves each game's `CLAUDE.md` naming documents that no longer exist.
-- Half a feature working is the worst symptom, because it reads as tuning. If adjusting the
-  obvious parameter changes nothing, a constant term is drowning it.
-- Two bugs can hide each other. When a fix makes a different test fail, suspect a mask.
-- Delete the stand-in in the same commit as the real thing, and audit everything else doing
-  the same job. A fake put in before the real system exists does not announce itself.
-- A rewrite beats revision when the fault is an inheritance (shape) rather than a decision.
-  Keep research in its own file (`REFERENCE.md`) so a rewrite is cheap.
-- Separate means separate, not delete. The answer to a gauge in the wrong place is to move
-  the gauge.
-- Before changing a constant, grep every formula it appears in. Test the derived quantity
-  the player feels.
-- Read the mechanism half of a report as seriously as the symptom half.
-- Set up the test scene where the bug CAN appear. Four rounds were spent with the ship at
-  the one junction where the artefact could not show.
+- A complaint that survives a **correct fix** is about something else. Stop tuning and measure:
+  hide a layer, read a pixel, print the buffer. (Standing rule 8. One fix, not two.) **When the
+  fix for one complaint reliably causes another, look for the missing degree of freedom** - two
+  things that must differ are being driven by one value.
+- **Put a rule where the file system can see it, write the test that reads it, then break the
+  code five times to prove the test is awake.** A boundary in a comment is a request.
+- Half a feature working is the worst symptom, because it reads as tuning: if the obvious
+  parameter changes nothing, a constant term is drowning it. A rewrite beats revision when the
+  fault is an inheritance (shape) rather than a decision.
+- Set up the test scene where the bug CAN appear, and **when a verb changes which states the
+  player spends time in, or which callers a path has, grep every system whose rules assumed the
+  old distribution.**

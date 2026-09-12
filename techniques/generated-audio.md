@@ -49,7 +49,7 @@ happened, however good the particles are.
 ### The Coreward fix, for the record
 
 The score picked melody notes at random from a pentatonic scale, and the note was "The music
-has random higher pitch beeps that I dont like." From `PLAYTESTS.md`, 2026-09-06:
+has random higher pitch beeps that I dont like." From `archive/PLAYTESTS-2026-09-09.md`, 2026-09-06:
 
 The score picked melody notes at random from a pentatonic scale. Musically valid, and it
 still sounded like beeps. Lesson: randomness cannot substitute for melody. Without repetition
@@ -186,7 +186,7 @@ rather than a second shopping trip.
 
 ### Short sounds as `AudioStreamWAV` with arguments
 
-(From `PIPELINE.md`.)
+(From `archive/PIPELINE-2026-09-09.md`.)
 
 Eight percussive blips as `AudioStreamWAV`s built from sine waves at boot: no folder to keep in
 step with the code that names them, and a rename that misses one is silence, which nothing
@@ -209,10 +209,10 @@ they do not trust the other one either. If there is a music toggle, there has to
 ### Start playback from `_ready`
 
 - **Start audio playback from `_ready`, never `_enter_tree` or straight after `add_child`.**
-  A node added during `SceneTree._initialize` reports `is_inside_tree()` as true immediately,
-  so guarding on that flag looks correct and still produces one "Playback can only happen
-  when a node is inside the scene tree" error per player per run. The flag is set before the
-  tree is actually running; `_ready` is deferred to the first PROCESSED frame, which is what
-  playback really requires. It also hands the headless tests what they want for free - they
-  process no frames, so nothing plays, while the mixer is still fully built and its levels
-  still assertable.
+  A node added during `SceneTree._initialize` reports `is_inside_tree()` as **false** - the root
+  window has not entered the tree yet, and it is the tree entering that sets the flag, even though
+  `get_parent()` already returns `root`. So the flag is a correct guard and a silent no-op for the
+  whole `_initialize` stage; what a player needs is a **processed frame**, and `_ready` is deferred
+  to the first one, which is what playback really requires. It also hands the headless tests what
+  they want for free - they process no frames, so nothing plays, while the mixer is still fully
+  built and its levels still assertable.

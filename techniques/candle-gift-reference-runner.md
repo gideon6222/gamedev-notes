@@ -1,5 +1,11 @@
 # Candle Gift: rebuilding a runner from reference footage
 
+> **Over the limit at 32.4 KB and untouched by the 2026-09-12 digest.** If you come back to it,
+> split rather than trim: "Measuring the design with scripted play" plus "The economy" are one
+> write-up on measuring a design with bots (beside `human-bot-policies.md`), and "Read the
+> reference for the verbs" plus "Reference research" are a second on copying a reference game.
+> Move the measured numbers, never delete them.
+
 **Game:** Candle Gift (web / three.js, then rewritten on Godot) · **Status:** shipped and played; the Godot rewrite reached parity in one session · **Read when:** copying an existing game from screenshots and video; a trailing formation; stations, pools and pickups on a runway; setting par and star thresholds; an economy that has to match a reference
 
 Candle Gift is a reproduction of a commercial candle runner Gideon's girlfriend remembered:
@@ -32,7 +38,7 @@ versus model checks and the contact sheet, and the reasons the web version was r
 
 ## Read the reference for the verbs
 
-The line that turned the third build (from `PLAYTESTS.md`, 2026-09-07):
+The line that turned the third build (from `archive/PLAYTESTS-2026-09-09.md`, 2026-09-07):
 
 Third pass at this game, and the first two were both built on inference. Worth recording the
 process failure as much as the fix: I had the reference's store copy and its strategy guide
@@ -130,7 +136,7 @@ part of the art, not a framing preference.
 
 ### One backward walk for a trailing formation
 
-(From `PIPELINE.md`.)
+(From `archive/PIPELINE-2026-09-09.md`.)
 
 **Walking a path once per follower is quadratic, and it reads as a hang.** A trailing formation
 where each member samples back along a recorded path costs (members x samples) a frame: thirty
@@ -265,7 +271,7 @@ in it. Splitting each station into two halves across the track, one effect each,
 fixed consequence into a chain of decisions. **Measure a mechanic across a bad run and a good
 run: if the number does not move, the mechanic is scenery.**
 
-Measure the spread before setting the thresholds (from `PIPELINE.md`):
+Measure the spread before setting the thresholds (from `archive/PIPELINE-2026-09-09.md`):
 
 - **Measure the spread before setting the thresholds, not after.** Star ratings and grades
   are cut against a par, and the *gaps* between them have to match the real distance between
@@ -385,7 +391,7 @@ words, with sources and timestamps - not as comments next to the code that acts 
 
 ## Checking the picture
 
-(From `PIPELINE.md`; both were built for this game.)
+(From `archive/PIPELINE-2026-09-09.md`; both were built for this game.)
 
 ### Test the PICTURE with pixels, test the PLACEMENT with the model
 

@@ -74,6 +74,38 @@ world, it belongs in a shader keyed on world position, not in instance data.
 
 ---
 
+**A cell's id is cached the moment it is drawn, so state that changes an id has to force the
+redraw itself.** Coreward's terrain is `InstancedMesh` pools keyed by block id - every cell of a
+given type shares one draw call - which is correct for as long as a cell's id only changes when
+the world is rebuilt. Then a monument was added that lights up when the player reaches it:
+
+```ts
+return { id: lit ? 'anchorlit' : 'anchor', ... };
+```
+
+Lighting it changed nothing on screen. The cell stayed in the `anchor` pool, because nothing in
+the streaming system had any reason to think that cell had moved pools. It redrew several seconds
+later, when the player crossed a row and the window rebuilt — so the one thing they were looking
+at was the one thing that did not react, and then it changed for no visible reason.
+
+The fix is a full rebuild of the window, not hand-moving one instance between pools:
+
+```ts
+dropBlock(key(x, d));   // pull the cell out of its old pool
+resetBlockCache();
+syncBlocks(true);       // rebuild the window
+```
+
+Moving one instance is three more places for the pools to disagree with the world, and this fires
+nine times in a whole campaign. **The question to ask of every state change is: does this change
+what `blockAt` would return for a cell that is already on screen?** If yes, and the change did not
+go through a path that already rebuilds (digging, a collapse, a world change), it needs an
+explicit redraw.
+
+*General lesson:* any render cache keyed on a derived value — an instance pool, an atlas slot, a material bucket — is a second copy of that value, and the writer of the source has to invalidate it. The symptom is always the same and always looks like something else: *it works, but only after you move.*
+
+---
+
 ## Rotation order
 
 **Two rotations on one object compose in an order, and the default is rarely the one you
@@ -188,7 +220,7 @@ sub-pixel. Treat the parameter as a world-unit thickness, read the geometry's bo
 derive a per-axis scale of `1 + 2*t/size`. Prefer a scaled hull to a normal-pushed one when the
 geometry is boxes: hard per-face normals split at the corners and the outline develops gaps.
 
-*General lesson:* banding needs `NearestFilter` on both filters and an ambient turned down; an outline is a world-unit thickness derived from the bounding box, never a scale factor. On a Godot MultiMesh the inverted hull does not work at all - see the fresnel rim in `PIPELINE.md`.
+*General lesson:* banding needs `NearestFilter` on both filters and an ambient turned down; an outline is a world-unit thickness derived from the bounding box, never a scale factor. On a Godot MultiMesh the inverted hull does not work at all - see the fresnel rim in `GODOT.md`.
 
 ---
 
@@ -284,6 +316,77 @@ the injected call is present in every program that carries the other injection. 
 material proves nothing — the material is fine; it is the compile that lost it.
 
 *General lesson:* any injection point that is a single assignable slot will silently drop somebody else's injection; chain it, tag the cache key, and test the compiled artefact.
+
+---
+
+**An additive mesh inside an opaque one is depth-rejected, not blended.** A sight glass on a
+Coreward machine — a dark tube with a glowing column of fluid in it, scaled to a level — was built
+the obvious way: fluid cylinder, slightly smaller radius, same position as the tube. It drew
+nothing. No error, no warning.
+
+```js
+// the tube: opaque, depth-written, drawn in the opaque pass
+new THREE.MeshBasicMaterial({ color: 0x0a0f14 })
+// the fluid: additive, depthWrite off, drawn in the transparent pass AFTER
+new THREE.MeshBasicMaterial({ blending: THREE.AdditiveBlending, depthWrite: false })
+```
+
+`depthWrite: false` stops it writing depth. It does **not** stop it being depth *tested*. The
+opaque tube has already written a nearer depth across every pixel the fluid covers, so every fluid
+fragment fails the test and is discarded before blending ever happens — and **"inside" is "behind"
+for the front half of the object.**
+
+The fix is not to model it as contained. Make the opaque part the **backing** and put the lit part
+in **front** of it — `fluid.position.z = tube.position.z + 0.06` — which is also how a real sight
+glass reads from the front, so the physical model and the render order agree. `depthTest: false`
+is the other lever and it is worse: it makes the glow draw through walls and through the player.
+
+The symptom is specific and worth memorising: **the object exists, is in frame, has no console
+error, and contributes zero pixels.**
+
+*General lesson:* glass is not a container, it is a layer. Anything additive or transparent meant to be "seen through" something opaque must be drawn in FRONT of it, or the opaque surface removed from where the transparent thing is. True of any depth-buffered renderer, Godot included.
+
+---
+
+**When a 3D object "isn't rendering", check the HUD before the shader.** A new building was placed
+beside Coreward's landing pad and did not appear. Twenty minutes went into shader theories — was
+the custom light injection returning zero above ground, had `onBeforeCompile` failed silently, was
+the material black against a black sky — before the arithmetic got done. The object was rendering
+perfectly. It was behind four opaque HUD buttons.
+
+The arithmetic takes thirty seconds:
+
+```
+halfHeight = distance * tan(fov / 2)
+halfWidth  = halfHeight * aspect
+screenFrac = 0.5 + (objectX - cameraX) / (2 * halfWidth)
+```
+
+Camera 17.7 units back, 52° vertical fov, 0.46 aspect (portrait phone): the visible world is about
+eight units across, the object at x = -2.2 sat at **24% across**, and the action-button column
+occupies **16–32%** of a portrait screen.
+
+The diagnostic order that would have been faster:
+
+1. **Is it in the scene, visible, and in the frustum?** Walk `scene.children`, print positions and
+   `visible`, project the object's `Box3` centre with `.project(camera)` and check `z < 1`. Two
+   minutes, and it said the object was fine.
+2. **Does the console have a shader error?** It did not — so the material compiled, and every
+   theory about the shader was already dead.
+3. **Then it is occlusion**, and on a phone the occluder is usually the HUD.
+
+Step 1 reported "in frame at screen (287, 366)" and the search still went to shaders, because "I
+cannot see it" *feels* like a rendering problem. It was a LAYOUT problem, and the HUD is not in
+the 3D scene, so nothing in the 3D debugging toolkit can see it.
+
+Underneath it is a design rule: on a portrait phone the left column is usually action buttons and
+the bottom is usually a d-pad and gauges, so **the largest clear area is upper-right**. Anything
+that has to be looked at while docked or standing still belongs there, and "where the last thing
+stood" is not a reason — the last thing may have been just as hidden and nobody noticed, because
+it carried no information. The portrait projection arithmetic in full is in
+`techniques/coreward-shop-room-and-hud.md`.
+
+*General lesson:* when a probe says the object is in the frustum and nothing draws, the next question is what is in FRONT of it — a sibling at the same coordinates, or a HUD that lives outside the 3D scene entirely. Also: the screenshot that "proved" it was missing had the camera somewhere else, because the fixture had flown the ship across the world and never brought it back. Assert the subject is in frame before judging the photograph.
 
 ---
 
@@ -419,7 +522,7 @@ rounded away before use. And **balance tuned against a broken random source is t
 quietly clips it at the fold — an entire category looked like it held one item, and another looked
 like it did not exist.
 
-*General lesson:* one scroll region per screen; Godot's `ScrollContainer` has its own failure (it does not scroll from a finger - see `PIPELINE.md`).
+*General lesson:* one scroll region per screen; Godot's `ScrollContainer` has its own failure (it does not scroll from a finger - see `GODOT.md`).
 
 ---
 
@@ -436,7 +539,7 @@ without becoming a lie.
 
 ## The preview server serves the previous build
 
-(From `PIPELINE.md`.)
+(From `archive/PIPELINE-2026-09-09.md`.)
 
 - **`npm run preview` serves the service worker, so a driven browser can test the build BEFORE
   the one you just made.** The PWA registers its worker on the first visit and then answers

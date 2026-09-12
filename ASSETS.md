@@ -39,7 +39,7 @@ research step. Record the misses too.
 | Need | First choice | Second | Notes |
 |---|---|---|---|
 | Stylised low-poly props, vehicles, buildings, kits | **Kenney** (CC0) | **KayKit** (CC0, GitHub) | Same palette-atlas approach, mix freely |
-| Rigged, animated characters and creatures | **KayKit** Adventurers / Skeletons (CC0) | **Quaternius** (CC0 or QAL) | Quaternius Universal Animation Library 2 has 130+ humanoid animations. Mixamo needs a browser |
+| Rigged, animated characters and creatures | **KayKit** Adventurers / Skeletons (CC0) | **Quaternius** (CC0 or QAL) | KayKit is humans and skeletons only - no creatures. Quaternius `animated-lowpoly-dinosaurs` is the one creature pack where all six models have a Run cycle. UAL 2 has 130+ humanoid animations. Mixamo needs a browser |
 | Photoreal props, hero objects | **Poly Haven** (CC0, API) | Poly Pizza (per model) | 1k textures for a phone, 2k for a hero |
 | PBR textures, materials | **ambientCG** (CC0, API) | Poly Haven textures | Take NormalGL. Take the map that holds the PATTERN, strip the map that carries the STYLE |
 | Skies and lighting | **Poly Haven HDRIs** (CC0) | Godot `ProceduralSkyMaterial` | `puresky` variants for water horizons; a series from one location for a day cycle |
@@ -52,7 +52,7 @@ research step. Record the misses too.
 | Sound effects, procedural | **jsfxr** (node, deterministic from a code) | our own WAV generators | For anything that must answer game state |
 | Music loops | **Tallbeard / Abstraction Music Loop Bundle** (CC0, itch, 200+ loops) | Kevin MacLeod (CC-BY 4.0, direct mp3) | Kenney has jingles only |
 | Music, generated | MIDI via python + FluidSynth and a free soundfont | `techniques/generated-audio.md` | Coherent by construction, tempo you can nod to |
-| Menus, options, pause, credits, input remap | **Maaack's Menus Template** (MIT, Godot 4.7) | our own shell | See POLISH.md |
+| Menus, options, pause, credits, input remap | **Maaack's Godot Game Template** (`Maaack/Godot-Game-Template`, MIT) | our own shell | The thing `/game-scaffold` installs. "Maaack's Menus Template" is a different, smaller asset-library entry - do not name it |
 | Camera | **Phantom Camera** (MIT) | hand-rolled | Follow modes, dead zones, transitions |
 | Shaders | godotshaders.com (check each: CC0, MIT or GPL) | | Never ship a GPL shader |
 | Godot addons | GitHub release zips by tag | legacy Asset Library API | The new Asset Store has no API; the old one is going read-only |
@@ -85,6 +85,10 @@ python C:\dev\gamedev-notes\scripts\assets.py search ambientcg wood --limit 20
 python C:\dev\gamedev-notes\scripts\assets.py search kenney         # lists packs by category
 python C:\dev\gamedev-notes\scripts\assets.py search freesound "reel click" --license cc0
 python C:\dev\gamedev-notes\scripts\assets.py search polypizza lantern --license cc0
+python C:\dev\gamedev-notes\scripts\assets.py search kaykit              # lists the 10 repos
+python C:\dev\gamedev-notes\scripts\assets.py search fonts chakra
+python C:\dev\gamedev-notes\scripts\assets.py search opengameart water --type music
+python C:\dev\gamedev-notes\scripts\assets.py sources                    # every source the script knows
 
 python C:\dev\gamedev-notes\scripts\assets.py get polyhaven modular_wooden_pier --res 1k --into assets/models
 python C:\dev\gamedev-notes\scripts\assets.py get ambientcg Wood095 --res 1K --maps NormalGL,Roughness --into assets/textures
@@ -95,7 +99,16 @@ python C:\dev\gamedev-notes\scripts\assets.py get icons lucide --names play,paus
 python C:\dev\gamedev-notes\scripts\assets.py get sfxr jump --seed 1234 --into assets/audio/sfx
 python C:\dev\gamedev-notes\scripts\assets.py get addon ramokz/phantom-camera v0.11.0.3 --into addons
 python C:\dev\gamedev-notes\scripts\assets.py get itch tallbeard/music-loop-bundle --into assets/audio/music
+python C:\dev\gamedev-notes\scripts\assets.py get hdri kloppenheim_06 --res 1k --into assets/hdri
+python C:\dev\gamedev-notes\scripts\assets.py get freesound 351376 --into assets/audio/sfx
+python C:\dev\gamedev-notes\scripts\assets.py get polypizza <model-id> --into assets/models
+python C:\dev\gamedev-notes\scripts\assets.py get opengameart <slug-or-url> --into assets/audio/music
+python C:\dev\gamedev-notes\scripts\assets.py get sonniss 2024 --part 1 --into assets/audio/sfx
 ```
+
+`get hdri` is `get polyhaven` under another name; `get sonniss` takes a YEAR (2024, 9 parts;
+2023, 14) and a `--part`, not a filename. `sources` prints the script's own header, which is the
+authoritative list when this one has drifted.
 
 Every `get` appends a line to the game's `assets/CREDITS.md` (source, id, URL, licence, date)
 and refuses a licence it does not recognise. The credits file feeds the credits screen.
@@ -114,6 +127,14 @@ sees before filtering and exits non-zero naming the selector when that count is 
 absence answer can no longer be produced silently. Verified by falsification - `search kenney
 category:UI` exits 1 with the message, the default search lists packs and exits 0.
 
+**And loud failure is not sufficient, because what a reader of a search looks for is ROWS.** The
+KayKit 404 printed `HTTP 404 for .../orgs/...` at the top of three lines of output and the scout
+still wrote down "KayKit has zero creature repos" - true, reached through a broken tool. An error
+line above an empty table and a genuine zero look identical to anyone scanning for rows. So:
+**check the exit status before writing down a miss, put the failure on the LAST line as well as
+the first, exit non-zero, and re-run the query yourself before "nothing exists for X" goes into a
+plan** rather than inheriting the conclusion.
+
 How each source is reached, for when the script needs fixing:
 
 - **Kenney**: the zip URL on `kenney.nl/assets/<slug>` contains a hash and a timestamp that
@@ -131,9 +152,12 @@ How each source is reached, for when the script needs fixing:
   broke out of its paging loop, and returned an empty table for every query in two separate
   asset hunts - which both wrote down as "Kenney has nothing for this". The first re-run after
   the one-character fix surfaced `modular-cave-kit` for a game made of caves.
-- **KayKit**: `github.com/KayKit-Game-Assets/<repo>` as a zip from
-  `codeload.github.com/KayKit-Game-Assets/<repo>/zip/refs/heads/main`, already in an
-  `addons/` layout. Packs not on GitHub are on `kaylousberg.itch.io`.
+- **KayKit**: **KayKit-Game-Assets is a GitHub USER, not an org** - list its repos with
+  `api.github.com/users/KayKit-Game-Assets/repos` (measured 2026-09-11: `orgs:` 404,
+  `users:` 200 with 10 repos). `assets.py` called `/orgs/` from the day the source was added, so
+  every KayKit search had 404'd for its whole life. Fetch a pack as a zip from
+  `codeload.github.com/KayKit-Game-Assets/<repo>/zip/refs/heads/main`, already in an `addons/`
+  layout. Packs not on GitHub are on `kaylousberg.itch.io`.
 - **Poly Haven**: `api.polyhaven.com/assets?t=models|textures|hdris&c=<category>` then
   `api.polyhaven.com/files/<id>` for URLs and sizes. Send a `User-Agent`. glTF comes with an
   `include` map of relative texture paths; **preserve that layout or Godot imports a white
@@ -186,12 +210,43 @@ How each source is reached, for when the script needs fixing:
   `mipmaps/generate=true`, `process/size_limit=1024`; normal maps `compress/normal_map=1`;
   HDR skies `compress/mode=2` and `process/size_limit=512`. `ls -laS .godot/imported` is the
   only place the real cost shows.
+- **VRAM-compressed textures cost a fixed rate per pixel, so how well the source packs is
+  irrelevant.** 39 new 1K maps are about 39 MB in the APK whatever they weigh on disk; the only
+  lever is `process/size_limit` in the `.import`. Measured on Stillwater: a new room of nine
+  imported props took the APK 35.62 MB to **64.58 MB**, and 512 across the room with 256 on five
+  background-only props brought it to **43.71 MB** with a screenshot from where the player stands
+  indistinguishable. Measured on Wildform: Godot's default for a plain texture is
+  `compress/mode=0` (LOSSLESS) with `mipmaps/generate=false`, so each 1024x1024 landed at
+  **1.33 MB and Godot generated both an `astc` and a `bptc` variant** - twelve textures were 34 MB
+  imported, and `compress/mode=2` plus mipmaps plus a 512 limit plus deleting the roughness maps
+  entirely took that to **7.2 MB**. Mipmaps are not optional on ground seen at a grazing angle
+  from a chase camera; without them it shimmers, which reads as a rendering fault.
 - Sizes for a 1080x2340 phone: props at 1k, a hero or terrain at 2k, UI at native design
   resolution, a sky at 512x256 to 1k. Size a tiled texture from the physical pixels it
   displays at, not from what the download offers: 384 px was native for a Coreward cell and
   1k was three quarters of a megabyte thrown away.
 - Imported low-poly kits: leave the atlas Lossless with mipmaps. Recolour the atlas to the
   game's palette rather than tinting per material.
+- **A skinned mesh does not know how big it is, and four ways of asking all lie.** Normalising
+  four creature models to a size ladder: `mesh.get_aabb().size.y * model.scale` came out **100x
+  too big** (the mesh sits under an Armature carrying the FBX's centimetre scale); the AABB
+  transformed up the chain gave **40-49% of target**, differing per model, because Z-up models
+  put their DEPTH in the local Y; and both `VisualInstance3D.get_aabb()` and an in-tree
+  re-measure after a frame printed the targets to two decimals while the render showed a stage-1
+  creature four times the size of the stage-4 one. **A probe that disagrees with a picture you
+  are looking at is measuring the wrong quantity, and the picture wins.** So set the scale as a
+  measured constant per model in the content table, checked by eye against something (the
+  collision width: a 1.80-unit body on a 4.00-unit band should cover a little under half the
+  road). The mesh AABB is still the right and only source for MODEL-SPACE extent - a uniform
+  consumed in model space is tuned as `<features wanted across the body> / aabb.size.length()`,
+  never against the node's world scale, and the assertion is on the feature COUNT (2 to 8 bands
+  across a body), not on the frequency.
+- **A pack's name and its preview say nothing about which models are animated.** Twenty lines
+  that instantiate every file and print its animation list and height is the cheapest way to
+  find out: Quaternius farm animals had 3 of 7 with a Run cycle and all three the same height;
+  monsters 1 of 4; dinosaurs 6 of 6, CC0 by its own `License.txt`, silhouettes that genuinely
+  differ. Delete the packs you did not choose in the same commit - two of those were 11 MB of
+  Blends, OBJs and preview GIFs no build would ever have used.
 - Fonts: TTF or WOFF2 both import. A variable font works through `FontVariation`. MSDF for
   UI that scales. Ship the OFL text with the font.
 - Audio: OGG for music and ambience, WAV for short SFX. 22050 Hz mono is enough for water,
@@ -212,6 +267,31 @@ How each source is reached, for when the script needs fixing:
   first-attempt generated one and it is CC0.
 - Round-robin players, pitch jitter on repeats, separate buses so the options screen can
   set Music, SFX and UI independently.
+
+## What does not exist free (checked against working controls)
+
+Record every miss; a miss shapes the design. Each of these was re-checked on 2026-09-11 with the
+KayKit endpoint fixed and against a control query whose answer was known non-empty.
+
+- **A rigged evolution or growth line of one creature identity.** Nothing anywhere. KayKit: 10
+  repos, zero creature or monster packs. Kenney: no animal, creature or monster pack at all
+  across 16 3D packs (`cube-pets` is a static voxel prop). Quaternius: three rigged animated
+  packs with run cycles, each a bag of unrelated creatures, never a growth line. Poly Pizza
+  surfaces individual Quaternius models and **does not guarantee animation survives its export**.
+  **A game that needs visible growth stages of one identity is committing to curate or build
+  them, and that belongs in the milestone list before the plan is approved.** The workable free
+  route is a curated trio of separate CC0 creatures chosen by silhouette and unified by four
+  cheap things: one palette per line, one signature accessory carried across all stages, a
+  normalised import scale, and a dissolve transform hiding the swap. Defensible rather than a
+  compromise: Pokemon's own lines change silhouette drastically (Charmander to Charizard), so
+  what must stay continuous is the palette and one feature, not the topology.
+- **Volcano or lava HDRIs on Poly Haven, and lava, basalt or obsidian materials on ambientCG.**
+  Both absent against working controls (`forest`, `desert`, `beach` all returned rich results in
+  the same call shape). A volcanic sky is a `ProceduralSkyMaterial` and lava cracks are an
+  emissive shader over a dark rock base. Both are code, not imports.
+- **Water, liquid or ripple materials on ambientCG.** Absent.
+- **Wax and candles**, anywhere. By contrast a lake-and-boat game found its whole set dressing on
+  Poly Haven in two minutes. The hit rate is a property of the SUBJECT, not the library.
 
 ## Licences and credits
 

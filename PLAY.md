@@ -181,13 +181,24 @@ Mandatory before a store listing can be published:
 |---|---|
 | App icon | **512 × 512**, 32-bit PNG with alpha, sRGB, max 1024 KB. Google adds the rounded corners and shadow — do not draw them |
 | Feature graphic | **1024 × 500**, JPEG or 24-bit PNG, **no transparency**. Required for every app |
-| Phone screenshots | **at least 2**, up to 8. 1080 × 1920 works; each side 320–3840 px, aspect no wider than 2:1. JPEG or 24-bit PNG |
+| Phone screenshots | **at least 2**, up to 8. Each side 320–3840 px, **aspect no wider than 2:1**. 1080 × 1920 (16:9) and 1080 × 2160 (exactly 2:1) both pass. JPEG or 24-bit PNG |
 | Short description | 80 characters |
 | Full description | 4000 characters |
 
-Tablet screenshots are optional. Screenshots come straight off the phone with
-`adb shell screencap -p /sdcard/x.png` then `adb pull` — the S26 Ultra's native resolution
-is already a valid size.
+Tablet screenshots are optional.
+
+**The S26 Ultra's native grab is NOT a valid store screenshot.** `adb shell screencap -p
+/sdcard/x.png` then `adb pull` gives 1080 × 2340, which is **2.167:1 and wider than the 2:1
+cap**, so Play rejects it. The aspect cap is the real constraint; the pixel count is fine. Two
+ways out, both one command:
+
+- render at a legal size in the first place — `shot.gd --resolution 1080x2160` is exactly 2:1
+  and is what `/ship store` should use;
+- or crop a native grab to 1080 × 2160 (`ffmpeg -i x.png -vf "crop=1080:2160:0:90" out.png`),
+  taking the 180 px out of the status bar and the gesture area rather than out of the game.
+
+Never upload a raw `screencap` for the listing. A device grab is still the right thing for the
+playtest report and for showing him a build.
 
 ## Privacy policy and data safety
 

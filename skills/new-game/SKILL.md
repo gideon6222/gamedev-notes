@@ -11,6 +11,8 @@ created on disk except the plan. After the gate there are no more questions.
 
 ## 1. Read before designing (ten minutes that decide the game)
 
+Run `/framework-check` first, before planning, and fix what it reports.
+
 - `C:\dev\gamedev-notes\PLAYER.md`: what he plays first, the seven recurring complaints,
   how he wants to work.
 - `C:\dev\gamedev-notes\CRAFT.md`: skim every heading, read the sections the idea touches.

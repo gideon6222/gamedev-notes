@@ -1,18 +1,24 @@
 # POLISH.md - what "complete" means on a phone, and the ship gate
 
-A game is finished when every line below is true, not when the mechanic works. `/ship`
-walks this list and refuses to ship on a no. Everything here is cheap compared to the
-mechanic, and it is what separates "a prototype that runs" from a game he would choose over
-the ones already on his phone. Edited only by `/digest`.
+A game is finished when every line below is true, not when the mechanic works. `/ship` walks this
+list and refuses to ship on a no. Everything here is cheap compared to the mechanic, and it is
+what separates "a prototype that runs" from a game he would choose over the ones already on his
+phone. Edited only by `/digest`.
+
+**What may be deferred, and what may not.** A line is a yes, a no fixed now, or "not in this
+phase" - and the last is only available under **Content**, for **Shell and system integration**
+items that `PLAN.md` explicitly assigned to a later phase, with that phase named in the answer,
+and for the one device carve-out named under **Performance and stability**. Nothing else under The
+first sixty seconds, Feel, Presentation, Audio, Performance and stability or Repo hygiene may be
+deferred. Read the same way at plan time: phase one owes every line that is not deferrable here.
 
 ## The first sixty seconds
 
 - [ ] The game is playable within ten seconds of tapping the icon. No menu to wade through.
-      HOME is the level you are about to play with `advance` not being called.
 - [ ] The first thirty seconds need zero reading. The first minute gives a win.
 - [ ] Every state on screen names a visible action, and the next goal is visible.
-- [ ] A new player can tell what to do, what hurts, and what is worth more, from the picture
-      alone. Hazards in one colour family, the reward the brightest thing on screen.
+- [ ] Hazards are all in one colour family, no hazard shares a silhouette with a reward, and the
+      reward is the brightest thing on screen.
 - [ ] There is a reason to play again in five minutes: a thing you keep, a next unlock shown
       (exactly one teaser), a run that ended one decision short.
 
@@ -26,21 +32,35 @@ the ones already on his phone. Edited only by `/digest`.
       aware, and each control owns its input. The hit box is the drawing.
 - [ ] Filmed run reviewed against the six questions in `TESTING.md` and the answers are in
       `NOTES.md`.
-- [ ] The camera has been checked for handedness with the NDC test and re-shot after the
-      last change to any length.
+- [ ] `test_controls.gd` passes: a real drag event through the real input handler moves the
+      avatar the right way ON SCREEN, and the camera's own right vector satisfies
+      `basis.x.x > 0.5`. Contact sheet re-shot after the last change to any length. Five games
+      have shipped inverted with the rule written down; this line is the only thing that has
+      ever caught it.
 
 ## Presentation
 
-- [ ] A real light with falloff, a considered sky, and a normal map on the largest surface.
-      "Cartoony" from him means under-lit and under-textured.
+- [ ] Not "cartoony", which from him means under-lit and under-textured rather than a model
+      style (`CRAFT.md` has the design reading, `PLAYER.md` his words): a real light with falloff,
+      a normal map on the largest surface, and a sky that is not the
+      Godot default: a Poly Haven HDRI or a `ProceduralSkyMaterial` with its colours set, named
+      in `NOTES.md`.
 - [ ] Post-processing under the HUD: a vignette in three stops, mid-tone grain, blacks
       lifted toward the scene colour.
-- [ ] A self-hosted font, two weights, used everywhere. No default Godot font on any screen.
+- [ ] A self-hosted display family AND a self-hosted text family, two weights each, used
+      everywhere. No default Godot font on any screen.
 - [ ] Every interactable has visible geometry. If the game names a thing, the thing exists.
 - [ ] Ambient motion in the idle state (water, dust, a sway) so a still frame is not a
       screenshot.
 - [ ] The shop or upgrade screen is a place with the real object in it, scrolls from a
       finger, and its primary button is pinned to the bottom.
+- [ ] Every menu and every room is drivable with on-screen up/down/left/right and a confirm as
+      well as by touch: the selection is highlighted and shows its description, and left/right
+      swaps a variant. Asked three times in two days (`PLAYER.md`).
+- [ ] Every menu closes with an explicit X or back control. Tapping outside is never the only way
+      out, and reaching the end of the content (the last page) does not close it by itself.
+- [ ] A control that cannot do anything is visibly grey and one that can is not - the arrows, the
+      select button, the primary button. No pips or arrows implying options that do not exist.
 - [ ] Every screen has been looked at once as a picture at the phone's aspect.
 
 ## Audio
@@ -55,7 +75,8 @@ the ones already on his phone. Edited only by `/digest`.
 ## Shell and system integration
 
 - [ ] Main menu, options (audio, haptics, a graphics scale slider), pause, credits, and a
-      confirmation before erasing progress. Maaack's Menus Template or the game's own shell
+      confirmation before erasing progress. Maaack's **Godot Game Template**
+      (`Maaack/Godot-Game-Template`, the one `/game-scaffold` installs) or the game's own shell
       built to the same standard.
 - [ ] Version number, build stamp and patch notes reachable from the pause screen.
 - [ ] A hand-rolled crash reporter prints the **stack**, not just the message. A message names
@@ -66,33 +87,45 @@ the ones already on his phone. Edited only by `/digest`.
 - [ ] Progress saved to `user://` on every meaningful change and on
       `NOTIFICATION_APPLICATION_PAUSED`. Settings in a separate `ConfigFile`. Erase progress
       sets a one-way latch so the unload save cannot write it back.
-- [ ] The Android back button pauses in play, goes back in menus, and never quits without
-      asking. **Both halves in the same commit**: `quit_on_go_back = false` AND
-      `NOTIFICATION_WM_GO_BACK_REQUEST` in `_notification`, unwinding one layer per press.
-      The setting alone is a dead system button; assert the unwinding, not the setting. The
-      save happens here too, because `WM_CLOSE_REQUEST` does not arrive on an Android back-out.
+- [ ] A test asserts the back button unwinds one layer per press and never quits with a screen
+      open, and that the save fires on the last press. Assert the unwinding, never the setting -
+      a config line cannot fail. Mechanism and both required halves: `GODOT.md`.
 - [ ] Home then resume returns to a paused game, not a restarted one. Screen sleep is
       prevented during play (`keep_screen_on`).
 - [ ] Orientation locked to portrait. Immersive mode on. Safe area applied.
-- [ ] Haptics on hits and purchases, with `permissions/vibrate` set.
+- [ ] Haptics on hits and purchases, with `permissions/vibrate` set, and haptics used as a
+      READOUT wherever a gauge is watched under pressure: a small pulse for the event, a heavier
+      sustained one as the thing nears breaking. A continuous effort is one modulated loop, never
+      a pulse per hit.
 - [ ] Adaptive launcher icon (foreground, background, monochrome at 432 px), a splash that
       matches the game's palette, `splash_screen/disable_godot_boot_splash` on, a 512 px
       store icon exported. App name and package `com.gideon.<slug>` set.
 
 ## Performance and stability
 
-- [ ] Steady frame rate with the screen full: `perf` percentiles recorded at the start and
-      after ten minutes of play. No thermal climb into throttling in a normal session.
+- [ ] `scripts\device.ps1 perf` with the screen full, at the start of a session and again after
+      ten minutes of play, both recorded in `NOTES.md`: **95th-percentile frame time under
+      16.7 ms** (60 fps) in both, the ten-minute p95 **no more than 20% above** the opening one,
+      and `dumpsys thermalservice` no worse than `THROTTLING_LIGHT` at the ten-minute mark. The
+      engine and pipeline alone measure 5 ms at p50, p90 and p95 on this phone (M), so the whole
+      budget below 16.7 ms belongs to the game.
 - [ ] No `ERROR:` lines in logcat across a full play session. No resources still in use at
       exit.
 - [ ] Textures sized and compressed per `ASSETS.md`. APK inside its size budget.
 - [ ] Launch, play through a level boundary, die, retry, buy, home, resume, back, quit: all
       exercised on the phone with `scripts/device.ps1` before shipping.
+- [ ] **The one carve-out, worded the same way in `skills/ship/SKILL.md` so the two cannot
+      drift:** the two Performance and stability lines that need the device - the `perf`
+      percentiles at the start and after ten minutes, and the full launch-to-quit pass on the
+      phone - may be deferred only when `adb devices` is empty. Record them in `NOTES.md` as "not
+      run, no device", name the desk evidence that stood in, and run them on the next ship with
+      the phone attached. Nothing else under Performance and stability may be deferred.
 
 ## Content
 
-- [ ] Enough content that the next hour is not a repeat of the first: a ladder of levels,
-      species, buildings or planets, each row reachable and proven by a design test.
+- [ ] The content ladder still has unreached rows after an hour: the progression probe reports
+      the row reached at 60 minutes and the table's row count, and the first is lower than the
+      second. Every row reachable and proven by a design test.
 - [ ] A meta-goal that does not decay (a collection, a logbook, a relic per planet).
 - [ ] The second month's content is sketched in `PLAN.md` even if not built.
 
@@ -101,8 +134,9 @@ the ones already on his phone. Edited only by `/digest`.
 - [ ] CI green. APK attached to the release. Changelog entry written in the player's words.
 - [ ] `CLAUDE.md`, `NOTES.md` and `PLAN.md` current. Milestone list ticked. The plan is
       called `PLAN.md` and its first unticked box is the answer to "what now".
-- [ ] Version agrees in all three places, asserted by a test: `Changelog.VERSION`,
-      `version/name` in **each** export preset, and `RELEASES[0].version`.
+- [ ] Version agrees everywhere, asserted by `test_version.gd`: `Changelog.VERSION`,
+      `version/name` in **each** export preset, `RELEASES[0].version`, and `version/code` higher
+      than the last release's (Play refuses an upload that does not raise it).
 - [ ] `assets/CREDITS.md` complete, and the credits screen renders it.
 - [ ] Lessons filed to `inbox/`, his words filed to `playtests/<game>.md`.
 - [ ] Screenshot at 460x996, the APK link, the changelog entry and the numbered answers to

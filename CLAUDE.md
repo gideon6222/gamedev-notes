@@ -4,6 +4,13 @@ This repo is shared by every game session on this machine. When a session is run
 this directory it is either digesting the inbox, editing the framework, or reading.
 
 - **Never `git add -A` here.** Stage by name, or use `scripts/kb.ps1 commit -Files ...`.
+- **Never `git checkout -b` here.** This directory is one working tree shared by every
+  running session, so a branch checked out in place yanks all of them onto it mid-build.
+  Framework work goes in a worktree:
+  `git worktree add C:\dev\gamedev-notes-<topic> -b <branch>`, then work there.
+- **`/digest` takes the lease first** (`scripts/kb.ps1 lease -Owner digest`, 30-minute TTL)
+  and releases it after the push and on every failure path. Two digests at once overwrite
+  each other's folds.
 - `git pull --rebase --autostash` before any edit to a topic file, and push immediately
   after. If a push is rejected, pull, rebase, push again; never force.
 - `CRAFT.md`, `GODOT.md`, `TESTING.md`, `ASSETS.md`, `POLISH.md`, `PLAYER.md`, `WEB.md` and

@@ -15,6 +15,7 @@ That only works if this knowledge base is read at the start and written to as yo
 
 | Step | Skill | What happens |
 |---|---|---|
+| **0. Check** | `/framework-check` | Runs first, always: `scripts\doctor.ps1` over this base, the template and every game repo, then act on what it fails |
 | 1. Understand | `/new-game <idea>` | Reads this base, expands the idea, picks the engine (Godot unless the game truly wants to be a web link) |
 | 2. Research | `/game-plan` | Searches for the genre's loop, reference games, one new technique, and runs the asset scout |
 | 3. Plan | `/game-plan` | Writes `PLAN.md`: loop, feel, first minute, content, systems, assets, tests, polish, milestones |
@@ -35,7 +36,12 @@ a plan.
    genuinely wants to be a link.
 2. **A pure simulation core with no renderer in it.** `src/sim/` never touches a Node, a
    Viewport, an input event or a real frame. This is what makes the golden test, the
-   headless harness and every rewrite possible.
+   headless harness and every rewrite possible. **The rule excludes the renderer, not the
+   disk: `src/sim` MAY use `FileAccess` and `DirAccess` under `user://`.** What it may not do
+   is make the disk the only way to test a save - serialisation is a pure pair, state to
+   `Dictionary` and back, asserted by a round-trip test that touches no file, and the file
+   call is a thin wrapper over that pair which may live either side of the wall. Asserted by
+   `test/test_sim_boundary.gd`, not by a comment in a header.
 3. **The full stack from the first commit**: git, GitHub repo, CI, size guard, golden test,
    smoke test, build stamp, version, changelog, `CLAUDE.md`, `NOTES.md`, `PLAN.md`. There
    are no one-off games.
@@ -58,6 +64,9 @@ a plan.
 11. **A construct that cannot fail is untested, not safe.** Verify every regression test by
     reintroducing the bug. Never re-record a golden without reading the diff.
 12. **Delete the stand-in in the same commit as the real thing.**
+13. **The framework is checked, not assumed.** `/framework-check` is the gate on these rules
+    themselves and runs before planning, before resuming a game and before a ship. A rule that
+    nothing looks at is the failure this whole base keeps paying for.
 
 ## Where knowledge lives (read what the step needs, not everything)
 

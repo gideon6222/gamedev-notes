@@ -20,6 +20,7 @@ game that is genuinely 2D and light. Everything else is Godot.
 | PWA | **vite-plugin-pwa** `generateSW` | Never hand-write a service worker |
 | Tests | `node --test test/*.test.mjs` over pure functions, esbuild-bundled | A hand-listed test file set silently stops running new files |
 | Smoke | **Playwright** against the production build, portrait viewport **after** the device spread | The only thing that catches wiring bugs |
+| Gate | **`npm run check`** = typecheck, `node --test`, build, bundle size, Playwright e2e | The web equivalent of `scripts\check.ps1`; run it before every push |
 | Deploy | GitHub Actions to GitHub Pages: typecheck, golden, build, smoke, deploy | CI is the gate |
 | Audio | Synthesised at runtime with Web Audio, built on the first gesture | No files, responds to state |
 | Fonts | Self-hosted woff2 from Google Fonts, `woff2` in the Workbox glob | An external stylesheet fails offline |
@@ -34,8 +35,12 @@ does this and creates the repo, then enables Pages with
 ## Rules that were paid for
 
 - **Split the vendor chunk** (`manualChunks` for `node_modules/three`) so a gameplay tweak
-  invalidates 28 KB instead of 500 KB on mobile data and the size guard can see a
-  regression. Bundle budget fails in both directions.
+  invalidates only the app chunk on mobile data and the size guard can see a regression.
+  Measured on Coreward 2026-09-12: app chunk 213 KB raw / **80 KB gzip**, pinned three.js
+  chunk 532 KB / **134 KB gzip**, GLTFLoader 46 KB / 14 KB gzip (M). Unsplit, every gameplay
+  tweak would re-download all 228 KB gzip. The budget checks PER CHUNK and fails in both
+  directions: a shrink means code was tree-shaken away, growth means a value import of three.js
+  reached the pure layer.
 - **Error overlay handler in `<head>` before the module script.** Vite hoists the entry.
   He has no console on the phone.
 - **Build stamp via Vite `define`, a version and a changelog** in the menu. An installed PWA
@@ -43,9 +48,18 @@ does this and creates the repo, then enables Pages with
 - **`touch-action: none` on the play area and HUD, never on `html`/`body`**, or every
   scroller underneath stops panning. A window-level drag handler must bail when the event
   started on UI. Pin START with `position: sticky; bottom: 0`.
-- **Every game gets its own preview and test ports, never a Vite default**, and
-  `reuseExistingServer` stays `false`. Two suites on this machine once tested each other's
-  builds. Coreward: 4319 tests, 4318 preview.
+- **Every game gets its own preview and test ports, never a Vite default.** Two suites on this
+  machine once tested each other's builds, and the failure read as flake. Coreward: 4319 tests,
+  4318 preview. **A per-game port is what makes `reuseExistingServer: !process.env.CI` safe**,
+  which is what Coreward now runs and what its config comment argues for: the only thing that
+  can be listening on that port is this game, so adopting it locally is right and CI still
+  starts its own. On a Vite default it is the opposite and the old blanket `false` was the
+  right answer for the wrong reason.
+- **`npm run preview` with no port lands on Vite's default 4173**, which is the one port a
+  sibling game may already own. The safe form passes the game's own port explicitly, and binds
+  the address because `vite preview` defaults to `localhost`, which resolves to `::1` on Windows
+  and then a `127.0.0.1` health check never succeeds:
+  `npm run preview -- --port 4319 --strictPort --host 127.0.0.1`.
 - **`npm run preview` serves the service worker**, so a driven browser can test the build
   before the one you just made. Check the hashed script filename, and unregister workers and
   clear caches before trusting anything.
@@ -65,15 +79,22 @@ does this and creates the repo, then enables Pages with
 - **Seeding a save through `localStorage` and reloading does not work** if the game saves on
   `visibilitychange`. Freeze `Storage.prototype.setItem` for that key first.
 - **Drive real pointer events for anything about direction** and assert in NDC.
+- **When a 3D object "isn't rendering", check the HUD before the shader.** The HUD is DOM, outside
+  the scene, so nothing in the 3D debugging toolkit can see it occluding anything. Walk the scene,
+  project the object's `Box3` centre and confirm `z < 1`, check the console for a shader error,
+  and only then suspect the material: a Coreward building sat at 24% across a portrait screen
+  behind an action-button column that occupies 16-32% of it (M). The largest clear area in
+  portrait is upper-right. `techniques/three-js-traps.md`.
 - **Filmstrip**: `node scripts/filmstrip.mjs <scenario> [frames] [secondsPerFrame]` composites
   in the browser on the tick seam. Same rules as `movie.ps1` on Godot.
 
 ## Measured limits (Coreward, S26 Ultra)
 
 JS heap in play 22 MB against 4 GB. Save file 339 bytes typical, 12.5 KB worst. Download
-147 KB gzip, 119 KB of it three.js cached across updates. Draw calls cost 5.0 us each on a
-desktop, linear to 2,500; the game's 60 are under 4% of a frame. The real constraints, in
-order: thermal throttling, update size on mobile data, then fill rate. Memory is not a
+**228 KB of JS gzip, 134 KB of it the pinned three.js chunk cached across updates** (M,
+2026-09-12), plus 246 KB of WebP normal and roughness maps, which gzip does not shrink. Draw
+calls cost 5.0 us each on a desktop, linear to 2,500; the game's 60 are under 4% of a frame.
+The real constraints, in order: thermal throttling, update size on mobile data, then fill rate. Memory is not a
 constraint and should not be treated as one. Draw calls are a regression detector, not a
 ceiling: budget for instancing breaking, not for a hardware limit.
 
