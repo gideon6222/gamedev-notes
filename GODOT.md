@@ -322,7 +322,7 @@ as "the buttons are about half an inch too high".
   it; the rest of the `.import` recipe is in `ASSETS.md`.
 - **`Light3D.light_cull_mask` and `VisualInstance3D.layers` really do exclude a light from an
   object** in Godot - one flag, not a second pass. The opposite rule in
-  `techniques/three-js-traps.md` is a three.js limitation.
+  `techniques/three-js-materials-and-lights.md` is a three.js limitation.
 - **Walking a path once per follower is quadratic and reads as a hang**; one backward walk
   emits every follower as it crosses each threshold.
 - Anti-aliasing on a phone: MSAA 2x at most, or FXAA. Keep `scaling_3d/scale` around

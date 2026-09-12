@@ -320,7 +320,14 @@ const RELEASES := [
 # ── Web ───────────────────────────────────────────────────────────────────────
 if (-not (Test-Path $WebSource)) { Fail "Web source game not found at $WebSource" }
 $WebStub = Join-Path $PSScriptRoot '..\setup\web-stub'
-if (-not (Test-Path (Join-Path $WebStub 'src\main.ts'))) { Fail "missing the web stub at $WebStub. Without it this would commit $((Split-Path $WebSource -Leaf))'s entire game as a new one." }
+# public\ is checked as well as src\, because the copy below DELETES the source game's
+# public/ - its models, its icon and its manifest - and a stub with nothing to put back would
+# leave a game with no app icon, no manifest, and a service worker whose importScripts 404s.
+foreach ($need in 'src\main.ts', 'public\manifest.webmanifest', 'public\icon.svg', 'public\sw-legacy-cleanup.js') {
+  if (-not (Test-Path (Join-Path $WebStub $need))) {
+    Fail "missing $need from the web stub at $WebStub. Without it this would commit $((Split-Path $WebSource -Leaf))'s own files as a new game's."
+  }
+}
 
 Write-Step "Copying web tooling from $WebSource to $Dest"
 # .claude is NOT excluded any more. Excluding it was how launch.json's port survived every
@@ -429,8 +436,13 @@ Write-Host "   ports: preview $previewPort, tests $testPort, film $filmPort, dev
 # loop that wrote four markdown files and touched no code at all, so every web game was
 # committed as "Scaffold <Name> from coreward tooling" containing all of Coreward's gameplay,
 # its Playwright suite and its frozen golden baselines. This is that comment, done.
-Write-Step "Replacing $srcSlug's game code with the bootable stub"
-foreach ($d in 'src', 'e2e', 'test') {
+Write-Step "Replacing $srcSlug's game code and public/ with the bootable stub"
+# public/ joins the list, and it was the last thing still being inherited whole. It is not a
+# tooling directory: $srcSlug keeps its ship models in public/models, and the service worker's
+# globPatterns includes glb, so every new web game shipped ~300 kB of another game's art and
+# PRECACHED it onto the phone. The stub's public/ puts back the three files that are genuinely
+# tooling - the manifest, an icon, and the script workbox's importScripts names.
+foreach ($d in 'src', 'e2e', 'test', 'public') {
   $p = Join-Path $Dest $d
   if (Test-Path $p) { Remove-Item $p -Recurse -Force }
 }
@@ -439,17 +451,34 @@ foreach ($d in 'src', 'e2e', 'test') {
 Remove-Item (Join-Path $Dest 'bundle-budget.json') -Force -ErrorAction SilentlyContinue
 robocopy $WebStub $Dest /E /XF README.md /NFL /NDL /NJH /NJS | Out-Null
 if ($LASTEXITCODE -ge 8) { Fail "robocopy of the web stub failed ($LASTEXITCODE)" }
-foreach ($must in 'src\main.ts', 'src\sim\state.ts', 'src\view\scene.ts', 'index.html', 'e2e\smoke.spec.ts', 'test\state.test.mjs') {
+foreach ($must in 'src\main.ts', 'src\sim\state.ts', 'src\view\scene.ts', 'index.html', 'e2e\smoke.spec.ts', 'test\state.test.mjs',
+                  'public\manifest.webmanifest', 'public\icon.svg', 'public\sw-legacy-cleanup.js') {
   if (-not (Test-Path (Join-Path $Dest $must))) { Fail "the stub did not land: $must is missing from $Dest" }
+}
+# Verified rather than assumed, like build/.gdignore in the Godot branch. public/ must now hold
+# exactly what the stub put there and nothing else: a survivor is a file somebody drew for
+# another game, and the one directory the build copies verbatim is the worst place for one.
+$stubPublicNames = @(Get-ChildItem (Join-Path $WebStub 'public') -Recurse -File | ForEach-Object { $_.Name })
+$inherited = @(Get-ChildItem (Join-Path $Dest 'public') -Recurse -File | Where-Object { $stubPublicNames -notcontains $_.Name })
+if ($inherited.Count) {
+  $inherited | ForEach-Object { Write-Host "   inherited: $($_.FullName)" }
+  Fail "$srcSlug's own files survived in public/. A new game must not ship another game's art, and the service worker would precache it onto the phone."
 }
 
 $stubDesc = if ($Description) { $Description } else { "A phone game. See PLAN.md for what it is." }
+# Two of these land inside JSON - public/manifest.webmanifest carries the name and the
+# description - where a double quote or a backslash makes the file unparseable. The browser
+# then drops the whole manifest and the game installs with no name and no icon, which is a
+# failure nobody sees until it is on a phone. Neither character belongs in a title or a
+# one-line pitch, so they are removed rather than escaped.
+$stubDesc = $stubDesc -replace '[\\"]', ''
+$stubName = $Name -replace '[\\"]', ''
 $stubMap = [ordered]@{
   '{{DESCRIPTION}}' = $stubDesc
   '{{PREVIEWPORT}}' = "$previewPort"
   '{{TESTPORT}}'    = "$testPort"
   '{{FILMPORT}}'    = "$filmPort"
-  '{{NAME}}'        = $Name
+  '{{NAME}}'        = $stubName
   '{{SLUG}}'        = $Slug
   '{{DATE}}'        = $today
 }
@@ -457,6 +486,15 @@ Replace-InFile (Join-Path $Dest 'index.html') $stubMap
 foreach ($d in 'src', 'e2e', 'test') {
   Get-ChildItem (Join-Path $Dest $d) -Recurse -File | ForEach-Object { Replace-InFile $_.FullName $stubMap }
 }
+# public/ is substituted too: {{NAME}} in the manifest is the name the phone puts under the
+# icon on the home screen, and Assert-NoPlaceholders below reads .webmanifest and .js, so a
+# manifest still saying {{NAME}} fails the scaffold rather than shipping. Filtered by
+# extension because public/ is where a binary lives - an icon, a font - and a string replace
+# straight through one corrupts it.
+$publicText = '.js', '.mjs', '.json', '.html', '.css', '.svg', '.webmanifest', '.txt', '.md'
+Get-ChildItem (Join-Path $Dest 'public') -Recurse -File |
+  Where-Object { $publicText -contains $_.Extension } |
+  ForEach-Object { Replace-InFile $_.FullName $stubMap }
 
 Write-Step "Writing README, CLAUDE.md, NOTES.md, PLAN.md"
 $stubDir = Join-Path $PSScriptRoot '..\setup\game-stubs'
@@ -468,6 +506,10 @@ foreach ($f in 'README.md', 'CLAUDE.md', 'NOTES.md', 'PLAN.md') {
   Write-Text (Join-Path $Dest $f) $text
 }
 Copy-PrePlan $Dest
+# CREDITS.md lists the assets that are IN this repo, and $srcSlug's copy names its own fonts
+# and models - none of which survive the swap above. A copied one credits assets the new game
+# does not ship and leaves the next person unable to tell what is licensed and what is not.
+Write-Text (Join-Path $Dest 'assets\CREDITS.md') "# Credits`n`nEvery asset that was not made here. Appended by scripts/assets.py.`n`n| Date | Source | Asset | Licence | URL |`n|---|---|---|---|---|`n"
 
 Assert-NoPlaceholders $Dest $textExt ([regex]::Escape($srcSlug) + '|' + [regex]::Escape($srcTitle) + '|' + [regex]::Escape($srcTitleHyphen) + '|\{\{[A-Z]+\}\}')
 
@@ -538,4 +580,5 @@ Pop-Location
 Write-Host ""
 Write-Host "Done. $Name is at $Dest" -ForegroundColor Green
 Write-Host "src/ is the stub, not a game. Read PLAN.md and replace it; keep the pure/view split, window.__game.advance(dt), and the ids e2e/smoke.spec.ts reads." -ForegroundColor Yellow
+Write-Host "public/ is the stub's too: a placeholder icon and a manifest named `"$Name`". Replace the icon before anyone installs it, and self-host a display font there during the asset scout." -ForegroundColor Yellow
 if (-not $NoRepo) { Write-Host "Repo: https://github.com/$Owner/$Slug   Live at https://$Owner.github.io/$Slug/ once the first deploy finishes." }

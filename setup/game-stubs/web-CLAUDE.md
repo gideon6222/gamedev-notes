@@ -59,10 +59,15 @@ https://gideon6222.github.io/{{SLUG}}/ once Pages is enabled (the scaffold does 
 
 ## The scaffold left a stub, not a game
 
-`src/`, `e2e/` and `test/` came from `gamedev-notes/setup/web-stub`, not from the game this
-repo's tooling was copied from. `bundle-budget.json` was measured from this repo's own first
-build. Replace the stub as soon as PLAN.md says what to build, and keep three seams:
-`src/sim` stays pure, `window.__game.advance(dt)` stays the way tests and films move game
+`src/`, `e2e/`, `test/` and `public/` came from `gamedev-notes/setup/web-stub`, not from the
+game this repo's tooling was copied from. `bundle-budget.json` was measured from this repo's
+own first build. **`public/icon.svg` is a placeholder icon and `public/manifest.webmanifest`
+names this game**; the icon is what a player taps before they have played anything, so replace
+it early. `public/sw-legacy-cleanup.js` is named by workbox's `importScripts` in
+`vite.config.js` and a worker whose importScripts 404s does not install - do not delete it.
+
+Replace the stub as soon as PLAN.md says what to build, and keep three seams: `src/sim` stays
+pure, `window.__game.advance(dt)` stays the way tests and films move game
 time, and the ids `e2e/smoke.spec.ts` reads keep existing. Re-record the budget with
 `npm run size:update` on the first commit that is a real game; the stub's index chunk is
 about 2 KB and a 12% tolerance on that is a few hundred bytes.

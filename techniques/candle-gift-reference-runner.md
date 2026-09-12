@@ -1,99 +1,41 @@
 # Candle Gift: rebuilding a runner from reference footage
 
-> **Over the limit at 32.4 KB and untouched by the 2026-09-12 digest.** If you come back to it,
-> split rather than trim: "Measuring the design with scripted play" plus "The economy" are one
-> write-up on measuring a design with bots (beside `human-bot-policies.md`), and "Read the
-> reference for the verbs" plus "Reference research" are a second on copying a reference game.
-> Move the measured numbers, never delete them.
+> **Split on 2026-09-12** to get under the 30 KB limit, as the note at the top of this file had
+> asked for. "Measuring the design with scripted play" and "The economy" moved together into
+> `candle-gift-measuring-the-design.md`; "Read the reference for the verbs" and "Reference
+> research" moved together into `candle-gift-copying-a-reference.md`. Nothing was trimmed -
+> every measured number went with its section.
 
-**Game:** Candle Gift (web / three.js, then rewritten on Godot) · **Status:** shipped and played; the Godot rewrite reached parity in one session · **Read when:** copying an existing game from screenshots and video; a trailing formation; stations, pools and pickups on a runway; setting par and star thresholds; an economy that has to match a reference
+**Game:** Candle Gift (web / three.js, then rewritten on Godot) · **Status:** shipped and played; the Godot rewrite reached parity in one session · **Read when:** a formation that trails the player; stations, pools and pickups on a runway; hazards in one colour family; an end-of-run screen; draw calls on a long lane; a game that keeps inheriting a shape it never wanted
 
 Candle Gift is a reproduction of a commercial candle runner Gideon's girlfriend remembered:
 a trailing tray of candles is steered through pools of wax and past hazards, then appraised.
-Two builds were made from a verbal description and were "still pretty far off"; the third
-was built from two screenshots, one strategy-guide sentence and a four-minute walkthrough
-video, and it is the method that got it there - not the code - that is worth keeping. This
-file keeps that method (read the guide for the verbs; find the longest playthrough; magnify
-the screenshots), the design of the tray and the pools (per-candle recipes, the formation
-trailing along the recorded path, ROTATE as a wall), the economy calibration (money in the
-reference's units, par from committed bots, the run-versus-bank invariance test), the pixel
-versus model checks and the contact sheet, and the reasons the web version was rewritten.
+This file keeps the build itself - the design of the tray and the pools (per-candle recipes,
+the formation trailing along the recorded path, ROTATE as a wall), the stations and hazards,
+the end-of-run camera and gauge and the fan that should not have been copied, the draw-call
+arithmetic on a runway, the pixel versus model checks and the contact sheet, and the reasons
+the web version was rewritten. The two halves that stand on their own are elsewhere:
+**`candle-gift-copying-a-reference.md`** for the research method (guide for the verbs, longest
+playthrough, 4x crops) and **`candle-gift-measuring-the-design.md`** for the calibration (par
+from committed bots over several seeds, money in reference units, the run-versus-bank
+invariance test).
 
 **Generalisable takeaways**
 
-- **Research is the asset.** Strategy guides describe what the player *does*; store pages
-  list nouns. The longest playthrough video shows the screens a store never does - including
-  the ones the reference does not have. Crop the reference at 4x before modelling from it,
-  and keep the observed record as its own file so a rewrite is cheap.
-- **If a system applies itself to everything you own, it is not a mechanic.** Put the resource
-  on the ground, give the formation lag along its own path, give each unit its own state, and
-  the geometry does the design. Measure a mechanic across a bad run and a good run; if the
-  number does not move, it is scenery.
-- **Calibrate with the bot anybody can re-run, over several seeds, in the reference's units,
-  and test invariance rather than values.** A single-level par is layout luck; a price divided
-  by early income measures a player who never got better; "the bank went up by what the screen
-  said" is true with the bug present.
+- **Make the thing you are protecting trail behind you, not cluster around you, and put the
+  resource on the ground.** A crowd that follows exactly is all upside; a formation with lag
+  along its own path makes growing it cost agility. Give each unit its own state and the
+  geometry does the design - weaving measured 2.6x per candle over driving straight.
+- **A formation is only legible if the camera and the width let it be.** Three abreast costs
+  nothing and puts the player's work on screen; single file hides every candle behind the one in
+  front, and horizontal detail needs a low camera while vertical detail needs a high one. The
+  camera angle is part of the art, not a framing preference.
+- **Ask what a borrowed mechanic is *for* in the original before copying its shape.** The
+  end-of-run multiplier fan is a rewarded-video gamble; copied into a game with no adverts it is
+  a wheel-shaped lie. The same test applies to a whole build: revise a decision, rewrite an
+  inheritance.
 
 ---
-
-## Read the reference for the verbs
-
-The line that turned the third build (from `archive/PLAYTESTS-2026-09-09.md`, 2026-09-07):
-
-Third pass at this game, and the first two were both built on inference. Worth recording the
-process failure as much as the fix: I had the reference's store copy and its strategy guide
-from the first session and had extracted the *nouns* from them - stack, pools, glitter, bows -
-without extracting the *verb*. The line that mattered was sitting in the guide the whole time:
-
-"If there are two pools of wax side by side, you should swipe left and right quickly to try and
-dunk all of your candles in both of the pools."
-
-Wax is a pool on the GROUND. Which candles get which colour depends on where each one was as
-the trailing stack snaked over it. So every candle needs its own recipe, and the player's line
-IS the decision. The previous build treated the whole tray at once, which measured as identical
-per-candle value across four play styles - the game had no input in it.
-
-Lesson for next time a game is being reproduced: **read the guide for the verbs, not the
-nouns.** A store page lists what is in a game; a strategy guide describes what the player is
-doing, and that is the thing you are actually rebuilding.
-
-**The most useful single sentence was in a strategy guide, not a store page:** "as your
-candle stack gets longer, you need to be aware of everything happening in front of you, and
-sometimes you need to start moving well before an obstacle is in reach". That is the trailing
-stack, and it is what the whole rebuild is now built on. Store descriptions say what a game
-contains; strategy guides say how it *feels* to play.
-
-## Reference research: videos, absence, HUD, magnification
-
-**A long-play video is worth ten store screenshots.** Candle Gift's eight official
-screenshots show the runway and almost none of the UI, and four rebuilds off them got the
-world closer and closer while every *screen* stayed wrong. One four-minute "levels 1-6"
-walkthrough showed the home screen, the end-of-run ruler and the reward screen in one pass -
-and showed that the reference has **no upgrade screen at all**, which no amount of staring at
-screenshots would ever have revealed. **Search for the longest playthrough, not the prettiest
-capture**, and note that these disappear: one of the three found for this game was already
-gone a day later.
-
-**Absence is the hardest thing to observe, and the most valuable.** The finding that moved
-this game most was not a feature to add, it was a screen that was not there: no stat-upgrade
-list anywhere in six levels. Our version opened one after every level. When comparing against
-a reference, list what it does *not* have as deliberately as what it does - a screen you
-invented is invisible to you precisely because you built it on purpose.
-
-**A HUD is a claim about what the player should be thinking about.** The reference shows
-three things: settings, level, money. This build had grown a candle counter, a live value, a
-colour-chip readout and a progress bar - each individually justifiable, and together the main
-reason a screenshot of it did not look like a screenshot of the thing it was copying. Adding
-a readout is the cheapest change in a game and the easiest to keep adding.
-
-**Magnify the reference before you model from it.** Three passes at Candle Gift's obstacles
-were built from store screenshots viewed at page size, and all three came out as generic
-shapes - a red box, beads on a string. Cropping the same images into a canvas at 4x with
-`imageSmoothingEnabled = false` showed a rimmed panel with a recessed face, interlocking
-diamonds on a shaft anchored to a post *outside* the rail, and a navy arrowhead that says
-which way the moving one is going. Those details are 40 pixels wide in the source and they
-are the entire difference between "similar" and "the same game". **If you are modelling from
-an image, the crop is the research step, not the glance.**
 
 ## The tray, the pools and per-candle recipes
 
@@ -260,112 +202,6 @@ the frustum, and the extra four per front were an outline hull and a `+` built f
 boxes - both invisible at the distance they are ever seen from. Baking the `+` into a 64px canvas
 texture and dropping the hull cost nothing visible and gave back twelve calls. **Count the meshes
 in a decorative group before you place three of them; detail below a few pixels is pure cost.**
-
-## Measuring the design with scripted play
-
-**If a system applies itself, the player is not playing it.** Candle Gift's stations first
-spanned the whole runway, so every tray got every treatment just by reaching the end - and
-four scripted play styles, from never touching the screen to playing well, produced an
-*identical* per-candle value. Everything downstream still worked; there was simply no input
-in it. Splitting each station into two halves across the track, one effect each, turned a
-fixed consequence into a chain of decisions. **Measure a mechanic across a bad run and a good
-run: if the number does not move, the mechanic is scenery.**
-
-Measure the spread before setting the thresholds (from `archive/PIPELINE-2026-09-09.md`):
-
-- **Measure the spread before setting the thresholds, not after.** Star ratings and grades
-  are cut against a par, and the *gaps* between them have to match the real distance between
-  bad and good play. Candle Gift's first thresholds were bunched inside a 1.5x band while the
-  measured spread across four scripted play styles was 1.3x, so every one of them scored full
-  marks - including the run that never touched the screen. Script the extremes first, read
-  the ratio, then place the thresholds inside it.
-- **When every play style scores the same, fix the game, not the thresholds.** That flat
-  spread was the real finding: it meant the systems were applying themselves. Re-tuning par
-  would have hidden it.
-
-**Calibrate against several procedural levels, never one.** Candle Gift's four scripted
-policies swing 25% from level to level on layout luck alone - its "dodge hazards only" bot
-scores 18,158 on level one and 1,350 on level five, where dodging is worse than doing
-nothing. A `par` set from level one put the best policy on three stars there and two
-everywhere else, and nothing about that was visible from the level-one numbers, which looked
-clean and well separated. Take the mean over five or six seeds, and keep the single-level
-numbers as a regression test that says in its own comment that it is not the calibration.
-
-**Removing an obstacle kind means removing its share of the danger, not redistributing it.**
-Deleting Candle Gift's saw and backfilling its spawn slot with a third barrier kept the
-runway exactly as busy and cost the weaving bot a fifth of its score - with the same number
-of candles lost. The damage was not to what the player *had*, it was to what they had *time
-to do*: in a game whose skill lives in a second system, every second spent dodging is a
-second not spent weaving. **When two systems compete for the same seconds, measure the one
-you care about after changing the other.**
-
-**A bot is a definition of "playing well", so it has to live in the repo.** Candle Gift picks
-`par` - the number the star rating and the end-of-run gauge are both drawn from - by running four
-scripted policies over a level and choosing the value that separates them. One pass measured with
-an ad-hoc policy typed into the browser console, whose lookahead was a few units longer than the
-one committed in `e2e`; it scored 64,606 where the committed bot scores 39,134, and par went in
-44% too high. Nobody could have caught that by reading the number. **Measure balance with the bot
-anybody can re-run, name it in the comment beside the constant, and pin the ratings it produces in
-a test** - otherwise the constant is not measured, it is remembered.
-
-**Restarting the run is not restarting the game.** Candle Gift's `freeze()` restarts the level in
-place but leaves `S.level` alone, and every layout decision is keyed on `hash(chunk, salt + level)`
-- so the headline test, comparing a weaving policy against a gathering one back to back, was
-comparing two *completely different runways*. Not "one slightly harder": level 2 happens to be a
-bad draw, where the same bot brings home 14 candles instead of 29. Any A/B over a procedural world
-has to reset the seed inputs, not just the position. **Ask what the seed is keyed on, and check
-your reset touches all of it.**
-
-## The economy: build the meta-game and find out what it does
-
-A runner's economy can be wrong for a long time without looking wrong, because nothing in a
-single run compares two numbers that ought to agree. Adding a shop is the first thing that
-does: a price sits next to an income, and a price list that is trivially affordable is a
-question mark over the income rather than over the prices.
-
-Two bugs and one structural fault came out of asking "is this ladder priced sensibly", none of
-which any test or screenshot had noticed:
-
-**The bank was being counted as run earnings and paid back into itself.** The end-of-run
-appraisal added the player's cash, and the player's cash had been seeded from the save. So a
-run was appraised as (what you earned + what you already had), and that total was banked. A
-balance of 5,000 became 141,699 in three runs of the same level.
-
-**The obvious assertion cannot catch that, and it is worth understanding why.** "The bank went
-up by the amount the reward screen said" is TRUE with the bug present, because both sides
-inflate together: the screen says R + bank and the bank rises by R + bank. Any test written
-from inside one run agrees with itself. The only shape that separates them is **playing the
-same level twice with different starting conditions and demanding the same answer** - an
-invariance test rather than a value test. Reach for one whenever a quantity might be
-contaminated by state it should not see.
-
-**And the value curve was hyperinflationary.** A run was worth 1.55x more per level - eighty
-times over ten levels - so no fixed price list could mean anything. Even after repricing, the
-whole ladder was bought out by level nine. The fix was upstream, in the curve, not in the
-prices.
-
-### Measure a progression by PLAYING it, not by dividing
-
-The first version of the ladder table divided each price by the mean run value over the first
-six levels and reported that the last shop took 75 runs. That number is meaningless: income
-scales with the level, so a player who has reached the seventh rung earns many times the mean
-of the first six. **Dividing a late price by early income measures a player who never got
-better.**
-
-Simulate the actual loop instead - play, bank, buy what is affordable, next level - and report
-the level at which each thing is reached. That is the number the player experiences, and it is
-the only one worth tuning against.
-
-### Keep the money in the units of the game you are copying
-
-Ours paid about 18,000 for a run where the reference paid about 540 - thirty-four times out.
-That sounds cosmetic and is not. The only two prices ever observed in the reference were
-$1,000 and $4,000, and against an 18,000 run those are not prices at all: the single most
-useful piece of external calibration available was unusable until the units matched. It also
-meant a money pill reading "148K" where the reference reads "540".
-
-One constant, applied at one point, so everything downstream moves together and every number
-stays comparable to the footage.
 
 ## The rewrite
 

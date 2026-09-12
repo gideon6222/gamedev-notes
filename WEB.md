@@ -3,7 +3,8 @@
 Read only when a game is built for the web. Coreward ships on this stack and is still
 maintained; nothing here is deprecated, it is just the right answer for fewer things now.
 The full web-era notes are in `archive/PIPELINE-2026-09-09.md`, and every three.js and DOM
-trap is in `techniques/three-js-traps.md`. Edited only by `/digest`.
+trap is in `techniques/three-js-traps.md` and its two companions,
+`three-js-renders-as-nothing.md` and `three-js-materials-and-lights.md`. Edited only by `/digest`.
 
 ## When to choose it
 
@@ -84,7 +85,7 @@ does this and creates the repo, then enables Pages with
   project the object's `Box3` centre and confirm `z < 1`, check the console for a shader error,
   and only then suspect the material: a Coreward building sat at 24% across a portrait screen
   behind an action-button column that occupies 16-32% of it (M). The largest clear area in
-  portrait is upper-right. `techniques/three-js-traps.md`.
+  portrait is upper-right. `techniques/three-js-renders-as-nothing.md`.
 - **Filmstrip**: `node scripts/filmstrip.mjs <scenario> [frames] [secondsPerFrame]` composites
   in the browser on the tick seam. Same rules as `movie.ps1` on Godot.
 

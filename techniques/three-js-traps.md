@@ -1,6 +1,6 @@
 # three.js / WebGL / DOM traps from the web-stack games
 
-**Game:** Coreward, Captain Run, Wick, Candle Gift (web / PWA builds) · **Status:** shipped; Coreward and Candle Gift are live on GitHub Pages · **Read when:** working on a three.js or browser build; porting a web-stack lesson to Godot and wondering whether it still applies; something renders as nothing, or half of a feature works
+**Game:** Coreward, Captain Run, Wick, Candle Gift (web / PWA builds) · **Status:** shipped; Coreward and Candle Gift are live on GitHub Pages · **Read when:** working on a three.js or browser build; porting a web-stack lesson to Godot and wondering whether it still applies; a draw-call budget, a rotation, a chase camera, browser scheduling or storage
 
 The first four games were built on Vite, TypeScript and pinned three.js, installed as PWAs
 from GitHub Pages. Most of the lessons in `CRAFT.md`'s "Graphics that carry on a phone" and
@@ -9,16 +9,30 @@ defaults, WebGL's silent failures, and browser scheduling and storage. New games
 Godot, where several of these traps do not exist and one of them (`Object3D.layers` and
 lights) is exactly backwards. This is the reference list, kept so a web session does not
 rediscover them and a Godot session does not import them by mistake. Each entry is the
-original text followed by the one lesson that survives the API.
+original text followed by the one lesson that survives the API. This file is the entry point
+and holds the draw-call arithmetic, rotation order, cameras and coordinates, and the browser
+and DOM traps; the other two thirds were split out on 2026-09-12 when it went over the 30 KB
+limit:
+
+- **`three-js-renders-as-nothing.md`** - things that render as nothing: z-order occluders,
+  `PlaneGeometry` facing, uniforms declared and never supplied, `onBeforeCompile` chaining and
+  `Material.clone()`, an additive mesh inside an opaque one, and the HUD occlusion arithmetic.
+- **`three-js-materials-and-lights.md`** - the surface half: the CSS sky against
+  `EffectComposer`, `MeshStandardMaterial` and metals, PMREM environment maps and `colorSpace`,
+  `MeshToonMaterial` and inverted-hull outlines, `FogExp2`, world-space normal maps and
+  displacement, and `Object3D.layers` not filtering lights (backwards in Godot).
 
 **Generalisable takeaways**
 
 - **Enumerate the defaults you never set.** A missing uniform, a plane facing the wrong way, a
   texture read in the wrong colour space, a rotation composed in the wrong order - none of
-  these errors; they render as nothing, as too bright, or as half a feature.
-- **Assert against the compiled artefact and the frame, not the object you configured.** Read
-  the shader back out of WebGL; drive real pointer events and check where the avatar is in
-  normalised device coordinates; count what the renderer actually drew.
+  these errors; they render as nothing, as too bright, or as half a feature. The first two of
+  those live in `three-js-renders-as-nothing.md` and the third in
+  `three-js-materials-and-lights.md`; the rotation is here.
+- **Assert against the frame and the compiled artefact, not the object you configured.** Drive
+  real pointer events and check where the avatar is in normalised device coordinates; count what
+  the renderer actually drew, with `renderer.info.autoReset` off if you render twice; read the
+  shader back out of WebGL.
 - **Budgets measured on one renderer are regression detectors, not hardware limits.** Draw
   calls were 5.0 us each on a desktop; fill rate and thermal throttling are what a phone
   charges for.
@@ -123,311 +137,6 @@ banked the ship for going *fast* rather than for going sideways. Whichever axis 
 not pointing along is the one that means "drifting".
 
 *General lesson:* two rotations compose in an order; check it the moment a second rotation is added to anything. Godot's `Node3D.rotation_order` defaults to YXZ, so the fix is different but the check is the same. And a bank must read off the lateral axis in the object's own frame.
-
----
-
-## Sky, post-processing and bloom
-
-**Fake bloom with additive sprite halos.** Post-processing bloom costs fill rate, a library, and a
-pass. Additive quads with a soft texture cost one draw call, and if the camera never rotates a
-quad in the XY plane always faces it — no billboarding needed.
-
-*General lesson:* additive sprites are a cheap bloom on a stack where a post pass costs a library; on Godot glow is built into `Environment` and this trade-off does not exist.
-
----
-
-**A gradient sky in CSS and real post-processing are mutually exclusive, and that is the thing to
-decide first.** Rendering with `alpha: true` over a CSS gradient is free and looks great — until
-you want an `EffectComposer`, at which point the scene renders into an opaque render target and
-the sky it was compositing over goes black. Measured on Coreward: `UnrealBloomPass` at half
-resolution cost **0.096 ms/frame** (0.357 → 0.453, 27% of a very small number) and was never
-going to be the problem; the problem was that the sky vanished and the palette shifted — brown
-rock to grey, a cyan beam to green. `OutputPass` fixes the colour-space half and does nothing for
-the alpha; `RenderPass.clearAlpha = 0` does not rescue it either, because the bloom composite is
-additive and destroys alpha inside the chain. **If a game might ever want a post pass, put the
-sky in the scene from the start** — a fullscreen gradient quad is barely more code than the CSS
-and does not have to be unpicked later, along with everything calibrated on top of it.
-
-*General lesson:* decide whether the game will ever want a post pass before choosing where the sky lives; put the sky in the scene from the start. (The earlier line "Gradient skies for free. Render with `alpha: true` and no scene background, then put a CSS gradient behind the canvas" is the superseded rule, kept in the original file by accident.)
-
----
-
-## Materials: Standard, metals, environment maps, colour space
-
-**Moving from Lambert to MeshStandardMaterial changes the SHAPE of the lighting, not just its
-values.** Standard adds a specular lobe, so every light now contributes a highlight as well as a
-diffuse term and the old intensities read as a bright plastic wash. Turning everything down is not
-the fix: **ambient has to fall away much faster**, because ambient is the one light that reaches
-every surface equally, which is the exact opposite of a lamp in a dark hole. Coreward went from a
-linear falloff to a squared one so the drop lands in the first third of the descent where it can
-be felt.
-
-*General lesson:* moving to a material with a specular lobe changes the shape of the lighting, not just its values; ambient is the one light that reaches every surface equally, and in a dark-hole game it has to fall away fast.
-
----
-
-**A metal with no environment map has no diffuse term at all** — a metal's colour comes entirely
-from what it reflects, so with nothing to reflect it is specular hotspots and black. Lowering
-metalness looks like the fix and is not; the fix is giving it something to reflect. A 64px canvas
-gradient standing in for "dark ground below, faint light above", run through `PMREMGenerator`,
-costs nothing and ships no bytes. Apply it **per material, not as `scene.environment`** — as a
-scene environment it lights the terrain too and puts back exactly the flat fill a darkness pass
-just removed.
-
-**And set `colorSpace` on it.** A canvas env map read as linear rather than sRGB comes back about
-four times too bright, which presents as "the metal is blown out" and sends you hunting through
-light intensities. The same rule catches normal and roughness maps from the other side: those are
-DATA, not colour, and must NOT be sRGB-decoded.
-
-*General lesson:* a metal with nothing to reflect is black plus hotspots; give it an environment, per material, not per scene. Data textures (normal, roughness) must NOT be sRGB-decoded; colour textures must be.
-
----
-
-**A metal gets its colour almost entirely from its environment map.** A high-metalness material
-has essentially no diffuse term, so with a dark albedo the environment IS the visible
-brightness - and a `CanvasTexture` used as one defaults to `NoColorSpace`, which decodes an
-sRGB gradient about two and a half times too bright. The symptom is an object that will not
-respond to being repainted. **If adjusting the obvious parameter changes nothing at all, stop
-adjusting it: that is the signature of a constant term drowning the one you are moving, and the
-next move is to measure, not to tune harder.**
-
-*General lesson:* if adjusting the obvious parameter changes nothing at all, a constant term is drowning the one being moved - measure, do not tune harder. (The original file gives the colour-space error as "about four times" in one place and "about two and a half times" in another; both are the same fault.)
-
----
-
-**When a render looks wrong, measure it rather than staring at it.** Hide the object and see if
-the problem goes; `gl.readPixels` the actual pixel; recolour materials one at a time to find which
-mesh is which. Coreward's "white ship" was blamed on four different things in turn, and the mesh
-everything was pinned on turned out to be a small cap at the top while the pale mass was a
-different material entirely — whose values were ordinary mid-greys that only read as white against
-very dark rock.
-
-*General lesson:* when a render looks wrong, measure it: hide the object, read the pixel, recolour materials one at a time.
-
----
-
-## Toon shading and outlines
-
-**Cel shading is a three-line texture, and ambient light is what kills it.** A `DataTexture` of
-four grey steps as `MeshToonMaterial.gradientMap`, with `NearestFilter` on *both* `minFilter` and
-`magFilter` or the bands smooth back into Lambert. Then turn the ambient down — it is the one
-light that reaches every surface equally, which is precisely the distinction banding exists to
-make.
-
-**An inverted-hull outline must be sized from the geometry, not scaled by a factor.** Multiplying
-every instance by 1.08 gives a 0.036-unit edge on a large object and 0.003 on a small one, both
-sub-pixel. Treat the parameter as a world-unit thickness, read the geometry's bounding box, and
-derive a per-axis scale of `1 + 2*t/size`. Prefer a scaled hull to a normal-pushed one when the
-geometry is boxes: hard per-face normals split at the corners and the outline develops gaps.
-
-*General lesson:* banding needs `NearestFilter` on both filters and an ambient turned down; an outline is a world-unit thickness derived from the bounding box, never a scale factor. On a Godot MultiMesh the inverted hull does not work at all - see the fresnel rim in `GODOT.md`.
-
----
-
-## Fog, normal maps and displacement on a flat world
-
-**Fog is not distance in a 2.5D game.** `FogExp2` measures distance from the *camera*, and a
-camera twenty units back looking at a flat plane is equidistant from everything in it. Turning fog
-up to fade the far edges instead puts an even grey wash over the whole picture. The thing that
-falls off across the plane is a **point light**.
-
-*General lesson:* any effect applied by distance hits the background hardest and is flat across a plane seen from a fixed camera; what falls off across a 2.5D plane is a point light.
-
----
-
-**A normal map is how a photographed texture gets into a stylised game.** It carries no colour,
-so the hand-tuned palette survives intact and every surface gains relief. Take the normal map out
-of a CC0 PBR set and leave the colour map behind - that half is style-neutral, and the other half
-is the join that shows in the first frame. Coreward's flat-shaded facets went from folded paper
-to rock for 46 KB.
-
-**Sample it on world position, for the same reason as the displacement below.** Mapped to each
-cube's own UVs the detail restarts at every cell and the wall reads as a stack of identical
-boxes. In three.js `vNormalMapUv` is an ordinary varying, so overwriting it with world XY in the
-vertex shader is the entire change and everything downstream is stock.
-
-**Expect to need a far higher `normalScale` than usual over flat shading, and measure it rather
-than reasoning about it.** At 0.45 Coreward's was invisible; at 3.0 it read clearly with the
-facets completely intact. Spreading one tile over several cells is what does it - only the
-texture's low-frequency component survives, so the value that looks "wrong" is the correct one.
-Check it lit by a moving lamp, not on a static screenshot of a flat-lit surface: the whole effect
-is in how light rakes across it.
-
-**Displacement keyed on world position is what makes stacked boxes read as rock.** Per-cell
-displacement makes neighbours disagree at the seam. `flatShading` then derives normals from the
-displaced surface for free.
-
-*General lesson:* sample surface detail on world position so it does not restart at every cell; expect a much higher `normalScale` over flat shading and measure it under a moving lamp. In three.js `vNormalMapUv` is an ordinary varying you can overwrite in the vertex shader.
-
----
-
-## Things that render as nothing
-
-**When something new renders as nothing, check what is already in that slice of z before you touch
-its colour.** Two parallax layers were invisible even in pure red, because an opaque backdrop
-plane sat in front of them.
-
-**And check the defaults you did not set, not the properties you did.** Wick's gate labels were
-invisible; every property worth inspecting said they were fine - visible, positioned, textured,
-renderOrder above the curtain, a texture with 27,000 opaque pixels. A `PlaneGeometry` faces `+z`,
-that camera looks along `+z`, so the player only ever saw the back face and `FrontSide` culled
-it. Papering over it with `DoubleSide` then rendered the text mirrored, which is the same bug
-wearing a second symptom. Rotate the plane `Math.PI` about Y. **When something renders as
-nothing, enumerate what you never configured.**
-
-*General lesson:* when something renders as nothing, check what is already in that slice of z, then enumerate the defaults you never configured. `PlaneGeometry` faces +z in three.js; Godot's `PlaneMesh` faces +y.
-
----
-
-**A uniform that is declared and never supplied is not an error, a warning, or a visible
-failure.** GLSL gives a missing sampler texture unit zero and a missing vector all zeroes, so
-the shader compiles, runs, and silently ignores whatever depended on it. Coreward's shadow fan
-was added to the shader source and to one material's hand-written uniform list but not to the
-other's, so the terrain rendered with no shadows at all while the light in the tunnels had
-them. **Half a feature working is the worst possible symptom**, because it reads as a tuning
-problem and sends you off measuring lamp intensities.
-
-Two rules from it: **pass uniforms by iterating one shared object, never by naming keys in more
-than one place** - a loop cannot forget - and **test it by pulling the `uniform ... name;`
-declarations out of the compiled shader and asserting the material supplies every one.**
-`renderer.properties.get(material).uniforms` against
-`gl.getShaderSource(program.fragmentShader)`. Nothing else can see it.
-
-*General lesson:* half a feature working is the worst symptom; pass uniforms by iterating one shared object, and test the compiled shader, not the material.
-
----
-
-**A material has exactly ONE `onBeforeCompile`, and assigning it is how you silently delete
-somebody else's shader.** Coreward patches stock three shaders in three places — world-space
-displacement, world-space map UVs, and the propagated light. Each one wrote
-`m.onBeforeCompile = ...`, so applying two to the same material kept whichever went last and
-threw the other away. Nothing fails. The material compiles, renders, and is simply missing an
-effect. Route every injection through one `chainCompile(m, patch, tag)` that calls the previous
-handler first and appends its tag to `customProgramCacheKey`, and the order stops mattering.
-
-**And `Material.clone()` copies neither `onBeforeCompile` nor `customProgramCacheKey`.** A clone
-comes back as stock three with every injection gone. Coreward clones exactly one material — the
-block currently being drilled — so the symptom was one cell in the whole world lit differently
-from the rock it was cut out of. Found by eye, which is the expensive way.
-
-**The test that catches both reads the compiled shader back out of WebGL.**
-`gl.getShaderSource(program.fragmentShader)` on everything in `renderer.info.programs`, asserting
-the injected call is present in every program that carries the other injection. Asserting on the
-material proves nothing — the material is fine; it is the compile that lost it.
-
-*General lesson:* any injection point that is a single assignable slot will silently drop somebody else's injection; chain it, tag the cache key, and test the compiled artefact.
-
----
-
-**An additive mesh inside an opaque one is depth-rejected, not blended.** A sight glass on a
-Coreward machine — a dark tube with a glowing column of fluid in it, scaled to a level — was built
-the obvious way: fluid cylinder, slightly smaller radius, same position as the tube. It drew
-nothing. No error, no warning.
-
-```js
-// the tube: opaque, depth-written, drawn in the opaque pass
-new THREE.MeshBasicMaterial({ color: 0x0a0f14 })
-// the fluid: additive, depthWrite off, drawn in the transparent pass AFTER
-new THREE.MeshBasicMaterial({ blending: THREE.AdditiveBlending, depthWrite: false })
-```
-
-`depthWrite: false` stops it writing depth. It does **not** stop it being depth *tested*. The
-opaque tube has already written a nearer depth across every pixel the fluid covers, so every fluid
-fragment fails the test and is discarded before blending ever happens — and **"inside" is "behind"
-for the front half of the object.**
-
-The fix is not to model it as contained. Make the opaque part the **backing** and put the lit part
-in **front** of it — `fluid.position.z = tube.position.z + 0.06` — which is also how a real sight
-glass reads from the front, so the physical model and the render order agree. `depthTest: false`
-is the other lever and it is worse: it makes the glow draw through walls and through the player.
-
-The symptom is specific and worth memorising: **the object exists, is in frame, has no console
-error, and contributes zero pixels.**
-
-*General lesson:* glass is not a container, it is a layer. Anything additive or transparent meant to be "seen through" something opaque must be drawn in FRONT of it, or the opaque surface removed from where the transparent thing is. True of any depth-buffered renderer, Godot included.
-
----
-
-**When a 3D object "isn't rendering", check the HUD before the shader.** A new building was placed
-beside Coreward's landing pad and did not appear. Twenty minutes went into shader theories — was
-the custom light injection returning zero above ground, had `onBeforeCompile` failed silently, was
-the material black against a black sky — before the arithmetic got done. The object was rendering
-perfectly. It was behind four opaque HUD buttons.
-
-The arithmetic takes thirty seconds:
-
-```
-halfHeight = distance * tan(fov / 2)
-halfWidth  = halfHeight * aspect
-screenFrac = 0.5 + (objectX - cameraX) / (2 * halfWidth)
-```
-
-Camera 17.7 units back, 52° vertical fov, 0.46 aspect (portrait phone): the visible world is about
-eight units across, the object at x = -2.2 sat at **24% across**, and the action-button column
-occupies **16–32%** of a portrait screen.
-
-The diagnostic order that would have been faster:
-
-1. **Is it in the scene, visible, and in the frustum?** Walk `scene.children`, print positions and
-   `visible`, project the object's `Box3` centre with `.project(camera)` and check `z < 1`. Two
-   minutes, and it said the object was fine.
-2. **Does the console have a shader error?** It did not — so the material compiled, and every
-   theory about the shader was already dead.
-3. **Then it is occlusion**, and on a phone the occluder is usually the HUD.
-
-Step 1 reported "in frame at screen (287, 366)" and the search still went to shaders, because "I
-cannot see it" *feels* like a rendering problem. It was a LAYOUT problem, and the HUD is not in
-the 3D scene, so nothing in the 3D debugging toolkit can see it.
-
-Underneath it is a design rule: on a portrait phone the left column is usually action buttons and
-the bottom is usually a d-pad and gauges, so **the largest clear area is upper-right**. Anything
-that has to be looked at while docked or standing still belongs there, and "where the last thing
-stood" is not a reason — the last thing may have been just as hidden and nobody noticed, because
-it carried no information. The portrait projection arithmetic in full is in
-`techniques/coreward-shop-room-and-hud.md`.
-
-*General lesson:* when a probe says the object is in the frustum and nothing draws, the next question is what is in FRONT of it — a sibling at the same coordinates, or a HUD that lives outside the 3D scene entirely. Also: the screenshot that "proved" it was missing had the camera somewhere else, because the fixture had flown the ship across the world and never brought it back. Assert the subject is in frame before judging the photograph.
-
----
-
-## Lights and layers
-
-**Do not light the player's vehicle with the gameplay light.** Coreward's lamp is a point light on
-the ship, so the ship sat four times closer to it than the rock it lit and rendered white whatever
-its hull was painted. The real problem was worse than the look: lamp range is an UPGRADE, so
-buying a Scanner level changed how the ship looked. Put the vehicle on its own layer with its own
-small key light, and its material reads the same at every depth and every upgrade level.
-
-*General lesson:* do not light the player's vehicle with a light whose range is an upgrade; give it its own key.
-
----
-
-**`Object3D.layers` does not stop a light from reaching an object.** Layers decide what a
-CAMERA draws. three.js collects a scene's lights once and hands all of them to every lit
-material - there is no per-object light filtering in the forward renderer. Coreward put its
-ship on its own layer specifically so the world's lamp would not reach it, and the comment
-saying so survived three versions while a point light of intensity 44 sat on the ship lighting
-it. The hull rendered pure white however dark it was painted.
-
-**Excluding a light from an object means a second render pass**: draw the world with the
-camera's layers excluding the object, then draw the object alone with that light's intensity
-set to zero and `autoClear` off so the depth buffer survives. It costs no extra draw calls -
-the same objects are drawn either way. Set `renderer.info.autoReset = false` and reset by hand
-at the top of the frame, or every draw-call budget test silently starts measuring only the last
-pass.
-
-*General lesson:* **this one is backwards in Godot**: `Light3D.light_cull_mask` and `VisualInstance3D.layers` do filter lights per object, so a Godot session must not build a second pass for this. On three.js, if you do render twice, turn `renderer.info.autoReset` off or the draw-call budget only measures the last pass.
-
----
-
-**A second scene does not inherit the first one's layer decisions.** Coreward's ship sits on its
-own layer so the gameplay lamp cannot blow it out; moving it into the shop scene made it vanish,
-because that scene's camera did not render the layer and its lights did not reach it. Anything
-that reparents an object across scenes has to carry the layers, the lights and the background with
-it — and a background especially, since a scene deliberately left transparent will show the wrong
-thing through it somewhere else.
-
-*General lesson:* anything reparented across scenes has to carry its layers, its lights and its background with it.
 
 ---
 

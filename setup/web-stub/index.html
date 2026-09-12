@@ -6,6 +6,13 @@
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<!-- Both hrefs are RELATIVE, with no leading slash: Pages serves this from
+     https://<owner>.github.io/{{SLUG}}/ and not from a domain root, so "/manifest.webmanifest"
+     would 404 and the game would install with no name and no icon. vite.config.js sets
+     base: './' for the same reason. Both files are in public/ and are precached by the
+     service worker, so an installed app keeps its icon offline. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>{{NAME}}</title>
 <!-- The error overlay must be the FIRST script in the document. On a phone with no
      devtools it is the only way to see a stack trace, and Vite hoists the bundled entry
