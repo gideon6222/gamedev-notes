@@ -102,7 +102,23 @@ function Add-Result([string] $Area, [string] $Name, [string] $Status, [string] $
 }
 function Pass([string] $Area, [string] $Name, [string] $Detail) { Add-Result $Area $Name 'PASS' $Detail }
 function Warn([string] $Area, [string] $Name, [string] $Detail) { Add-Result $Area $Name 'WARN' $Detail }
-function Fail([string] $Area, [string] $Name, [string] $Detail) { Add-Result $Area $Name 'FAIL' $Detail }
+function Fail([string] $Area, [string] $Name, [string] $Detail) {
+  # A GATE MUST NOT BLOCK ON A CONDITION THE GATED REPO CANNOT FIX.
+  #
+  # check.ps1 runs this with -Repo <slug> as the last step of every game's gate.
+  # Under -Repo, a knowledge-base finding is somebody else's untidy inbox, a
+  # stale index or an oversized topic file - real, worth seeing, and nothing the
+  # game being gated can do anything about. Wildform's gate went red because a
+  # DIFFERENT game's session had filed lessons in the wrong header format, which
+  # is a check crying wolf at the one person who cannot answer it.
+  #
+  # So under -Repo the whole knowledge-base area degrades to WARN: still printed,
+  # never blocking. The full audit (no -Repo) fails on it properly. Downgrading
+  # here rather than at each call site means a check added later inherits the
+  # rule instead of having to remember it.
+  if ($Repo -and $Area -eq $KB) { Add-Result $Area $Name 'WARN' $Detail; return }
+  Add-Result $Area $Name 'FAIL' $Detail
+}
 
 function Read-TextFile([string] $Path) {
   # ReadAllText, never Get-Content: Get-Content splits on line endings and hands back an
@@ -352,7 +368,7 @@ function Test-LessonFormat([object[]] $Lessons) {
   # base is somebody's job. A WARN when one repo is being gated, which reports
   # it at every commit without holding a sound release hostage to another
   # game's paperwork.
-  if ($Repo) { Warn $KB 'lesson format' $detail } else { Fail $KB 'lesson format' $detail }
+  Fail $KB 'lesson format' $detail   # Fail() degrades this to WARN under -Repo
 }
 
 # 4. Every "Belongs in:" names a file that exists, so a digest is never sent at a target that

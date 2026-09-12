@@ -25,8 +25,32 @@ if ($LASTEXITCODE -eq 0) {
   Write-Output "gamedev-notes: pull FAILED (offline, diverged, or a rebase is in progress). This repo is NOT current; run scripts\kb.ps1 pull before you commit."
 }
 
+# THE LESSON TITLES, not just the count.
+#
+# inbox/README.md says plainly that nothing in there is read by a build session:
+# a lesson is invisible to every other chat until /digest folds it in. That is
+# how the backlog came to hold eight groups of duplicates - two sessions each
+# learning the same thing days apart, neither able to see the other's note.
+#
+# A count cannot fix that. A title can: "the safe area is not in window
+# coordinates" is enough for a session hitting the same wall to go and read the
+# file. So print the titles, newest first, capped so the block stays small.
 $inbox = Join-Path $notes 'inbox'
-$count = @(Get-ChildItem $inbox -Filter *.md -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'README.md' }).Count
-Write-Output "gamedev-notes: $count lesson(s) waiting in inbox"
+$lessons = @(Get-ChildItem $inbox -Filter *.md -File -ErrorAction SilentlyContinue |
+  Where-Object { $_.Name -ne 'README.md' } | Sort-Object Name -Descending)
+$count = $lessons.Count
+Write-Output "gamedev-notes: $count lesson(s) waiting in inbox, not yet folded into the topic files"
+if ($count -gt 0) {
+  Write-Output "  Other sessions learned these. If one touches what you are about to do, read it before you start:"
+  $show = [Math]::Min($count, 8)
+  foreach ($f in $lessons[0..($show - 1)]) {
+    # The title is the first `# ` heading, which record-lesson makes the rule itself.
+    $title = (Select-String -Path $f.FullName -Pattern '^#\s+(.+)$' -List).Matches.Groups[1].Value
+    if (-not $title) { $title = $f.BaseName }
+    if ($title.Length -gt 92) { $title = $title.Substring(0, 92) + '...' }
+    Write-Output "    $($f.Name.Substring(0, [Math]::Min(10, $f.Name.Length)))  $title"
+  }
+  if ($count -gt $show) { Write-Output "    ... and $($count - $show) more in inbox\" }
+}
 if ($count -gt 10) { Write-Output "More than ten lessons are waiting: run /digest before starting a new game." }
 exit 0
