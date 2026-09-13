@@ -552,3 +552,31 @@ it cannot hide". He named it in one sentence.
 
 **CONTINUE is a tax he pays every session.** It launches, flies and lands:
 about seven seconds before the controls wake, on every return.
+
+## 2026-09-12 - on v0.33.0, the new way in
+
+> "I like the intro a lot more now. I noticed when I hit new game it starts
+> below the ground, pans up, then it looks like it jumps over to the left to
+> line up with the launch pad. I want a quick save to be done at the launch
+> pad so that if someone exits out of the game, they start back at the
+> launch pad, don't lose too much progress, but can't abuse the system. When
+> you hit continue at the start screen, have the same starting point as new
+> game but move the camera to the launch pad faster and don't display the
+> text."
+
+"I like the intro a lot more now" is the second explicit approval of a
+whole screen in this game. The one-scene intro is right; stop changing its
+shape.
+
+**He saw a one-column slide.** The eye rises in the Anchor's column and the
+pad is one column left; the camera's follow smoothing turned a snap into a
+glide he could see. A single cell is visible to him on a 452 m world.
+
+**He named the save mechanism and its two constraints in one sentence:**
+where it is taken (the pad), what it must not cost (much progress), and
+what it must not allow (abuse). That is a checkpoint at the pad, which
+makes quitting mid-run cost exactly what dying does - the hold and the run
+- and nothing else. Standing rule 9 again.
+
+**CONTINUE should be the intro, faster and silent.** Not a different
+sequence: the same starting point, the same picture, compressed.
