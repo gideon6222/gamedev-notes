@@ -580,3 +580,15 @@ makes quitting mid-run cost exactly what dying does - the hold and the run
 
 **CONTINUE should be the intro, faster and silent.** Not a different
 sequence: the same starting point, the same picture, compressed.
+
+## 2026-09-12 - on v0.34.0, the pad save
+
+> "Yes, lets do a second save point at the anchor. If there are any large
+> events like this, create save points for them too, and update the
+> continue screen to go directly to their saved location instead of up to
+> the launch pad first, then to them. From there, you are good to continue
+> with the game."
+
+The one case the notes flagged, answered within the hour, and generalised:
+**every large event is a checkpoint.** He also pre-empted the obvious wrong
+implementation - going to the pad and then to the ship - by naming it.
