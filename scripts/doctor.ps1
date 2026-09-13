@@ -983,6 +983,43 @@ function Test-TestSet([string] $Area, [string] $Path) {
   }
 }
 
+# 15b. The dev seam: can the tools put this game IN a situation, or must they drive to it?
+#
+#      Every filming and screenshot tool in the studio used to reach an interesting moment
+#      the only way a player can, by playing from frame one until it arrived. Measured on
+#      godot-template 2026-09-13, five seconds of level 2 cost 216.0 s and 100.7 MB that way
+#      and 37.3 s and 14.9 MB through `-State level2`. The seam is three methods on the
+#      game - `dev_states`, `dev_seek`, `dev_heartbeat` - and `scripts\shot.gd`,
+#      `scripts\replay_player.gd` and `scripts\movie.ps1` all ask the same object by name.
+#
+#      WARN and never FAIL. A game that predates the seam is not broken, it is only paying
+#      the old price, and only that game's own next session can add the arms - the states
+#      are the GAME's, which is the whole reason they live there rather than in the tool.
+#
+#      Read from the stripped text, because a game that copied the template's headers quotes
+#      `dev_seek` in a comment three times before implementing it once.
+function Test-DevStates([string] $Area, [string] $Path) {
+  $gameDir = Join-Path $Path 'src\game'
+  if (-not (Test-Path -LiteralPath $gameDir)) { return }   # Test-RequiredFiles owns the absence
+  $seek = $false
+  $beat = $false
+  foreach ($f in @(Get-ChildItem -LiteralPath $gameDir -Filter '*.gd' -File -Recurse -ErrorAction SilentlyContinue)) {
+    $t = Read-TextFile $f.FullName
+    if ($null -eq $t) { continue }
+    $clean = Remove-GdCommentsAndStrings $t
+    if ($clean -match 'func\s+dev_seek\s*\(') { $seek = $true }
+    if ($clean -match 'func\s+dev_heartbeat\s*\(') { $beat = $true }
+  }
+  if ($seek -and $beat) {
+    Pass $Area 'dev states' 'dev_seek and dev_heartbeat present in src\game'
+    return
+  }
+  $missing = @()
+  if (-not $seek) { $missing += 'dev_seek(name)' }
+  if (-not $beat) { $missing += 'dev_heartbeat()' }
+  Warn $Area 'dev states' "src\game has no $($missing -join ' and '). Without dev_seek every filmed check of a late moment films everything in front of it, and without dev_heartbeat a run that is stuck spends the whole budget before saying so. Fix: copy the seam from $Template\src\game\main.gd (the `--- the dev seam ---` block) and the suite from $Template\test\test_dev_states.gd, then film with movie.ps1 -State <name>."
+}
+
 # 16. The sim wall, as a text scan, across every repo. INDEX.md rule 2 is the invariant that
 #     makes the golden test, the headless harness and any rewrite possible. godot-template's
 #     test_sim_boundary.gd is the real gate and runs inside the repo that has it; this is the
@@ -1440,6 +1477,7 @@ function Test-GameRepo([object] $Dir, [object[]] $TemplateScripts) {
   Test-VersionCode   $area $path $presets
   if ($null -ne $TemplateScripts) { Test-TemplateScriptSet $area $path $TemplateScripts $isTemplate }
   Test-TestSet       $area $path
+  Test-DevStates     $area $path
   Test-PlanOutline   $area $path $isTemplate
   Test-PhoneDebt     $area $path
   # Not behind -Quiet: it is a handful of regex passes, and the game gate is the only place

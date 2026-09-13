@@ -14,34 +14,52 @@ six questions. The tools live in the game repo's `scripts/`.
 
 1. Make sure the gate is green first: `scripts\check.ps1` in a Godot repo, `npm run check`
    in a web one. A filmed run of a broken build tells you nothing.
-2. Pick or write the scenarios. `test/replays/*.json` are recorded touch sequences. Run
+2. **Seek to the moment. Record a replay only for what a seek cannot reach.**
+   `Main.dev_states()` in the game's `src/game/main.gd` lists the situations it can be put
+   into by name, and `-State <name>` starts the film there. A name ending in `.json` is an
+   exact saved run, so a bug pulled off the phone (`scripts\device.ps1 pull-replay`, or any
+   `user://` save) is a state too. Run
+   `& $env:GODOT --path . --script res://scripts/shot.gd -- nosuchstate` to print the list,
+   and if the game has none, add arms to `dev_seek` before filming anything - that is where
+   a state belongs, never in a new `shot_*.gd` file.
+   A recorded touch sequence is still the right tool for **a gesture**: what the thumb does
+   is the subject, and no seek can stand in for it. `test/replays/*.json` are those. Run
    `ls test\replays` before you plan the shoot. Most repos carry only `idle.json`, and every
    `idle.json` in the studio is the 3-byte stub `[]`; the only recorded replays that exist
    are gravewell's `first-minute` and stillwater's `first-cast` and `logbook`.
-   The set a game is working toward, one recorded at a time as the milestones need them:
-   `idle` (no input, the attract state), `first-minute` (a player's first sixty seconds
-   including the first menu open), `boundary` (finish a level and start the next), `fail`
-   (run out and retry), `shop` (open, scroll to the bottom, buy, leave). Do not assume a
-   name on that list is on disk.
-   The scenario this milestone needs and the repo does not have gets recorded first, before
-   any filming:
+   Record one with
    `godot --path . --resolution 460x996 -- record=test/replays/<name>.json touch`, played
-   through with the mouse, or written by hand from Control rects. Commit it with the
+   through with the mouse, or write it by hand from Control rects. Commit it with the
    milestone. A replay file that is `[]` films the idle game and the sheet looks like a
-   pass, which is the failure filming exists to catch.
+   pass, which is the failure filming exists to catch. `-State` and `-Replay` together are
+   refused: a replay is touches pinned to numbered physics frames of a run that started at
+   the beginning, so seeking first plays them against a different game. Film a sought state
+   with a bot instead (`-UserArgs policy=<name>`).
 3. Film:
    ```powershell
+   scripts\movie.ps1 -State level2 -Seconds 5 -UserArgs policy=dodger   # start IN it
    scripts\movie.ps1 -Replay test\replays\first-minute.json -Seconds 60 -Every 30
    scripts\movie.ps1 -Seconds 10 -Name idle
    ```
    Read `build\movie\<name>\sheet.png` with the Read tool. Tile n is frame n times `Every`.
-   Read `godot.log` messages the script prints.
-   **A filmed second costs about 6 s of wall clock and 3 MB** on this PC (M, template at
+   Read `godot.log` messages the script prints. The first two tiles of a sought film are the
+   UNSOUGHT game: the first frames are rendered before the physics loop has run, and the log
+   says which physics frame the seek landed on.
+   **A filmed second costs about 6.3 s of wall clock and 3.0 MB** on this PC (M, template at
    60 fps, one MJPEG file since 2026-09-12; a heavier game renders slower, and the script
-   prints its own cost line every run, so use that number rather than this one). Other
-   sessions are building on the same machine, so **film the shortest run that shows the
-   thing** and raise `-Every` rather than the seconds when you only need coverage: sixty
+   prints its own cost line every run, so use that number rather than this one).
+   **What `-State` saves is the drive-in, and it is most of the bill.** Measured on the
+   template 2026-09-13: five seconds of level 2 by playing to it, 34 s of film, 216.0 s and
+   100.7 MB; the same five seconds by seeking to it, 37.3 s and 14.9 MB. Other sessions are
+   building on the same machine, so **film the shortest run that shows the thing**, seek to
+   its start, and raise `-Every` rather than the seconds when you only need coverage: sixty
    seconds is six minutes of somebody else's CPU.
+   **A long run says early whether it is getting anything.** Every film passes `beat` and
+   the game answers with `DEVBEAT` lines from `Main.dev_heartbeat()`; `-StallSeconds` (45)
+   kills a run whose numbers have stopped changing and `-MaxMinutes` (15) is the wall clock.
+   A film whose first and last readings are identical throws rather than handing back a
+   contact sheet of a frozen picture. If the script prints "checked for liveness only", the
+   game has no `dev_heartbeat()` and the whole budget is being spent unwatched - add one.
    `-Png` brings back the old lossless PNG per frame plus `frame.wav`, at 2.3x the wall
    clock and 1.6x the disk in this flat-shaded template (M), and a game with real textures
    widens the disk gap because PNG stops compressing. Use it only when a finding needs a
