@@ -51,6 +51,14 @@ a plan.
    box for finished work and a version with no entry both show up as wrong. Every
    stop-and-report and every ship opens with the plan's own count from `scripts\progress.ps1`,
    so the outline is what he is shown rather than a summary of it.
+   **Commit always, push on purpose.** Every tool here reads this disk and not GitHub: the
+   doctor, the dashboard's `agent\collect.ps1`, the gate and `progress.ps1` all work from the local
+   repo, so an unpushed commit is fully tracked, logged and shown. A push buys exactly two
+   things, CI running the tests on a clean machine and the APK on a Release for the site's
+   phone Update button, so push a game before a phone test over the air or a ship, and not
+   for its own sake. The knowledge base is the exception and is always pushed, because
+   `kb.ps1` does it for you and this PC is its only other copy. The doctor warns about
+   unpushed game work only once it is older than `-UnpushedDays` (`ADMIN.md`).
 4. **Use good free assets wherever the player reads something at full size** (type, UI,
    textures, sound, music, props on screen for a long time). Model in code what is judged on
    silhouette at thirty pixels, and anything whose shape IS game state. `ASSETS.md`.

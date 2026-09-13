@@ -68,6 +68,15 @@ param(
   [string] $Notes = '',
   [string] $Template = 'C:\dev\godot-template',
   [string] $Repo,
+  # How long a game's commits may sit unpushed before that stops being a choice and starts
+  # being a risk. Commits are what every tool here reads - the doctor, the dashboard's
+  # collect.ps1, the gate and progress.ps1 all read this disk and never GitHub - so an
+  # unpushed commit is fully tracked and is not a fault. A push buys two things, CI running
+  # the tests on a clean machine and the APK on a Release for the site's phone Update button,
+  # and both are things you do on purpose before a phone test or a ship. What a push also
+  # buys is the only second copy: this studio is one PC, so work that has sat here for days
+  # is a backup problem whatever the policy is. That is what this number is for.
+  [double] $UnpushedDays = 3,
   [switch] $Fix,
   [switch] $Quiet,
   [switch] $IncludeSnapshots
@@ -550,6 +559,13 @@ function Test-CrossReferences {
   $topDirs = 'inbox', 'techniques', 'skills', 'playtests', 'setup', 'agents', 'archive', 'scripts'
   # Names that live in a GAME repo and are never expected here.
   $gameFiles = 'NOTES.md', 'PLAN.md', 'CLAUDE.md', 'PRIVACY.md', 'CREDITS.md', 'REFERENCE.md', 'DESIGN.md', 'SKILL.md', 'README.md', 'CHANGELOG.md', 'listing.md'
+  # Names a topic file quotes BECAUSE they are broken, the same reason AUDIT*.md is skipped
+  # whole. GODOT.md's Windows-paths rule shows what a backslash path looks like after the Bash
+  # tool has eaten its separators, and the only way to show that is to print the wreck. A rule
+  # that cannot quote the thing it warns about is a rule that has to describe it vaguely
+  # instead. This is a list rather than a pattern on purpose: "looks mangled" is not something
+  # to guess at, and a wrong guess here hides a real broken reference.
+  $brokenExamples = 'devgamedev-notesscriptsprogress.ps1'
 
   $scan = @()
   $scan += @(Get-ChildItem -LiteralPath $Notes -Filter '*.md' -File | Where-Object { -not $_.Name.StartsWith('AUDIT') })
@@ -598,6 +614,7 @@ function Test-CrossReferences {
       foreach ($m in $rx.Matches($lines[$i])) {
         $p = $m.Groups[1].Value.Replace('\', '/')
         if ($p -match '://') { continue }
+        if ($brokenExamples -contains $p) { continue }
         $parts = $p.Split('/')
         $ok = $false
         if ($parts.Count -eq 1) {
@@ -1277,16 +1294,40 @@ function Test-GitHygiene([string] $Area, [string] $Path) {
   $revText = ($revs -join '').Trim()
   if ($LASTEXITCODE -eq 0 -and $revText -match '^\d+$') { $ahead = [int]$revText }
 
+  # $bits is what is wrong. $held is what is merely true. Unpushed commits used to go in the
+  # first list, which made the commonest deliberate state in the studio a standing WARN, and a
+  # check that is always amber is one nobody reads - the exact failure this base keeps paying
+  # for (INDEX.md rule 13). Age is the axis, not count: twenty commits pushed this afternoon
+  # are fine, one commit sitting here since last week is the only copy of itself.
   $bits = @()
+  $held = @()
   if ($dirty.Count -gt 0) {
     $untracked = @($dirty | Where-Object { $_.StartsWith('??') }).Count
     $bits += "$($dirty.Count) uncommitted change(s) ($untracked untracked)"
   }
-  if ($null -eq $ahead) { $bits += 'no upstream branch set' }
-  elseif ($ahead -gt 0) { $bits += "$ahead commit(s) not pushed (as of the last fetch)" }
+  if ($null -eq $ahead) {
+    # Never pushable, which is a setup fault rather than a choice.
+    $bits += 'no upstream branch set'
+  } elseif ($ahead -gt 0) {
+    # `git log` prints newest first, so the LAST line is the oldest unpushed commit.
+    $stamps = Native { git -C $Path log "@{u}..HEAD" --format=%cI 2>$null }
+    $oldestText = @(@($stamps) | Where-Object { $_ -and $_.ToString().Trim() })[-1]
+    $days = $null
+    if ($oldestText) {
+      try { $days = [math]::Round(([datetimeoffset]::Now - [datetimeoffset]::Parse($oldestText.ToString().Trim())).TotalDays, 1) } catch { $days = $null }
+    }
+    $age = if ($null -ne $days) { ", oldest $days day(s) old" } else { '' }
+    if ($null -ne $days -and $days -gt $UnpushedDays) {
+      $bits += "$ahead commit(s) unpushed$age, past the $UnpushedDays-day limit, and this PC is their only copy"
+    } else {
+      $held += "$ahead commit(s) held local$age"
+    }
+  }
 
   if ($bits.Count -gt 0) {
-    Warn $Area 'git' "$($bits -join '; '). CI has never seen any of it. Commit and push, or say in NOTES.md why not."
+    Warn $Area 'git' "$($bits -join '; '). Fix: commit anything loose, and push when you want CI's second opinion or the APK on a Release."
+  } elseif ($held.Count -gt 0) {
+    Pass $Area 'git' "committed, $($held -join '; ') - pushing is on purpose here (ADMIN.md)"
   } else {
     Pass $Area 'git' 'clean and pushed'
   }
