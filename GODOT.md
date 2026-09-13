@@ -230,7 +230,7 @@ as "the buttons are about half an inch too high".
   calls, not to stop short of it: `test_controls.gd` reaches a d-pad this way with no viewport.
   `_size_changed()` is NOT gated, so a Control whose two anchors on an axis are equal has a real
   `size` off the tree - assert that size first, because one reading zero takes a thumb resting
-  dead centre as a full push.
+  dead center as a full push.
 - **Guard on the node, never on what the call gives back.** One family, one cause - an API that
   needs the node in the tree, called from a harness where it is not. `Node3D.look_at` errors (use
   `Transform3D.looking_at`); `Camera3D.unproject_position` errors, returns a meaningless vector,
@@ -322,7 +322,7 @@ Thirteen measured traps, the arithmetic and the dead ends are in
   material, the position or the fog** - `set_normal()` does not decide the front face, the vertex
   order does, and a correct normal is what makes the mistake invisible in code review. To tell
   "not drawn" from "drawn and faint" (fog can look identical to absent at range): paint the mesh a
-  colour that cannot occur in the scene (magenta, cyan) and scan a screenshot for that hue rather
+  color that cannot occur in the scene (magenta, cyan) and scan a screenshot for that hue rather
   than staring at the frame. For a backdrop seen from one side only, `cull_mode =
   BaseMaterial3D.CULL_DISABLED` is the right answer, not a workaround - the overdraw is trivial
   and it removes a whole class of silent failure.

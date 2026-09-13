@@ -139,6 +139,66 @@ policy bot** (`policy=<name>,record=<file>`) rather than typing them by hand, so
 regenerated from the current layout rather than aimed at an old one, and treat a filmed run whose
 sim state never left its starting state as a failed film, not a calm one.
 
+## Seeking to a state instead of playing to it
+
+The drive-in is most of the bill, and it was invisible as a cost because it lived nowhere: the
+four states `godot-template` could be put into lived in `scripts/shot.gd` alone, as arms of a
+match in the screenshot tool, so `movie.ps1` knew none of them and had no way to skip the drive-in.
+Measured on `godot-template`, filming at 60 fps into one MJPEG file at the unit rate above (6.3 s
+wall clock, 3.0 MB per filmed second either way): level 2 opens 28.9 s into a run, so five seconds
+of it cost -
+
+| | film | frames | wall clock | disk |
+|---|---|---|---|---|
+| by playing to it | `-Seconds 34` | 2040 | 216.0 s | 100.7 MB |
+| by seeking to it | `-State level2 -Seconds 5` | 300 | 37.3 s | 14.9 MB |
+
+six times faster and seven times smaller for the same five seconds of picture, and the gap grows
+with how deep into a run the moment is. What `-State` buys is not a cheaper second, it is not
+filming the seconds in front of the one you want.
+
+**The seam is three methods on the GAME, not on the tool**, so `shot.gd`, `replay_player.gd` and
+`movie.ps1` all ask the same object the same question and there is one writer rather than the
+tenth near-identical `shot_*.gd` file:
+
+```gdscript
+## The one table of names and one-line descriptions.
+func dev_states() -> Dictionary
+
+## Put the game in the named state and hand back a RUNNING game, or return false for a name
+## it does not know. A name ending in .json is loaded through the save pair, so a run pulled
+## off the phone is a state like any other.
+func dev_seek(name: String) -> bool
+
+## The few numbers that must move, printed as DEVBEAT f=<frame> k=v every 30 physics frames.
+func dev_heartbeat() -> Dictionary
+```
+
+Add an arm to `dev_seek`, never a new `shot_*.gd`. **A seek hands back a RUNNING game, a refusal
+leaves the simulation exactly as it was, and a state you cannot play out of is not a state** -
+assert all three, planting a synthetic state first so a seek that does nothing cannot pass.
+`-State` and `-Replay` together are refused: a replay is touches pinned to numbered physics frames
+of a run that started at the beginning, and a seek starts somewhere else. `doctor.ps1
+Test-DevStates` WARNs while a game has no seam.
+
+Three bugs were only found because the seam was filmed rather than reasoned about: a seek that
+left the game frozen filmed twenty seconds of a still picture, so the RUNNING contract above is
+load-bearing, not decoration; the `level2` arm played greedily for six seconds on a denser level
+and arrived with one life left, so the first film of it died twelve frames in and spent its budget
+on a fresh level 1 - a state you cannot play out of is not a state; and a refused `.json` had
+already reset the run before finding out the file was not there, which the suite caught on the
+first draft.
+
+**Make every long film prove it is getting data.** `movie.ps1` passes `beat` on every film, the
+game prints `DEVBEAT` lines every 30 physics frames, `-StallSeconds` (45) kills a run whose
+READING has stopped changing, and `-MaxMinutes` (15) is the wall clock ceiling. Godot does not
+block-buffer stdout under redirection - measured at about 100 beats a second in a continuous
+trickle, never in one lump at the end - so a stall is visible while it is happening: an infinite
+loop in `_ready` now costs 30 s instead of six minutes. A film shorter than `-StallSeconds` ends
+before the watchdog would fire, so the first and last readings are compared afterwards too, and an
+unchanged pair throws naming the two frame numbers rather than handing back a contact sheet of a
+frozen picture.
+
 ## Scenarios
 
 Named scenarios (`test/replays/*.json`) make a repro a command rather than a paragraph. Scenarios

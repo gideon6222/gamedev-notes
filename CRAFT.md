@@ -106,6 +106,16 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - **Write a table's balance property as an assertion in the same commit as the table**: no row
   dominates, every row is reachable, every entry costs something. A design test that has never
   failed is protecting something stable or is too loose to fire.
+- **A new cost is measured by the best policy over a full probe's seeds before the constant is
+  kept, never by the human trace.** A constant whose comment says "a little" is the developer's
+  intuition, not data, and needs a probe row next to it: Snowball's sled-widen at 0.35 (a comment's
+  "a little") cost the reader six of six finishes down to 393 from 551; at 0.2 it was six of six at
+  555. The human policy was chaotic across the same three settings (2, 4, 2 finishes of six) and
+  said nothing, because human play is chaotic and obscures the actual effect - read the automated
+  policy for a balance question. To tell whether a new cost or a stale plan caused a regression,
+  give the policy's planner the sim's real derived rate through one shared function rather than a
+  copy: if the outcome does not move, the mechanic was the cause, not the plan (Snowball died at
+  the identical state to three decimals either way, which is the cheapest experiment available).
 - **Store the quantity you mean and derive the thresholds at load.** A first-match-wins scan over
   `chance` fields is a CUMULATIVE threshold, and the first row tested keeps its whole number: the
   rarest ore was four times more common than the next down (2.10% against 0.50%, M). Print the
@@ -116,7 +126,7 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   ignore it.
 - **Measure the stretch the player actually reaches, not the whole content.** A mean of 1.55 m/s
   over a 200 m descent describes a run nobody has had; all four of Gravewell's faults sat in the
-  first forty metres. Print the first ten seconds, per second, with the derived feel parameters
+  first forty meters. Print the first ten seconds, per second, with the derived feel parameters
   beside the numbers.
 - **When a request names a property the player should feel, check it is a VARIABLE in the data
   before tuning.** "Slowed down on denser materials" could not happen while hardness came from
@@ -150,10 +160,18 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - **The play-space boundary costs something the player can feel (speed, a rumble), never the
   resource the game is scored on**, or it becomes the real difficulty curve by accident.
   `techniques/snowball-track-and-growth.md`.
-- **When a binary control becomes proportional, re-measure balance in the quantity the new control
-  moves** (strain, line given), not just land rates by band: the cost of ignoring a warning can
-  migrate to a quantity that recovers between episodes, so land rates look fine while the risk
-  model breaks underneath (Stillwater, M).
+- **When a mechanic changes what it punishes, rewrite the bot's faults before reading any balance
+  number, and name in the bot's own comment which fault each measurement verifies.** Stillwater's
+  seventh fight replaced a one-frame kick with a pull ramping over half a second; the HUMAN bot's
+  faults (reaction lag, hand lag, a coarse thumb) all punished the old kick and cost nothing
+  against the new pull, so it held two hundredths under the red on every pull - expert play - and
+  the balance table read 100% landed in five of six bands. The instrument was reporting an expert,
+  not a person. Moving the bot's let-go margin to twelve hundredths under the red (the plausible
+  human fault against a slow rise) gave the ladder back: 100/100/100/100/92/54. Re-measure balance
+  in the quantities the new mechanic charges (strain, line given), not the currencies that worked
+  for the old one - a binary-to-proportional control change is one way this happens, but the
+  mechanic changing what it punishes is the general case, so re-derive the bot even when the
+  control's type has not changed (Stillwater, M).
 ## Feel
 
 - Feel is layered and ordered: physicality (what moves), then amplification (juice), then

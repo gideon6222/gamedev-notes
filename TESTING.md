@@ -82,7 +82,15 @@ reach.** Three HUD faults shipped behind one good-looking picture.
   six seeds. A harness that can only start from the beginning tests five tutorial fish.
 - **A construct that cannot fail is untested, not safe**: a modulo, a `|| fallback`, a clamp, a
   fixture where every value is convenient. Add the awkward fixture, make fixtures assert their own
-  preconditions, and say why. The companion: **a construct that fails only for SOME inputs needs
+  preconditions, and say why.
+- **A restore assertion placed after a loop of unrestored calls asserts nothing.** When a test
+  reads the "before" value by calling the seam it is testing in a search loop first, that loop has
+  already left the field holding the answer, so "unchanged after" compares the loop's own last
+  write to itself. Wildform's bot seam restores `steering` after every ask; a loop searching up to
+  600 frames for the right one read `was_steering` off state the same loop had been writing, and
+  deleting the restore line left the suite green. Set the field to a value of your own choosing on
+  the line immediately before the call under test, never read "before" out of state the test's own
+  setup has been driving. The companion: **a construct that fails only for SOME inputs needs
   those inputs enumerated, not sampled once** - Gravewell's destroyed-cell gap is entered or missed
   on `hp / hardness` against the remaining fill, so one bite size passes for the same reason one
   seed does; the test that catches it cuts every cell across two classes and five depths and
@@ -329,7 +337,14 @@ scripts\movie.ps1 -Seconds 10 -Name idle          # no -Replay: films the attrac
   is the escape hatch for the rare case that needs a full-size frame with no JPEG in the way, at
   2.3x the wall clock and 1.6x the disk. Film the shortest run that shows the thing, keep output
   out of any directory Godot imports (`build/.gdignore`), and print the console errors with the
-  sheet.
+  sheet. That budget is for the seconds you actually film - it says nothing about the drive-in,
+  which is most of the bill on a run of any length. **Seek to the state instead of playing to it**:
+  `dev_states()` / `dev_seek(name)` / `dev_heartbeat()` on the game let every filming and
+  screenshot tool ask for a moment by name rather than reaching it by playing from frame one.
+  Measured on the template: five seconds of a level opening 28.9 s into a run cost 216.0 s and
+  100.7 MB by playing to it, 37.3 s and 14.9 MB by seeking - six times faster, seven times
+  smaller, and the gap grows with how deep the moment is. `techniques/filming-a-run.md` has the
+  seam's contract and the three bugs it only found once filmed.
 - **The frame count comes from the file, not from whether one exists**: an ffprobe count that
   refuses anything under 90 per cent of the frames asked for catches a writer that died mid-render,
   which a `$pngs.Count -lt 2` guard cannot tell from a short film on purpose.
@@ -375,10 +390,20 @@ sixty seconds, and any frame where the player would not know what to do. Spelled
 | `perf` | `dumpsys SurfaceFlinger --timestats` for the game's own layer before and after ten seconds of play, plus `dumpsys thermalservice`. **Never `gfxinfo`**, which instruments HWUI and reports a confident zero for a Godot game (`GODOT.md`, `techniques/measuring-frames-on-the-phone.md`) |
 | `tap x y`, `swipe ...`, `back`, `home` | scripted input, the back button, pause and resume |
 | `pull-replay` | pulls `user://replay.json` recorded on the phone for desk playback |
+| `back N` | N `KEYCODE_BACK` presses in ONE `adb shell input keyevent` call, a few ms apart |
 
 Run `perf` at the start of a session and again after ten minutes of play: thermal throttling is
 the constraint on a phone and it degrades a session while it is being played. Record the numbers
 in `NOTES.md`.
+
+**Anything timing-sensitive on the phone (a debounce, a double tap, a hold) must be driven from
+ONE input call, never two script calls in a row.** Two separate `device.ps1 back` calls landed
+2.3 s apart (measured from the game's own log lines), because each call is a fresh PowerShell
+start, a lease renewal and an adb round trip - that tests the one-layer-per-press unwind, and can
+never reach a 250 ms debounce. `device.ps1 back N` sends N presses in one `adb shell input
+keyevent` call to close that gap; measure the actual gap from the game's own log before trusting
+any timing result. A home press fires both `NOTIFICATION_APPLICATION_PAUSED` and
+`NOTIFICATION_APPLICATION_FOCUS_OUT` for the one press, so a handler on both must be idempotent.
 
 **Exercise the phone-only paths every time**: the back button (`NOTIFICATION_WM_GO_BACK_REQUEST`),
 home then resume (`APPLICATION_PAUSED` / `RESUMED`, the game should pause, save and duck

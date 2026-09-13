@@ -110,8 +110,8 @@ python C:\dev\gamedev-notes\scripts\assets.py get sonniss 2024 --part 1 --into a
 2023, 14) and a `--part`, not a filename. `sources` prints the script's own header, which is the
 authoritative list when this one has drifted.
 
-Every `get` appends a line to the game's `assets/CREDITS.md` (source, id, URL, licence, date)
-and refuses a licence it does not recognise. The credits file feeds the credits screen.
+Every `get` appends a line to the game's `assets/CREDITS.md` (source, id, URL, license, date)
+and refuses a license it does not recognize. The credits file feeds the credits screen.
 
 **`assets.py get` fetches the file, it does not configure the import, and Godot's defaults are
 wrong for a phone game by roughly a factor of six on textures.** Godot writes a fresh `.import`
