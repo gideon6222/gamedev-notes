@@ -411,3 +411,28 @@ phone's real 19.5:9 found the rod's reel more than a full viewport width off the
 
 Sixteen milestones landed from this: R4-R7, R11, R12, W1, W2, W4-W7, P1, P2, P5, P6, G1-G4, T2
 and T4, all with CI green. Phases R and W are complete.
+
+## 2026-09-12 - after the phone playtest: the sixth fight is a stick, and the risk is the pressure
+
+> "I have tested it. Definitely some good improvements. The casting feels pretty good. The
+> reeling the fish in doesn't feel great. The gauge at the top feels like a gauge, not a
+> distance. If you can make that look more like a measurement, and something less important, I
+> think that would help. The indication that the line is getting too tight and bending the rod
+> doesn't feel very good and is easy to miss initially. I think we need a gauge or something
+> that goes up the side of the screen to make it more obvious that the risk is the pressure on
+> the fish. I think maybe turning cast button into a reeling animation with an analog stick
+> would add an extra element. Slide up and you reel in fast, hold in the middle and you stop
+> reeling while you fight the fish, slide down and you start letting the fish back out. It
+> should be a full progressive scale so you can let in or out slowly to match what the fish is
+> doing. Can you research this, see how to balance how to balance everything with these
+> changes, what other games have done similar that worked, plan out each step of how to make
+> this feel good and polished, and make sure the buttons and reeling are focused on. If those
+> look or feel bad, it will make this mechanic feel cheap even if it's set up well."
+
+**Three mechanisms, named.** The distance readout should read as a measurement and matter
+less; the danger should be a gauge up the SIDE of the screen, because the risk is the
+pressure on the fish; and the cast button becomes a progressive reel stick - up reels in,
+centre holds, down gives line - so the player matches the fish rather than toggling. And a
+standard: the button and the reeling animation carry the mechanic, and if they look cheap
+the mechanic reads cheap. Answered in: PLAN.md 4.3d and phase F2 (research first, plan
+shown before building).
