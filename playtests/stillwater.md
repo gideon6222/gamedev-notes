@@ -438,3 +438,7 @@ the mechanic reads cheap. Answered in: PLAN.md 4.3d and phase F2 (research first
 shown before building).
 
 > "That sounds perfect, lets do it" (2026-09-12, on the sixth-fight plan, PLAN.md 4.3d and phase F2)
+
+## 2026-09-13 (after the F2 desk build, the sixth fight with the slide)
+
+> I am liking this much better but the reel in and stop reeling should be the main mechanic, and the reel out should feel like a negative thing and want to be avoided. I think it would feel better if holding the button stopped the line, pulling back reeled the line in, and letting go let the line out slowly. I want the sound to change and be obvious that you are letting the fish get further away. I also want it to feel more tense and strategic without taking too long or being too difficult. I think the pressure should build up more smoothly and not jump as much when the fish pulls. Instead of having quick jumps when the fish pulls, have more extended pulls from it. Can you look into this, expand on the idea, research it, them implement it? I also want the button and slide mechanic to look more like a physical thing, more realistic in this game world.
