@@ -29,7 +29,13 @@ fixed them, and the deferred lines with their phase.
   `version/code` by one. A Play upload needs a higher code every time.
 - Add the changelog entry in the player's words: what he can now do or see, newest first,
   one line each. No refactors.
-- `scripts\check.ps1 -Export`, then `scripts\device.ps1 install` if the phone is there.
+- `scripts\check.ps1 -Export`, then `scripts\device.ps1 install` if the phone is there, and
+  `scripts\device.ps1 release` when the phone work is done.
+- If `NOTES.md` holds a `PHONE TEST OWED` line, try the phone once more now: the game that
+  held it has usually finished. If `device.ps1` still exits 75, ship on the desk evidence
+  exactly as for a phone that is not plugged in, and name the outstanding phone test as one of
+  the numbered lines in the report to Gideon. When it does run, do the owed test and change
+  the prefix to `PHONE TEST DONE`.
 
 ## 3. Push and confirm
 

@@ -122,5 +122,8 @@ Godot 4.7.2 console binary: `%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngin
 (scripts read it from `$env:GODOT` when set). JDK, Android SDK and the debug keystore are
 under `C:\dev\toolchain\`. Signing keys under `C:\dev\keys\`, never in a repo. Godot finds the
 SDK, JDK and keystore through editor settings, not environment variables. API keys for asset
-sites live in `C:\dev\.env` (never committed). Template: `C:\dev\godot-template`. Notes:
+sites live in `C:\dev\.env` (never committed). The phone is **one device shared by every
+session**, so it is always taken through the game's `scripts\device.ps1`, which claims it
+(`scripts\phone.ps1`, exit 75 means another game has it) and never through a bare `adb` call.
+Template: `C:\dev\godot-template`. Notes:
 `C:\dev\gamedev-notes`. Games: `C:\dev\<slug>`, GitHub `gideon6222/<slug>`.

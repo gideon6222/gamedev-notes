@@ -1177,6 +1177,27 @@ function Test-PlanOutline([string] $Area, [string] $Path, [bool] $IsTemplate) {
   }
 }
 
+# 17. One phone, several sessions. `scripts\device.ps1` claims it through
+#     `C:\dev\gamedev-notes\scripts\phone.ps1` and, when another game holds it, writes a
+#     `PHONE TEST OWED` line into the game's NOTES.md and exits 75 rather than fighting for
+#     the device. That line is the debt, and this is the thing that remembers it: a phone pass
+#     skipped in September is otherwise a phone pass nobody ever runs.
+#     WARN and never FAIL, deliberately - the repo cannot clear this while another game has
+#     the phone, and a gate must not block on a condition the gated repo cannot fix.
+#     No IsTemplate guard, so the check can be proved by planting a line in the template.
+function Test-PhoneDebt([string] $Area, [string] $Path) {
+  $notes = Join-Path $Path 'NOTES.md'
+  if (-not (Test-Path -LiteralPath $notes)) { return }   # required-files already reports it
+  $lines = Get-TextLines $notes
+  if ($null -eq $lines) { return }
+  $owed = @($lines | Where-Object { $_ -match '^PHONE TEST OWED' })
+  if ($owed.Count -gt 0) {
+    Warn $Area 'phone debt' "$($owed.Count) phone test(s) owed: $(Join-Some $owed 2) Fix: rerun the phone pass (scripts\device.ps1 install, then the rest) and change the prefix to PHONE TEST DONE."
+  } else {
+    Pass $Area 'phone debt' 'no phone test owed'
+  }
+}
+
 function Test-GameRepo([object] $Dir, [object[]] $TemplateScripts) {
   $path = $Dir.FullName
   # -Template may point at a worktree (godot-template-audit) while the live
@@ -1197,6 +1218,7 @@ function Test-GameRepo([object] $Dir, [object[]] $TemplateScripts) {
   if ($null -ne $TemplateScripts) { Test-TemplateScriptSet $area $path $TemplateScripts $isTemplate }
   Test-TestSet       $area $path
   Test-PlanOutline   $area $path $isTemplate
+  Test-PhoneDebt     $area $path
   if (-not $Quiet) {
     Test-SimPurity   $area $path
     Test-GitHygiene  $area $path

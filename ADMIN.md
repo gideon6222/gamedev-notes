@@ -30,12 +30,14 @@ default moved.
 - Topic file size: WARN over 32 KB, FAIL over 35 KB (`Test-TopicFileSize`). The written target is about 30 KB.
 - Template drift: WARN for any template script whose content differs, except names listed in the game's `scripts\DIVERGENCE.md` (`Test-TemplateScriptSet`).
 - Plan outline: WARN when a game's PLAN.md has no `- [ ]` milestone lines (`Test-PlanOutline`). The dashboard's checklist reads those boxes; the changelog tab reads `src\changelog.gd` or `.ts`.
+- Phone debt: WARN while a game's NOTES.md holds a `PHONE TEST OWED` line (`Test-PhoneDebt`). Never FAIL: the repo cannot clear it while another game has the phone.
 - Git hygiene: WARN on uncommitted or unpushed work, WARN on a large `.git` (`Test-GitHygiene`).
 - Snapshot dirs (`*.pre-fix`, `*-audit`, `*.bak`, `*.old`) are skipped unless `-IncludeSnapshots`.
 - Weekly reports kept: 8 (`weekly-check.ps1 -Keep`).
 
 ## Concurrency
 
+- Phone lease: `scripts\phone.ps1` (`claim` / `release` / `status`), lease file `C:\dev\.phone-lease`, fixed and outside every repo so it can never be staged. 20 minutes, renewed by every `device.ps1` command; 60 for a live `device.ps1 log`. A busy phone is exit code 75 from `phone.ps1` and from each game's `scripts\device.ps1`, which writes one `PHONE TEST OWED` line into the game's `NOTES.md` and touches no adb. Anything staler than its own `minutes=` is taken over, loudly.
 - Digest lease: `scripts\kb.ps1`, `$LeaseMinutes = 45`. Lease file is `.git\kb-lease`, never tracked. A stale lease is taken over with a notice, never a block.
 - `kb.ps1 commit` refuses `-A`, globs, directories and pathspec magic. It accepts a tracked file that is no longer on disk as a deletion, and splits a comma-joined `-Files` string (the `-File` invocation binds it as one).
 - Stale `index.lock` (zero bytes, over 10 minutes old): cleared by `session-start.ps1` and `weekly-check.ps1`. A Cowork chat running git against the mounted folder is the usual source; the project rules tell it not to.
