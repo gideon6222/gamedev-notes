@@ -262,6 +262,7 @@ function Test-KnowledgeBase {
   Test-PlaytestsIndex
   Test-TopicFileSize
   Test-KbStrays
+  Test-USEnglish $KB $Notes $true
   if (-not $Quiet) { Test-CrossReferences }
 }
 
@@ -1023,6 +1024,190 @@ function Test-SimPurity([string] $Area, [string] $Path) {
   Fail $Area 'sim wall' "$($hits.Count) engine reference(s) inside src\sim: $(Join-Some $hits 6). Fix: move the offending call into src\game\ and pass the result in. INDEX.md rule 2; seeded randomness goes through SimRng or SimUtil.hash2."
 }
 
+# 19. US English, everywhere Gideon or a player reads a word. INDEX.md rule 15. He is in the
+#     United States and had to ask twice, because the framework itself was written in British
+#     English: a session that matches the surrounding style was being taught the wrong
+#     spelling by the exemplars it copied. So this is the check that says it out loud.
+#
+#     The word list is scripts\us-english.txt, read once, one `british=american` pair per
+#     line. Add a word there and this check, the digest and rule 15 all learn it at once.
+#
+#     WARN, never FAIL. A spelling is not a broken build, and a FAIL here would block a game's
+#     commit on a word in a README that has nothing to do with the change being committed.
+#
+#     What gets read, and why only this much: a double-quoted string with a space in it in
+#     src\**\*.gd (a string with no space is a resource path, a group name or a dictionary
+#     key, never a sentence), `text` and `tooltip_text` in a .tscn, every line of the
+#     changelog, and README prose outside code fences and backticks. addons\, assets\CREDITS.md
+#     (somebody else's licence text, quoted as evidence), scripts\, build\ and .godot\ are
+#     skipped. The point is what is READ, so an identifier, a shader uniform, a JSON field and
+#     a Godot property name are all out of scope by construction rather than by exception.
+#
+#     On the knowledge base side it reads INDEX.md, skills\*\SKILL.md and agents\*.md and
+#     NOTHING ELSE. The topic files are excluded on purpose: only /digest may edit them, it
+#     converts a section at a time as it folds lessons into it, and a standing 373-line WARN
+#     for a conversion that is deliberately gradual is permanent noise, which is how a person
+#     learns to stop reading this report. INDEX.md, the skills and the agent descriptions are
+#     the exemplars every session actually copies, so they are the ones held to it.
+
+$script:UsEnglishLoaded = $false
+$script:UsEnglishMap = $null
+$script:UsEnglishRegex = $null
+$script:UsEnglishListPath = $null
+
+function Initialize-UsEnglishList {
+  if ($script:UsEnglishLoaded) { return }
+  $script:UsEnglishLoaded = $true
+  $script:UsEnglishListPath = Join-Path $Notes 'scripts\us-english.txt'
+  $lines = Get-TextLines $script:UsEnglishListPath
+  if ($null -eq $lines) { return }
+  $map = @{}
+  foreach ($l in $lines) {
+    $t = $l.Trim()
+    if (-not $t -or $t.StartsWith('#')) { continue }
+    $parts = $t -split '=', 2
+    if ($parts.Count -ne 2) { continue }
+    $british = $parts[0].Trim().ToLowerInvariant()
+    $american = $parts[1].Trim()
+    if ($british -and $american) { $map[$british] = $american }
+  }
+  if ($map.Count -eq 0) { return }
+  $script:UsEnglishMap = $map
+  $script:UsEnglishRegex = [regex]::new(
+    '\b(' + (($map.Keys | Sort-Object) -join '|') + ')\b',
+    [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+}
+
+# Fenced blocks and inline backticks out of a markdown file: a command line and a flag are
+# not prose. Line numbers are preserved the same way the strippers above preserve them.
+function Remove-MarkdownCode([string] $Text) {
+  $pattern = '(?m)^```[\s\S]*?^```[^\n]*|`[^`\n]*`'
+  $eval = [System.Text.RegularExpressions.MatchEvaluator] {
+    param($m)
+    $nl = ([regex]::Matches($m.Value, "`n")).Count
+    if ($nl -eq 0) { return ' ' }
+    return ("`n" * $nl)
+  }
+  return [regex]::Replace($Text, $pattern, $eval)
+}
+
+# What a player reads out of a GDScript file: the double-quoted string literals that have a
+# space in them. Everything else - code, identifiers, comments, and a quoted literal with no
+# space, which is a resource path, a group, a signal or a dictionary key - is blanked to
+# spaces of the same length, so this returns a string the same size as the file and every
+# offset in it still names the right line. The alternation tries a string before a comment,
+# the same order and for the same reason as the strippers above.
+function Get-GdPlayerText([string] $Text) {
+  $pattern = '"""[\s\S]*?"""' + '|"(?:\\.|[^"\\\n])*"' + "|'''[\s\S]*?'''|'(?:\\.|[^'\\\n])*'" + '|#[^\n]*' + '|[^"''#]+' + '|[\s\S]'
+  $eval = [System.Text.RegularExpressions.MatchEvaluator] {
+    param($m)
+    $v = $m.Value
+    if ($v.Length -gt 1 -and $v.StartsWith('"') -and $v.EndsWith('"') -and $v.Contains(' ')) { return $v }
+    return [regex]::Replace($v, '[^\n]', ' ')
+  }
+  return [regex]::Replace($Text, $pattern, $eval)
+}
+
+# One label:line word -> word hit per match, so every finding points at a place to edit.
+function Get-UsEnglishHits([string] $Label, [string] $Text) {
+  $out = @()
+  foreach ($m in $script:UsEnglishRegex.Matches($Text)) {
+    $line = Get-LineNumber $Text $m.Index
+    $found = $m.Value
+    $right = $script:UsEnglishMap[$found.ToLowerInvariant()]
+    # Suggest it in the case it was found in, so "METRES" is not answered with "meters" and
+    # a heading is not quietly lower-cased by somebody following this line literally.
+    if ($found -ceq $found.ToUpperInvariant()) {
+      $right = $right.ToUpperInvariant()
+    } elseif ($found.Substring(0, 1) -ceq $found.Substring(0, 1).ToUpperInvariant()) {
+      $right = $right.Substring(0, 1).ToUpperInvariant() + $right.Substring(1)
+    }
+    $out += "${Label}:$line $found -> $right"
+  }
+  return $out
+}
+
+function Test-USEnglish([string] $Area, [string] $Path, [bool] $IsKnowledgeBase) {
+  Initialize-UsEnglishList
+  if ($null -eq $script:UsEnglishRegex) {
+    Warn $Area 'US English' "no usable word list at $($script:UsEnglishListPath), so this check inspected nothing. Fix: restore it from git; it is one british=american pair per line and INDEX.md rule 15 depends on it."
+    return
+  }
+
+  $files = @()   # each: @{ Label; Text }  - Text is already reduced to what a person reads
+
+  if ($IsKnowledgeBase) {
+    # INDEX.md, the skills and the agent descriptions: the exemplars a session copies.
+    $targets = @(Join-Path $Path 'INDEX.md')
+    $targets += @(Get-ChildItem -LiteralPath (Join-Path $Path 'skills') -Filter 'SKILL.md' -File -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+    $targets += @(Get-ChildItem -LiteralPath (Join-Path $Path 'agents') -Filter '*.md' -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+    foreach ($t in $targets) {
+      $raw = Read-TextFile $t
+      if ($null -eq $raw) { continue }
+      $rel = $t.Substring($Path.Length).TrimStart('\')
+      $files += @{ Label = $rel; Text = (Remove-MarkdownCode $raw) }
+    }
+    if ($files.Count -eq 0) {
+      Warn $Area 'US English' "no INDEX.md, skills\*\SKILL.md or agents\*.md under $Path, so this check inspected nothing. Fix: it is looking in the wrong place, or the base has lost its exemplars."
+      return
+    }
+  } else {
+    $skip = @('\addons\', '\build\', '\.godot\', '\scripts\')
+
+    # Sentences a player reads, out of the GDScript. A double-quoted literal with no space in
+    # it is a path, a group, a signal or a dictionary key - never a sentence.
+    $srcDir = Join-Path $Path 'src'
+    if (Test-Path -LiteralPath $srcDir) {
+      foreach ($f in @(Get-ChildItem -LiteralPath $srcDir -Filter '*.gd' -File -Recurse -ErrorAction SilentlyContinue)) {
+        if ($skip | Where-Object { $f.FullName -like "*$_*" }) { continue }
+        # The changelog gets a fuller pass of its own below; without this it is read twice
+        # and every hit in it is reported twice.
+        if ($f.Name -eq 'changelog.gd') { continue }
+        $raw = Read-TextFile $f.FullName
+        if ($null -eq $raw) { continue }
+        $files += @{ Label = $f.FullName.Substring($Path.Length).TrimStart('\'); Text = (Get-GdPlayerText $raw) }
+      }
+    }
+
+    # Scene text: the label and the tooltip, which are the strings on the screen.
+    foreach ($f in @(Get-ChildItem -LiteralPath $Path -Filter '*.tscn' -File -Recurse -ErrorAction SilentlyContinue)) {
+      if ($skip | Where-Object { $f.FullName -like "*$_*" }) { continue }
+      $raw = Read-TextFile $f.FullName
+      if ($null -eq $raw) { continue }
+      $kept = [regex]::Replace($raw, '(?m)^(?!\s*(text|tooltip_text)\s*=)[^\n]*', { param($m) (' ' * $m.Value.Length) })
+      $files += @{ Label = $f.FullName.Substring($Path.Length).TrimStart('\'); Text = $kept }
+    }
+
+    # The changelog, every line: it is written in the player's terms and he reads all of it.
+    foreach ($n in 'src\changelog.gd', 'src\changelog.ts') {
+      $p = Join-Path $Path $n
+      if (-not (Test-Path -LiteralPath $p)) { continue }
+      $raw = Read-TextFile $p
+      if ($null -ne $raw) { $files += @{ Label = $n; Text = $raw } }
+    }
+
+    $readme = Join-Path $Path 'README.md'
+    if (Test-Path -LiteralPath $readme) {
+      $raw = Read-TextFile $readme
+      if ($null -ne $raw) { $files += @{ Label = 'README.md'; Text = (Remove-MarkdownCode $raw) } }
+    }
+
+    if ($files.Count -eq 0) {
+      Warn $Area 'US English' "no src\*.gd, .tscn, changelog or README.md under $Path, so this check inspected nothing. Fix: a game repo with none of those is missing more than its spelling."
+      return
+    }
+  }
+
+  $hits = @()
+  foreach ($f in $files) { $hits += Get-UsEnglishHits $f.Label $f.Text }
+
+  if ($hits.Count -eq 0) {
+    Pass $Area 'US English' "$($files.Count) file(s) read, no British spelling"
+    return
+  }
+  Warn $Area 'US English' "$($hits.Count) British spelling(s) where he or a player reads them: $(Join-Some $hits 6). Fix: INDEX.md rule 15 - use the right-hand word. The list is scripts\us-english.txt; add a word to it if one is missing, and leave an identifier, a shader uniform, an external API field or quoted third-party licence text alone."
+}
+
 # 17. Git hygiene. Cheap calls only: status, one rev-list against the LAST KNOWN remote, and
 #     count-objects. Nothing here fetches, so "ahead" means ahead of the last fetch - which is
 #     the same caveat that makes setup\finish.ps1 report nothing to push on a repo that is
@@ -1246,6 +1431,9 @@ function Test-GameRepo([object] $Dir, [object[]] $TemplateScripts) {
   Test-TestSet       $area $path
   Test-PlanOutline   $area $path $isTemplate
   Test-PhoneDebt     $area $path
+  # Not behind -Quiet: it is a handful of regex passes, and the game gate is the only place
+  # an existing game is ever told it has a British word on its screen.
+  Test-USEnglish     $area $path $false
   if (-not $Quiet) {
     Test-SimPurity   $area $path
     Test-GitHygiene  $area $path

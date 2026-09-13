@@ -1,0 +1,172 @@
+# The studio's British-to-American word list. One `british=american` pair per line,
+# lower case, `#` starts a comment, blank lines ignored. Whole words only: the doctor's
+# Test-USEnglish builds a `\b<british>\b` pattern per pair and matches case-insensitively,
+# so `Colour` and `COLOUR` are caught and `discolouration` is not (add the exact word if
+# you want it).
+#
+# This file is the single source of truth. INDEX.md standing rule 15 states the rule,
+# skills\digest\SKILL.md points a fold at this list, and scripts\doctor.ps1 reads it. If a
+# word is missing, add it here and every one of those learns it at once.
+#
+# What must NEVER go in this list:
+#
+# - `dialogue`. American usage keeps `dialogue` for words two characters say to each other
+#   and uses `dialog` only for a UI box. One spelling cannot be right for both, so a pair
+#   here would rewrite the conversation kind every time.
+# - Any word that is only ever an identifier: a shader uniform, a dictionary key, a JSON
+#   field from somebody else's API, a Godot property name, a class name. The rule is about
+#   what Gideon and a player read, not about what a machine parses. The check already
+#   skips scripts\, addons\ and assets\CREDITS.md for that reason, but a word that can
+#   only ever be an identifier does not belong here at all.
+# - Quoted third-party licence text. Left as its author wrote it; that quote is evidence.
+# - Anything where the two spellings mean different things in American English
+#   (`practise`/`practice` is safe because American English has only `practice`, but check
+#   before adding a new one).
+
+colour=color
+colours=colors
+coloured=colored
+colourful=colorful
+behaviour=behavior
+behavioural=behavioral
+favour=favor
+favourite=favorite
+honour=honor
+neighbour=neighbor
+humour=humor
+labour=labor
+rumour=rumor
+vapour=vapor
+armour=armor
+centre=center
+centres=centers
+centred=centered
+fibre=fiber
+litre=liter
+metre=meter
+metres=meters
+calibre=caliber
+sabre=saber
+spectre=specter
+theatre=theater
+defence=defense
+offence=offense
+pretence=pretense
+licence=license
+practise=practice
+grey=gray
+travelled=traveled
+travelling=traveling
+traveller=traveler
+cancelled=canceled
+cancelling=canceling
+levelled=leveled
+modelled=modeled
+modelling=modeling
+labelled=labeled
+fuelled=fueled
+signalled=signaled
+jewellery=jewelry
+catalogue=catalog
+analyse=analyze
+analysed=analyzed
+analysing=analyzing
+paralyse=paralyze
+organise=organize
+organised=organized
+organisation=organization
+realise=realize
+recognise=recognize
+apologise=apologize
+prioritise=prioritize
+optimise=optimize
+customise=customize
+summarise=summarize
+summarising=summarizing
+minimise=minimize
+maximise=maximize
+utilise=utilize
+visualise=visualize
+synchronise=synchronize
+serialise=serialize
+serialisation=serialization
+initialise=initialize
+initialisation=initialization
+normalise=normalize
+randomise=randomize
+emphasise=emphasize
+aluminium=aluminum
+manoeuvre=maneuver
+mould=mold
+smoulder=smolder
+plough=plow
+storey=story
+tyre=tire
+kerb=curb
+pyjamas=pajamas
+aeroplane=airplane
+whilst=while
+amongst=among
+maths=math
+programme=program
+draught=draft
+sceptical=skeptical
+enquire=inquire
+learnt=learned
+spelt=spelled
+
+# Inflections and plurals that actually turn up in this studio's prose and code. Added when
+# a real hit was found rather than guessed at, so the list stays a list of pairs and never
+# a suffix rule that would rewrite `raised`, `surprised` or `advertising`.
+licences=licenses
+offences=offenses
+defences=defenses
+favourites=favorites
+behaviours=behaviors
+neighbours=neighbors
+organisations=organizations
+catalogues=catalogs
+colouring=coloring
+recolour=recolor
+recoloured=recolored
+recolouring=recoloring
+discolour=discolor
+centring=centering
+recognised=recognized
+recognising=recognizing
+realised=realized
+realising=realizing
+optimised=optimized
+optimising=optimizing
+initialised=initialized
+initialising=initializing
+customised=customized
+summarised=summarized
+minimised=minimized
+maximised=maximized
+utilised=utilized
+visualised=visualized
+synchronised=synchronized
+serialised=serialized
+serialising=serializing
+normalised=normalized
+unnormalised=unnormalized
+normalising=normalizing
+randomised=randomized
+emphasised=emphasized
+prioritised=prioritized
+apologised=apologized
+stylise=stylize
+stylised=stylized
+monetise=monetize
+monetised=monetized
+monetisation=monetization
+generalise=generalize
+generalises=generalizes
+generalised=generalized
+generalising=generalizing
+parameterise=parameterize
+parameterised=parameterized
+authorise=authorize
+authorised=authorized
+unrecognised=unrecognized

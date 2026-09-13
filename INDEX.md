@@ -39,7 +39,7 @@ a plan.
    Viewport, an input event or a real frame. This is what makes the golden test, the
    headless harness and every rewrite possible. **The rule excludes the renderer, not the
    disk: `src/sim` MAY use `FileAccess` and `DirAccess` under `user://`.** What it may not do
-   is make the disk the only way to test a save - serialisation is a pure pair, state to
+   is make the disk the only way to test a save - serialization is a pure pair, state to
    `Dictionary` and back, asserted by a round-trip test that touches no file, and the file
    call is a thin wrapper over that pair which may live either side of the wall. Asserted by
    `test/test_sim_boundary.gd`, not by a comment in a header.
@@ -80,6 +80,12 @@ a plan.
 14. **Cheap work goes to cheap models.** Running the doctor and filing a lesson are Haiku
     agents (`doctor-runner`, `lesson-filer`); a digest is a Sonnet session. `MODELS.md` is
     the table.
+15. **Gideon is in the United States, so everything he or a player reads is US English**:
+    chat replies, reports, commit subjects, changelogs, README text, on-screen strings and
+    the Play listing, which defaults to en-US and USD. The word list is
+    `scripts\us-english.txt` and `doctor.ps1` WARNs on a hit. This is spelling, not units:
+    Godot's meters stay meters. A word is left alone when it is an identifier, a shader
+    uniform, a dictionary key, an external API field or quoted third-party license text.
 
 ## Where knowledge lives (read what the step needs, not everything)
 

@@ -86,7 +86,7 @@ Check on the phone, and write the answers in `NOTES.md`: the safe area (nothing 
 camera cutout or the gesture bar), the back button pauses rather than quits, home then
 resume returns to a paused game with audio ducked, haptics fire, the frame-time
 percentiles and thermal status before and after ten minutes, no `ERROR` in the log, and the
-hit boxes line up with the drawn controls (tap a control's drawn centre and watch the log).
+hit boxes line up with the drawn controls (tap a control's drawn center and watch the log).
 
 ## An independent read (`all`, and before every ship)
 
@@ -103,4 +103,4 @@ report as evidence, not as a verdict; the fixes are yours.
 
 To him: the sheet or the phone video, the findings as numbered lines with frame numbers, and
 what changed because of them. His replies go to `playtests/<slug>.md` verbatim. Anything
-that generalises goes to `/record-lesson`.
+that generalizes goes to `/record-lesson`.

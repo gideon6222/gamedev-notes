@@ -41,17 +41,26 @@ window is short.
 5. Keep each topic file under about 30 KB. If a section has grown past a screen, condense:
    merge lines that say one thing, drop a caution a measurement replaced, move detail to
    `techniques/`.
-6. Re-read `INDEX.md`. Only change it when a standing rule or a file's purpose changed.
-7. Delete each folded inbox file (`git rm`, or just delete it), then commit everything by
+6. **Leave the whole section in US English** (INDEX.md rule 15). When you fold a lesson
+   into a section, run `scripts\us-english.txt` over that section and fix every British
+   spelling in it, not only the line you wrote. The digest is the only thing allowed to
+   edit `CRAFT.md`, `GODOT.md`, `TESTING.md`, `ASSETS.md`, `POLISH.md`, `PLAYER.md` and
+   `PLAY.md`, so this is the one path by which those files convert. Section by section over
+   several digests is the point: no session rewrites a topic file for spelling alone. Leave
+   an identifier, a shader uniform, a dictionary key, an external API field and quoted
+   third-party license text exactly as they are, and say in the report how many words you
+   changed.
+7. Re-read `INDEX.md`. Only change it when a standing rule or a file's purpose changed.
+8. Delete each folded inbox file (`git rm`, or just delete it), then commit everything by
    name in one call, edits and deletions together:
    `kb.ps1 commit -Files CRAFT.md,GODOT.md,inbox\<a>.md,... -Message "Digest: <n> lessons (<topics>)"`.
    `kb.ps1` treats a named file that is tracked but gone from disk as a deletion. The commit
    message must contain the word `Digest`; the doctor's digest-age check greps for it.
    A push rejection means another digest ran; pull, re-apply, push.
-8. **Release the lease the moment the push lands:**
+9. **Release the lease the moment the push lands:**
    `powershell C:\dev\gamedev-notes\scripts\kb.ps1 release -Owner digest`.
-9. Report the lines that changed, in one message, so he can veto. Include the restatements
-   from step 3 and the contradictions you resolved, naming the line you deleted.
+10. Report the lines that changed, in one message, so he can veto. Include the restatements
+    from step 3 and the contradictions you resolved, naming the line you deleted.
 
 **Model:** this is editorial work with a written procedure. Sonnet is enough; start the
 session with `claude --model sonnet` or say `/model sonnet` before step 1.

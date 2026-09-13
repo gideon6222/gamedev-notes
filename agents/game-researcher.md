@@ -20,7 +20,7 @@ Return, in under 700 words:
 2. **Rules and numbers** as a list: what the reference does, at what values, in what order.
 3. **What holds attention in the first minute** (for a genre or reference brief).
 4. **What to copy, what to skip, and why**, given this is portrait, one thumb, short
-   sessions, no monetisation.
+   sessions, no monetization.
 5. **Sources** as links with one line each on what each one is good for.
 
 Never invent a number. If a source disagrees with another, say so. If nothing good exists,

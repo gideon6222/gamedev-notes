@@ -26,9 +26,9 @@ Launch these together and wait for all of them:
      rebuilds of one game went wrong by inferring instead of looking.
 - **`asset-scout`** subagent: given the fantasy, the art direction and the list of things
   on screen at full size, return a shortlist per need (characters, props, environment,
-  textures, sky, UI kit, icons, font, SFX packs, music) with source, id, licence and a
+  textures, sky, UI kit, icons, font, SFX packs, music) with source, id, license and a
   fetch command from `ASSETS.md`. It also reports the misses, which shape the plan: if
-  nothing has fish, fish are modelled.
+  nothing has fish, fish are modeled.
 - **Yourself**: read `C:\dev\gamedev-notes\CRAFT.md` sections the idea touches, and
   `POLISH.md` so the plan budgets for it.
 
@@ -55,7 +55,7 @@ and the action that leaves it.
 **New technique:** <name>, from <source>.
 **His asks, expanded:** numbered, one line each, with what each grew into.
 **My additions:** three, marked as mine.
-**Assets:** table of need, source, id, licence.
+**Assets:** table of need, source, id, license.
 **Phases:** 1 first playable (n milestones), 2 content and meta, 3 polish and store.
 
 ## Player and controls
@@ -75,7 +75,7 @@ placement (what is by the thumb, what is opposite it), the shop as a place, the 
 (sampled versus generated).
 
 ## Assets
-Per need: source, id, licence, fetch command, target folder, import settings.
+Per need: source, id, license, fetch command, target folder, import settings.
 
 ## Tests and tools
 Golden policies (which ones, what each fails at), design tests (one line each),

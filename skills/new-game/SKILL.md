@@ -53,7 +53,7 @@ the slug now: lowercase, hyphenated, two words at most, not already under `C:\de
 ## 5. The gate
 
 Show him the plan: the summary block at the top of `PLAN.md` verbatim (fantasy, loop,
-engine, the first minute, the systems list, the asset shortlist with licences, the
+engine, the first minute, the systems list, the asset shortlist with licenses, the
 milestone phases, your three additions), then the one question: **"Build it as planned, or
 change anything first?"** Wait. Apply his edits to the plan file. This is the only question
 in the whole process.

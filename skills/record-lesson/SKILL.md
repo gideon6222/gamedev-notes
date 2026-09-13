@@ -60,5 +60,5 @@ corrected version for the rest of this session.
 Append to `C:\dev\gamedev-notes\playtests\<game>.md` under `## <YYYY-MM-DD>`: his message
 verbatim in a blockquote, then one line on what was done about each ask. Never paraphrase
 the quote. Commit with `kb.ps1 commit -Files playtests\<game>.md -Message "Playtest <game> <date>"`.
-If something in it generalises (a complaint that matches one in `PLAYER.md`, or a new
+If something in it generalizes (a complaint that matches one in `PLAYER.md`, or a new
 kind), also write an inbox lesson pointing at `PLAYER.md`.

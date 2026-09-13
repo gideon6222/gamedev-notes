@@ -8,12 +8,12 @@ also the frequent work.
 | Work | Who runs it | Model | Why |
 |---|---|---|---|
 | Building a game (design, code, debugging feel) | the main Claude Code session | Opus (or Sonnet for a small, well-specified change) | judgement about a whole game |
-| `/digest` folding lessons into the topic files | the main session, in `gamedev-notes` | Sonnet | editorial merge with a written procedure and a written format |
+| `/digest` folding lessons into the topic files | the main session, in `gamedev-notes`, or the Courier unattended when the inbox passes ten | Sonnet | editorial merge with a written procedure and a written format |
 | `/framework-check` judgement on doctor output | the main session | Opus | deciding which failures are the check's fault |
 | Running `doctor.ps1`, reading `reports\LATEST.txt` | `doctor-runner` agent | Haiku | runs a script, returns lines verbatim |
 | Filing a lesson in `inbox/` | `lesson-filer` agent | Haiku | fixed format, one grep, one commit |
-| Genre and reference research | `game-researcher` agent | Sonnet | reading and summarising |
-| Asset search | `asset-scout` agent | Sonnet | querying sources, listing licences |
+| Genre and reference research | `game-researcher` agent | Sonnet | reading and summarizing |
+| Asset search | `asset-scout` agent | Sonnet | querying sources, listing licenses |
 | Filmed-run and phone playtest judgement | `playtester` agent | inherits the session model | judging feel |
 | The routine weekly check | Windows Task Scheduler running `scripts\weekly-check.ps1` | none | it is PowerShell |
 | Big-picture review of the whole studio, a few times a month at most | a Cowork chat in the "Game Dev Management" project | Fable or Opus | the only job that wants the widest view; see the project's rules for what it may touch |

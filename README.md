@@ -12,7 +12,7 @@ by the step that needs it.
 | **`CRAFT.md`** | What makes a game good, one rule per line, by topic | `/digest` |
 | **`GODOT.md`** | The Godot stack, engine traps, invariants, export and signing | `/digest` |
 | **`TESTING.md`** | Test layers, harness rules, filmed runs, the phone | `/digest` |
-| **`ASSETS.md`** | Where to get assets, how to fetch and import them, licences | `/digest` |
+| **`ASSETS.md`** | Where to get assets, how to fetch and import them, licenses | `/digest` |
 | **`POLISH.md`** | The ship gate: what complete means on a phone | `/digest` |
 | **`PLAY.md`** | Getting onto Google Play | `/digest` |
 | **`WEB.md`** | The web stack, for games that want to be a link | `/digest` |
@@ -23,7 +23,7 @@ by the step that needs it.
 | `agents/` | Subagents (researcher, asset scout, playtester). Copied into `~/.claude/agents` | this repo |
 | `ADMIN.md`, `MODELS.md` | The map of the machinery (every threshold, schedule, hook and knob) and the model routing table. Read by `/studio-admin`, not by build sessions | `/studio-admin` |
 | `reports/` | Output of the weekly scheduled check (`LATEST.txt` plus the last eight full runs). Gitignored, this machine only | `scripts/weekly-check.ps1` |
-| `scripts/` | `new-game.ps1`, `kb.ps1`, `phone.ps1` (the one phone, claimed before use), `assets.py`, `doctor.ps1`, `progress.ps1` (where a game's plan stands), `weekly-check.ps1`. `movie.ps1` and `device.ps1` are not here: they are per-game, in each repo's own `scripts/` | this repo |
+| `scripts/` | `new-game.ps1`, `kb.ps1`, `phone.ps1` (the one phone, claimed before use), `assets.py`, `doctor.ps1`, `progress.ps1` (where a game's plan stands), `weekly-check.ps1`, `us-english.txt` (the british=american word list behind standing rule 15). `movie.ps1` and `device.ps1` are not here: they are per-game, in each repo's own `scripts/` | this repo |
 | `setup/` | `install.ps1` and the files it writes into `~/.claude`, and `install-schedule.ps1` for the weekly Task Scheduler job | this repo |
 | `archive/` | The previous generation of these notes, kept whole | never |
 
@@ -76,6 +76,6 @@ the repo has.
 | Stillwater | Godot | github.com/gideon6222/stillwater | A fishing game that starts calm at dawn and turns unsettling; depth is time, and the line upgrade is the story | v0.5.2, playable, in active phase-two build. The most active repo |
 | Wildform | Godot | github.com/gideon6222/wildform | A lane shooter-runner: position is aim, and what you feed decides what you evolve into | v0.7.0, playable through eight worlds. Newest game |
 | Gravewell | Godot | github.com/gideon6222/gravewell | Cut down through a dead world by lamplight, then run for the surface with its core aboard | v0.14.0, playable. Godot successor to Coreward |
-| Candle Gift | Godot | github.com/gideon6222/candle-gift | A candle-factory runner modelled on Rollic's Candle Gift; `REFERENCE.md` is the observed record of it | v0.1.0, playable, phase one |
+| Candle Gift | Godot | github.com/gideon6222/candle-gift | A candle-factory runner modeled on Rollic's Candle Gift; `REFERENCE.md` is the observed record of it | v0.1.0, playable, phase one |
 | Wrecking Crew | Godot | github.com/gideon6222/wrecking-crew | Bring a condemned building down into its own footprint with a fixed number of swings | v0.4.2, playable but frozen at a pre-Framework-v2 state: no `PLAN.md`, no `check.ps1`, no `device.ps1`, no CI `play` job. Back-fill it to the current template or retire it |
 | Captain Run, Wick | web | superseded by Candle Gift | Earlier web experiments | Archived, never played |

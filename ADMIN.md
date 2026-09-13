@@ -35,6 +35,7 @@ default moved.
 - Plan outline: WARN when a game's PLAN.md has no `- [ ]` milestone lines (`Test-PlanOutline`). The dashboard's checklist reads those boxes; the changelog tab reads `src\changelog.gd` or `.ts`.
 - Phone debt: WARN while a game's NOTES.md holds a `PHONE TEST OWED` line (`Test-PhoneDebt`). Never FAIL: the repo cannot clear it while another game has the phone.
 - Git hygiene: WARN on uncommitted or unpushed work, WARN on a large `.git` (`Test-GitHygiene`).
+- US English (`INDEX.md` rule 15): WARN, never FAIL (`Test-USEnglish`). The word list is `scripts\us-english.txt`, one `british=american` pair per line, read once; add a word there and the check, `/digest` and the rule all learn it. In a game it reads the spacey double-quoted strings in `src\**\*.gd`, `text` and `tooltip_text` in a `.tscn`, every changelog line and README prose, skipping `addons\`, `assets\CREDITS.md`, `scripts\`, `build\` and `.godot\`. In the knowledge base it reads `INDEX.md`, `skills\*\SKILL.md` and `agents\*.md` and NOT the topic files, which `/digest` converts a section at a time as it folds lessons in (step 6 of its skill); a permanent 373-line WARN would just teach everyone to stop reading this report.
 - Snapshot dirs (`*.pre-fix`, `*-audit`, `*.bak`, `*.old`) are skipped unless `-IncludeSnapshots`.
 - Weekly reports kept: 8 (`weekly-check.ps1 -Keep`).
 
