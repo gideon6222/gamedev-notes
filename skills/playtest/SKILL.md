@@ -36,6 +36,18 @@ six questions. The tools live in the game repo's `scripts/`.
    ```
    Read `build\movie\<name>\sheet.png` with the Read tool. Tile n is frame n times `Every`.
    Read `godot.log` messages the script prints.
+   **A filmed second costs about 6 s of wall clock and 3 MB** on this PC (M, template at
+   60 fps, one MJPEG file since 2026-09-12; a heavier game renders slower, and the script
+   prints its own cost line every run, so use that number rather than this one). Other
+   sessions are building on the same machine, so **film the shortest run that shows the
+   thing** and raise `-Every` rather than the seconds when you only need coverage: sixty
+   seconds is six minutes of somebody else's CPU.
+   `-Png` brings back the old lossless PNG per frame plus `frame.wav`, at 2.3x the wall
+   clock and 1.6x the disk in this flat-shaded template (M), and a game with real textures
+   widens the disk gap because PNG stops compressing. Use it only when a finding needs a
+   full-size frame
+   with no JPEG in the way (a thin line of type, a gradient, a one-pixel seam) or the audio
+   track as a file. The sheet never needs it.
 4. Answer the six questions from `TESTING.md` in `NOTES.md` under `## Playtest <date>`:
    feedback in the same frame, speed and coasting, pop-in and layering, the short states,
    the first-minute win and the next goal, any frame where the player would not know what
@@ -48,9 +60,17 @@ six questions. The tools live in the game repo's `scripts/`.
 Requires the phone plugged in, unlocked, USB debugging accepted. If `adb devices` shows
 nothing, say so in the report and ship on the desk evidence; do not wait.
 
+**One phone, every session.** The pass starts with `scripts\device.ps1 install`, which claims
+the phone for you. **Exit code 75 means another game has it: do not wait and do not retry.**
+Finish the desk pass instead, then edit the `PHONE TEST OWED` line `device.ps1` has just
+written into `NOTES.md` to say what you were going to test on the phone, and say in the report
+that the phone pass is owed. End the pass with `scripts\device.ps1 release`. Never call `adb`
+directly, for any step: a raw adb call is the one path the lease cannot see, and it is how two
+games end up installing over each other.
+
 ```powershell
 scripts\check.ps1 -Export                 # the APK
-scripts\device.ps1 install
+scripts\device.ps1 install                # claims the phone; exit 75 = another game has it
 scripts\device.ps1 launch
 scripts\device.ps1 perf                   # baseline percentiles and thermal
 scripts\device.ps1 record 30              # while driving it with tap/swipe below, or by hand
@@ -59,6 +79,7 @@ scripts\device.ps1 back ; scripts\device.ps1 home ; scripts\device.ps1 resume
 scripts\device.ps1 perf -Seconds 10       # after play
 scripts\device.ps1 log -Dump              # every print and error from the run
 scripts\device.ps1 shot
+scripts\device.ps1 release                # give the phone back, always
 ```
 
 Check on the phone, and write the answers in `NOTES.md`: the safe area (nothing under the
