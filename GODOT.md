@@ -254,9 +254,15 @@ as "the buttons are about half an inch too high".
 - **`Viewport.push_input(event)` does nothing for the GUI unless `in_local_coords = true`.**
   Measured on a bare `Button`: zero presses without it, one with. A click that hits nothing is
   not an error, so a UI test goes green having proved nothing.
-- **A headless run allocates no MultiMesh buffer**, so instance colours read back black and
-  prove nothing. `visible_instance_count` is CPU-side and reliable, and is also the flush:
-  forgetting it fails completely silently.
+- **A headless run allocates no MultiMesh buffer**, so `get_instance_transform` and
+  `get_instance_color` read back as identity and white and prove nothing - measured against a real
+  Vulkan run with the same seed and scene: every `origin.x` that was 26.08, -12.42, -33.04 and so
+  on read back as exactly 0.00 headless. This is not merely weak, it is false: it fails on correct
+  code, which is the worst kind of check because the first instinct is to "fix" the code.
+  `visible_instance_count` is CPU-side and reliable, and is also the flush: forgetting it fails
+  completely silently. A headless smoke test may assert HOW MANY instances are drawn, never WHERE
+  - placement belongs in a pure test on the arithmetic that decides it, plus a screenshot for the
+  picture (`TESTING.md`).
 - **`MultiMesh.use_colors` must be set BEFORE `instance_count`** or every instance is
   silently untinted.
 - **Start audio playback from `_ready`**, never `_enter_tree` or right after `add_child`,
@@ -312,6 +318,14 @@ Thirteen measured traps, the arithmetic and the dead ends are in
 - **`DEPTH_TEXTURE` is corrupt on Forward Mobile with MSAA**, and `fog_sky_affect` defaults to
   1.0, so depth fog repaints the SKY. Godot blend shapes cannot morph one creature into another
   at all (`techniques/wildform-evolution-transform.md`).
+- **A `SurfaceTool`/`ArrayMesh` mesh that draws nothing is a winding order before it is the
+  material, the position or the fog** - `set_normal()` does not decide the front face, the vertex
+  order does, and a correct normal is what makes the mistake invisible in code review. To tell
+  "not drawn" from "drawn and faint" (fog can look identical to absent at range): paint the mesh a
+  colour that cannot occur in the scene (magenta, cyan) and scan a screenshot for that hue rather
+  than staring at the frame. For a backdrop seen from one side only, `cull_mode =
+  BaseMaterial3D.CULL_DISABLED` is the right answer, not a workaround - the overdraw is trivial
+  and it removes a whole class of silent failure.
 - **Walking a path once per follower is quadratic and reads as a hang**, not as slowness.
 - **`Basis.scaled()` scales the WORLD axes**, WAVs import as QOA, and `TorusMesh` has no arc
   parameter.
@@ -392,6 +406,27 @@ with the directory it wanted. Poll with `gh run watch` or `gh run list --limit 3
 "still running"). A check that cannot determine the answer must say so. Do not report a push as
 done while the check is in flight.
 
+**When a `gh` command or the release step fails with a 5xx, look at the effect before doing
+anything about the cause** - a 500 or 502 is the server failing to answer, not a promise that it
+did nothing. wildform's `Publish a release` step got HTTP 500 from `softprops/action-gh-release`
+three times in one morning: build-35 was never created, build-36 got as far as a draft release
+with its 35 MB APK attached and only the finalize step failed, and those two look identical from
+the run's conclusion alone. Read with `gh run list` for a new run, `gh release list` and
+`gh api repos/<owner>/<repo>/releases` for a draft that may already exist with its asset - the
+repair is often `--draft=false` on what is already there, not another full build. Do not re-issue
+a write after a 5xx until a read says it did not happen: `gh run rerun --failed` itself returned
+HTTP 502 once, read as "did not start", and had in fact started - a blind second retry would have
+queued the job twice and published two releases for one commit. Read the 500's response BODY, not
+just its status, because the body names the endpoint (wildform's pointed at
+`generate-release-notes`) - but do not let one line of payload become a story about your own repo's
+data before checking: a same-minute POST-and-delete-draft probe against wildform, snowball and
+stillwater found 0/6, 1/6 and 5/6 successes, so it was GitHub's release creation degraded across
+the whole account, not any one repo's state. **A 5xx that hits one repo and not another is still
+most likely the server**, and the only way to tell is to make the same call several times against
+a repo that is working - that probe is cheap and safe (`draft=true`, then `DELETE`, invisible to
+the public, no tag). Do not treat githubstatus.com as evidence either way; it read "All Systems
+Operational" throughout.
+
 ## Tools that do not exist here, and what to use instead
 
 - Windows has no ImageMagick; `convert` is a disk utility. Use `ffmpeg` for images, and Pillow
@@ -406,9 +441,14 @@ done while the check is in flight.
   escapes crossing the tool: as an output directory with no error at all (a run-together
   capitalized name like `SERSGIDEOAPPDATAocaltemp` IS `C:\Users\gideo\AppData\Local\Temp` with
   `\U`, `\A`, `\L`, `\T` eaten - treat it as this bug and look for the files it swallowed rather
-  than deleting it blind), or as an argument with a visible error
-  (`-File 'C:devgamedev-notesscriptsprogress.ps1'`). If a backslash path is unavoidable,
-  single-quote it and check what arrived before doing anything with it. **Never put backslash
+  than deleting it blind), or as an argument with a visible error (the `.ps1` suffix with every
+  backslash before it eaten, so it reads as one run-together word with no directory in it). If a
+  backslash path is unavoidable, single-quote it and check what arrived before doing anything with
+  it. **When a topic file has to show a broken or mangled path as an example, break the file
+  extension too** (a bare mangled word, or "the .ps1 suffix with every backslash eaten") so
+  `scripts\doctor.ps1`'s cross-reference check, which reads every `name.ps1`/`.py`/`.gd` in prose
+  as a claim that file exists, cannot mistake the illustration for a promise and fail the next run
+  on a file that was never supposed to exist. **Never put backslash
   escapes in a Python heredoc through the Bash tool** for the same reason: write the script to a
   file and run it, with an `assert pattern in text` beside every replace.
 - **Do not juggle source files through the shell for a two-line experiment**, and never

@@ -113,6 +113,19 @@ authoritative list when this one has drifted.
 Every `get` appends a line to the game's `assets/CREDITS.md` (source, id, URL, licence, date)
 and refuses a licence it does not recognise. The credits file feeds the credits screen.
 
+**`assets.py get` fetches the file, it does not configure the import, and Godot's defaults are
+wrong for a phone game by roughly a factor of six on textures.** Godot writes a fresh `.import`
+the first time it sees a new file, at `compress/mode=0` (lossless, not VRAM),
+`compress/high_quality=false`, `mipmaps/generate=false`, `process/size_limit=0` (no cap) - and
+swapping in a replacement texture does not inherit the settings hand-tuned on the file it
+replaced. Wildform swapped four biome textures and one HDRI for others of the same kind (no
+change in asset count) and the export grew from 33.66 MB to 39.94 MB, +18.63%, over the size
+guard's budget, purely from the new files landing at the wrong defaults. After every texture or
+HDRI fetch, set `compress/mode=2`, `compress/high_quality=true` (`false` for an HDRI),
+`mipmaps/generate=true`, `process/size_limit=512` and `compress/normal_map=1` on any normal map,
+then re-import (`godot --headless --path . --import`) and only then measure - with those five
+lines patched in, the same four assets exported at 33.77 MB, matching the build before the swap.
+
 **Run a positive control before writing down a miss.** A scraper that returns an empty list on
 a markup change is indistinguishable from a source that has nothing, and the empty answer is
 the one that gets believed - so a property of a regex gets recorded as a property of the

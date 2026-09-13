@@ -47,10 +47,14 @@ a plan.
    smoke test, build stamp, version, changelog, `CLAUDE.md`, `NOTES.md`, `PLAN.md`. There
    are no one-off games. `PLAN.md`'s milestone list is the official outline: one `- [ ]`
    line per milestone, ticked in the commit that finishes it, and each release gets a
-   changelog entry in the player's terms. The studio dashboard reads both, so an unticked
-   box for finished work and a version with no entry both show up as wrong. Every
-   stop-and-report and every ship opens with the plan's own count from `scripts\progress.ps1`,
-   so the outline is what he is shown rather than a summary of it.
+   changelog entry in the player's terms. **A milestone box is `- [x]` or `- [ ]` and
+   nothing else** - `scripts\progress.ps1` and `scripts\doctor.ps1` both count any other marker
+   (`[~]`, `[/]`, `[-]`) as done, so a "partly done" box makes the one piece of owed work in a
+   repo invisible to every count that exists to surface it. Partial progress goes in the
+   milestone's own prose underneath the box, never in the box itself. The studio dashboard reads
+   both, so an unticked box for finished work and a version with no entry both show up as wrong.
+   Every stop-and-report and every ship opens with the plan's own count from
+   `scripts\progress.ps1`, so the outline is what he is shown rather than a summary of it.
    **Commit always, push on purpose.** Every tool here reads this disk and not GitHub: the
    doctor, the dashboard's `agent\collect.ps1`, the gate and `progress.ps1` all work from the local
    repo, so an unpushed commit is fully tracked, logged and shown. A push buys exactly two
