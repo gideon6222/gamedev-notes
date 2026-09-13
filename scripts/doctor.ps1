@@ -1156,6 +1156,25 @@ function Test-WebRepos {
 
 # ══ Driver and report ═════════════════════════════════════════════════════════
 
+# 16. The plan is an outline, not an essay. PLAN.md's checkbox lines are what a resuming
+#     session works from and what the studio dashboard shows as the game's progress. A plan
+#     with prose and no boxes leaves both guessing. WARN, not FAIL: a game can ship without
+#     it, but nobody can see where it stands.
+function Test-PlanOutline([string] $Area, [string] $Path, [bool] $IsTemplate) {
+  if ($IsTemplate) { return }
+  $plan = Join-Path $Path 'PLAN.md'
+  if (-not (Test-Path -LiteralPath $plan)) { return }   # required-files already reports it
+  $lines = Get-TextLines $plan
+  if ($null -eq $lines) { return }
+  $boxes = @($lines | Where-Object { $_ -match '^\s*[-*]\s+\[[ xX]\]\s+\S' })
+  $done = @($boxes | Where-Object { $_ -match '\[[xX]\]' }).Count
+  if ($boxes.Count -eq 0) {
+    Warn $Area 'plan outline' "PLAN.md has no '- [ ]' milestone lines. Add the milestone list as checkboxes and tick each in the commit that finishes it; the dashboard and every resume read them."
+  } else {
+    Pass $Area 'plan outline' "$done of $($boxes.Count) milestones ticked"
+  }
+}
+
 function Test-GameRepo([object] $Dir, [object[]] $TemplateScripts) {
   $path = $Dir.FullName
   # -Template may point at a worktree (godot-template-audit) while the live
@@ -1175,6 +1194,7 @@ function Test-GameRepo([object] $Dir, [object[]] $TemplateScripts) {
   Test-VersionCode   $area $path $presets
   if ($null -ne $TemplateScripts) { Test-TemplateScriptSet $area $path $TemplateScripts $isTemplate }
   Test-TestSet       $area $path
+  Test-PlanOutline   $area $path $isTemplate
   if (-not $Quiet) {
     Test-SimPurity   $area $path
     Test-GitHygiene  $area $path

@@ -26,6 +26,7 @@ default moved.
 - Lesson format (missing `Belongs in:` or `## Replaces or contradicts`): WARN, never FAIL (`Test-LessonFormat`).
 - Topic file size: WARN over 32 KB, FAIL over 35 KB (`Test-TopicFileSize`). The written target is about 30 KB.
 - Template drift: WARN for any template script whose content differs, except names listed in the game's `scripts\DIVERGENCE.md` (`Test-TemplateScriptSet`).
+- Plan outline: WARN when a game's PLAN.md has no `- [ ]` milestone lines (`Test-PlanOutline`). The dashboard's checklist reads those boxes; the changelog tab reads `src\changelog.gd` or `.ts`.
 - Git hygiene: WARN on uncommitted or unpushed work, WARN on a large `.git` (`Test-GitHygiene`).
 - Snapshot dirs (`*.pre-fix`, `*-audit`, `*.bak`, `*.old`) are skipped unless `-IncludeSnapshots`.
 - Weekly reports kept: 8 (`weekly-check.ps1 -Keep`).

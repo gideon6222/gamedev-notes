@@ -45,7 +45,10 @@ a plan.
    `test/test_sim_boundary.gd`, not by a comment in a header.
 3. **The full stack from the first commit**: git, GitHub repo, CI, size guard, golden test,
    smoke test, build stamp, version, changelog, `CLAUDE.md`, `NOTES.md`, `PLAN.md`. There
-   are no one-off games.
+   are no one-off games. `PLAN.md`'s milestone list is the official outline: one `- [ ]`
+   line per milestone, ticked in the commit that finishes it, and each release gets a
+   changelog entry in the player's terms. The studio dashboard reads both, so an unticked
+   box for finished work and a version with no entry both show up as wrong.
 4. **Use good free assets wherever the player reads something at full size** (type, UI,
    textures, sound, music, props on screen for a long time). Model in code what is judged on
    silhouette at thirty pixels, and anything whose shape IS game state. `ASSETS.md`.
