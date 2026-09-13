@@ -116,11 +116,37 @@ during a build.** Instead:
   them.
 - **Game-specific decisions go in the game's own `NOTES.md`**, never here.
 - **`/digest` is the only thing that edits `CRAFT.md`, `GODOT.md`, `TESTING.md`, `ASSETS.md`
-  and `POLISH.md`.** It runs at the start of every new game and whenever `inbox/` has more
-  than ten files. It pulls first, folds each inbox lesson into the right section, deletes the
-  inbox file, and pushes.
+  and `POLISH.md`.** It runs at the start of every new game. It pulls first, folds each inbox
+  lesson into the right section, deletes the inbox file, and pushes. A backlog is folded for
+  you (see the next section), so writing your lesson and carrying on is the whole of a build
+  session's duty here.
 - **Never `git add -A` in this repo.** Stage by name. `scripts/kb.ps1` does pull, rebase,
   add-by-name, commit and push in one call and refuses a blanket add.
+
+## What runs on its own (you did not start it, and you do not have to)
+
+Much of this studio is kept up by robots. None of them is your job, and none of them waits
+for you:
+
+- **The session hook** (`setup\session-start.ps1`) already ran before your first message. It
+  pulled this repo, printed the waiting lesson titles and the last weekly verdict, and
+  cleared any stale git lock. That greeting at the top of your context is it.
+- **The weekly check** is `scripts\doctor.ps1` on a Windows scheduled task, every Sunday at
+  18:00, leaving its verdict in `reports\LATEST.txt`. A resume reads that file rather than
+  re-running the doctor.
+- **The Courier** is the studio dashboard's agent at `C:\dev\studio-dashboard`. Every ten
+  minutes it folds the inbox by running `/digest` on Sonnet, once more than ten lessons are
+  waiting or a topic file has reached 34 KB. It also carries out the questions and
+  suggestions Gideon sends from the site, by editing this repo and `C:\dev\godot-template`
+  and never a game repo.
+- **The Courier's phone lane holds the same lease you do**, under the owner `porter`, so
+  "phone busy: porter has it" means the dashboard is reading a version or installing a build
+  and will be gone in minutes, not that another game has the handset for an hour.
+
+So an inbox backlog is not a build session's errand: write the lesson and keep building. Run
+`/digest` by hand only when you are starting a new game whose fold has not happened yet, or
+when Gideon asks. And always `kb.ps1 pull` before you write here, because these robots commit
+while you work: `Digest:` and `Admin:` commits you did not make are normal.
 
 ## Toolchain (details and traps in `GODOT.md`)
 
@@ -130,7 +156,9 @@ under `C:\dev\toolchain\`. Signing keys under `C:\dev\keys\`, never in a repo. G
 SDK, JDK and keystore through editor settings, not environment variables. API keys for asset
 sites live in `C:\dev\.env` (never committed). The phone is **one device shared by every
 session**, so it is always taken through the game's `scripts\device.ps1`, which claims it
-(`scripts\phone.ps1`, exit 75 means another game has it) and never through a bare `adb` call.
+(`scripts\phone.ps1`, exit 75 means another game has it, or `porter`, the dashboard's phone
+lane, which is a wait of minutes rather than of a build; see "What runs on its own" above)
+and never through a bare `adb` call.
 Asking whether it is plugged in at all is the one exception, and it has its own action,
 `scripts\phone.ps1 devices`: it reads the local adb server's device list, takes no lease and
 changes nothing on the handset. Everything that touches the device is still claimed first,

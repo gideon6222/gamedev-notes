@@ -18,9 +18,12 @@ Run `/framework-check` first, before planning, and fix what it reports.
 - `C:\dev\gamedev-notes\CRAFT.md`: skim every heading, read the sections the idea touches.
 - `C:\dev\gamedev-notes\techniques\README.md`: is there a technique this game will reuse?
 - `C:\dev\gamedev-notes\playtests\`: the file for the most similar past game.
-- Run `powershell C:\dev\gamedev-notes\scripts\kb.ps1 pull` first, and `/digest` if the
-  inbox holds more than ten files, so this plan starts from everything the last sessions
-  learned.
+- Run `powershell C:\dev\gamedev-notes\scripts\kb.ps1 pull` first, then `/digest` only if the
+  fold has not already happened: compare
+  `git -C C:\dev\gamedev-notes log --grep=Digest -1 --format=%cI` with what is sitting in
+  `inbox\`, and if the last fold is newer than the waiting lessons the Courier has already
+  done it. If the Courier holds the lease (`kb.ps1 lease`), wait for it rather than starting
+  a second writer. Either way this plan starts from everything the last sessions learned.
 
 ## 2. Expand the idea
 

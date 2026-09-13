@@ -73,7 +73,7 @@ if ($count -gt 0) {
   }
   if ($count -gt $show) { Write-Output "    ... and $($count - $show) more in inbox\" }
 }
-if ($count -gt 10) { Write-Output "More than ten lessons are waiting: run /digest before starting a new game." }
+if ($count -gt 10) { Write-Output "More than ten lessons are waiting. The Courier (C:\dev\studio-dashboard) folds them with /digest at this threshold, so a build session does not stop for it: run /digest by hand only if you are starting a new game, or if this count keeps climbing, which means the Courier has stopped." }
 
 # THE LAST ROUTINE CHECK. scripts\weekly-check.ps1 runs on a Windows scheduled task and
 # leaves its verdict in reports\LATEST.txt. One line here is how a FAIL reaches a session

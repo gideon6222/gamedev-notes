@@ -317,9 +317,9 @@ function Test-InboxBacklog([object[]] $Lessons) {
   $days = [int]([datetime]::Now.Date - $oldest).TotalDays
   $age = "oldest lesson $($oldest.ToString('yyyy-MM-dd')), standing $days day$(if ($days -eq 1) { '' } else { 's' })"
   if ($n -gt 40) {
-    Fail $KB 'inbox backlog' "$n lessons waiting ($age). Fix: run /digest now, before any other work in this repo - a lesson nobody folded in is a lesson the other games never got."
+    Fail $KB 'inbox backlog' "$n lessons waiting ($age). The Courier is not folding: it digests over ten, so a pile this deep means its agent task has stopped or is failing every run. Fix: run /digest by hand now to clear it, then check the agent tasks at C:\dev\studio-dashboard - a lesson nobody folded in is a lesson the other games never got."
   } elseif ($n -gt 10) {
-    Warn $KB 'inbox backlog' "$n lessons waiting ($age). Run /digest; the documented threshold is ten."
+    Warn $KB 'inbox backlog' "$n lessons waiting ($age). The Courier folds the inbox at this threshold, so a backlog still sitting here means it has not run. Fix: run /digest by hand if it stays."
   } else {
     Pass $KB 'inbox backlog' "$n lesson$(if ($n -eq 1) { '' } else { 's' }) waiting ($age)"
   }
@@ -348,7 +348,7 @@ function Test-DigestAge([int] $InboxCount) {
   $days = [math]::Round(([datetimeoffset]::Now - $when).TotalDays, 1)
   $desc = "last /digest $($when.ToLocalTime().ToString('yyyy-MM-dd HH:mm')), $days days ago"
   if ($InboxCount -gt 0 -and $days -gt 3) {
-    Warn $KB 'digest age' "$desc, with $InboxCount lesson(s) waiting. Run /digest."
+    Warn $KB 'digest age' "$desc, with $InboxCount lesson(s) waiting. The Courier normally folds these unattended, so a gap this long is about the dashboard agent. Fix: run /digest by hand."
   } else {
     Pass $KB 'digest age' $desc
   }

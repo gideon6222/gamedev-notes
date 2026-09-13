@@ -98,6 +98,10 @@ An inbox backlog, a stale digest, a topic file over its size limit and a lesson 
 from here, and do not edit a topic file to shrink it - `/digest` is the only thing that
 writes to them, and two sessions editing them at once is what the rule exists to prevent.
 
+The Courier normally runs that `/digest` unattended, so a backlog still standing when you
+look is a finding about the dashboard agent at `C:\dev\studio-dashboard` and not about the
+sessions that wrote the lessons. Clear it by hand, and report it that way.
+
 If lessons are missing `Belongs in:` or `## Replaces or contradicts`, fix the files before
 digesting them. That field is the only mechanism in the base that catches a lesson
 contradicting an existing rule, and four contradictions once stood live in the topic files

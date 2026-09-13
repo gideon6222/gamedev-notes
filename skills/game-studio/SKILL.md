@@ -39,9 +39,9 @@ Read, in this order, and nothing else until you need it:
 5. `git log --oneline -15` and `git status`
 
 Then pull the knowledge base so lessons from other sessions are current:
-`powershell C:\dev\gamedev-notes\scripts\kb.ps1 pull`. If `C:\dev\gamedev-notes\inbox\`
-holds more than ten files, run `/digest` first; it takes a few minutes and it is how this
-game gets what the others learned.
+`powershell C:\dev\gamedev-notes\scripts\kb.ps1 pull`. A backlog in
+`C:\dev\gamedev-notes\inbox\` is the Courier's job, not yours: it folds it with `/digest`
+over ten files, so do not stop a build for it.
 
 If his message contains new asks, number them, append his words to
 `playtests/<slug>.md` under today's date with `scripts/kb.ps1 commit`, and add each ask to

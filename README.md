@@ -57,7 +57,9 @@ work in that directory, and remove it when the branch is merged.
 `scripts/kb.ps1 commit`. Several games run at once, so a lesson written at the end of a
 session is one the other games never got, and a topic file edited mid-build is one another
 session will overwrite. `/digest` folds the inbox into the topic files at the start of every
-new game, under a lease (`kb.ps1 lease`) so two digests cannot run over each other.
+new game, and the Courier, the studio dashboard's agent at `C:\dev\studio-dashboard`, folds
+it unattended once more than ten lessons are waiting, so no build session has to. Both run
+under a lease (`kb.ps1 lease`) so two digests cannot run over each other.
 
 `/framework-check` is the standing check that the rule is actually holding: it runs
 `scripts/doctor.ps1` over this repo and the games, and it is the first thing a session does,
