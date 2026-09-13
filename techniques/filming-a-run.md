@@ -19,12 +19,15 @@ run looks like a pass.
 
 ## The mechanism
 
-`--write-movie out/frame.png --fixed-fps 60 --quit-after N --resolution 460x996` renders a PNG per
-frame at a fixed timestep with the dummy audio driver. Because the timestep is fixed and the sim
-is seeded, **a replay file produces the same frames on every run**, which is what makes two sheets
-a week apart comparable cell for cell. `ffmpeg` then tiles every Nth frame into a contact sheet
-with the frame number burned in, so tile *n* is frame *n* × `-Every` and a finding can be cited by
-number.
+`--write-movie <dir>/run.avi --fixed-fps 60 --quit-after N --resolution 460x996` renders to
+Godot's built-in MJPEG writer at a fixed timestep with the dummy audio driver. Because the
+timestep is fixed and the sim is seeded, **a replay file produces the same frames on every run**,
+which is what makes two sheets a week apart comparable cell for cell. `ffmpeg` builds the contact
+sheet and the mp4 from that one AVI in a single pass, every Nth frame tiled with the frame number
+burned in, so tile *n* is frame *n* × `-Every` and a finding can be cited by number. `-Png`
+switches back to a PNG per frame (`out/frame.png`) plus `frame.wav`, for the rare case that needs a
+full-size frame with no JPEG in the way: a thin line of type, a gradient, a one-pixel seam, a pixel
+check, or the audio as a file.
 
 **It must not run headless.** A real window, small and off-screen, is the whole point.
 
@@ -178,8 +181,35 @@ broken" when the tests are fine. `build/.gdignore` is the fix;
 
 ## What it costs, and what it found
 
-**Budget about 150 MB and twenty seconds of wall clock per second of film** (M): sixteen seconds
-is 960 full-resolution PNGs and 2.4 GB. Film the shortest run that shows the thing.
+Measured on `godot-template` (flat-shaded, 1080 frames): the old PNG-per-frame writer cost
+**187.5 s wall clock, 82.7 MB, 1084 files**; the MJPEG writer with the sheet and the mp4 built
+from it in one ffmpeg pass cost **106.2 s, 52.7 MB, 4 files** - about **6 s of wall clock and 3 MB
+per second of film at 60 fps** (M; `movie.ps1` prints its own cost line every run, read that
+rather than this number). Timed apart: render 86.7 s, sheet and video together 18.9 s. The sheet
+is pixel-identical tile for tile (SSIM 0.992, PSNR 42.6 dB against the old writer's sheet) and a
+full-size frame pulled back out of the AVI is PSNR 44.9 dB against its source PNG, build stamp
+still crisp, so `mjpeg_quality` was left alone. `-Png` costs 2.3x the wall clock and 1.6x the disk
+for the one case that needs it.
+
+A real textured 3D game costs more: Snowball (Forward Mobile, HDRI sky, glb kits, a 288x7740
+SubViewport trail) measured **6.6 s and 6.6 MB per filmed second** with the MJPEG writer - 5.8x
+faster and about 2.2x the template's disk figure, both still far under the old PNG-per-frame
+script's **38 s per filmed second on the same game** (2,063 of those seconds were PNG encoding at
+573 ms/frame). Film the shortest run that shows the thing.
+
+**The frame count comes from the file, not from whether one exists.** The old `$pngs.Count -lt 2`
+guard could not tell a run that stopped a second in from a short film on purpose; an ffprobe frame
+count that refuses anything under 90 per cent of the frames asked for can, and reads the header
+first (0.3 s) rather than decoding (10.8 s) unless the header is absent, which is exactly what a
+crashed writer leaves behind. Verified by pointing `run/main_scene` at a scene that does not
+exist: 0 of 300 frames, the top of `godot.log` printed, no sheet.
+
+**A game that pauses on focus loss must skip that while `OS.has_feature("movie")` is true**, and
+print a line when focus-out fires so `godot.log` says whether it happened. The desktop can take
+the Godot window's focus during an 80+ second render on a PC running several sessions at once, and
+a paused game films a sheet that looks like a pass - every frame is valid - until someone reads
+it: one Snowball run showed tiles 6 to 23 of a 12-second sheet as the Paused shell, not reproduced
+on a second run, so the cause is inferred from the sheet rather than proven.
 
 What the first filmed runs found that no screenshot had: an intro that cut to a new planet on
 every caption, a wordmark running off a 375 px screen, a title rendering over the intro, and a

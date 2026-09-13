@@ -78,6 +78,20 @@ Two takeaways that generalise past rendering:
   of a flat material (M, vsync off). Build the cheap case with the SAME uniforms.
 - **Do not derive a normal from `dFdx`/`dFdy` on a surface seen at a grazing angle**: it is a
   speckle generator.
+- **On a high-albedo surface under soft sky light, depth reads through ambient occlusion and
+  normals, not albedo.** A carved trail (SubViewport depth map, ground shader dipping vertices and
+  tilting normals from its gradient, plus a 20% darker albedo in the rut) rendered as a one-pixel
+  crease on white snow under a soft dusk sun and an HDRI sky, though the map was correct -
+  rendering the value (`EMISSION = vec3(depth, uv stripes)`) proved the map, the mapping and the
+  width in one screenshot (a 1.7 m rut for a 1.16 m ball, continuous), so the fault was in the
+  lighting, not the data. Sky light is most of the light on near-white snow, so tonemapping and
+  bloom divide away an albedo change; the lever that reads is AO (`AO = 1 - 0.45*depth`,
+  `AO_LIGHT_AFFECT 0.3`) plus a bluer packed-snow albedo (0.74, 0.80, 0.96) and doubling the normal
+  tilt. Keep the debug uniform permanently, driven from an environment variable
+  (`SNOWBALL_DEBUG_TRAIL=1`) so the shot script can render the value with no code edit. Second half
+  of the same fault: a vertex dip at a 1.5 m ground grid falls between vertices for a 1 m rut and
+  comes and goes - the grid must be finer than the feature width (0.75 m fixed it, 7,200 tris per
+  30 m chunk).
 - **`fog_sky_affect` defaults to 1.0, so depth fog repaints the SKY.** The sky is at infinity, so
   a fog tuned on the water covers the whole sky in the fog colour, and a flat cream wall where a
   dawn gradient should be reads as a *missing skybox* - which sends you into the sky material

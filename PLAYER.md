@@ -214,7 +214,12 @@ was a tackle box with a list inside it. The object IS what it contains.
 
 - Portrait, one thumb, no menu to wade through. Playable within ten seconds of opening
   (`POLISH.md` gates it; `CRAFT.md` has why it is a consequence of the structure, not a target).
-- Real 3D by default. He likes texture, lighting and a lived-in look over flat colour.
+- Real 3D by default. He likes texture, lighting and a lived-in look over flat color.
+- **Write US English everywhere he or a player reads**: chat replies, reports, commit subjects,
+  changelogs, README text, on-screen strings, and the Play listing (en-US, USD). It is spelling,
+  not units - Godot's meters stay meters. `scripts\us-english.txt` is the word list; `INDEX.md`
+  standing rule 15 and `doctor.ps1` both check it, and `/digest` converts a topic-file section the
+  moment it folds a lesson into that section.
 - Anything that reads as a light must come from a fitting: "anything neon should feel like it is
   actually coming from an object or light in the room, not an overlay."
 - A game keeps growing. Plan the second month's content in the first plan, even if it is not

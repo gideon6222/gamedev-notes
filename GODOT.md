@@ -198,6 +198,12 @@ as "the buttons are about half an inch too high".
 - Prefer `InputEventScreenTouch` / `InputEventScreenDrag` with `index` for multi-touch.
   Leave `emulate_mouse_from_touch = true` so Controls work. For desk testing, set
   `Input.emulate_touch_from_mouse = true` at runtime from a `--touch` user arg.
+- **A touch control's per-frame sync must send to the simulation only while the thumb is on it,
+  and once more as it lifts.** A sync that also sends its resting value every frame (`want = 0`
+  with no thumb down) silently overrides every OTHER driver of the sim sixty times a second: the
+  scripted policies, the smoke harness's direct calls, and the filmed bot's policy seam, which then
+  read as a broken loop rather than an overridden one. Gate the send on a thumb-down flag and one
+  more send on release, never a per-frame default.
 - `Input.vibrate_handheld(ms, amplitude)` needs `permissions/vibrate` in the export preset or it
   silently does nothing (ticks 10-30 ms, amplitude 0.3-0.6), and it has no amplitude stream, so a
   continuous effect is a short pulse re-issued at a period that shortens with the load, never a
@@ -309,6 +315,9 @@ Thirteen measured traps, the arithmetic and the dead ends are in
 - **Walking a path once per follower is quadratic and reads as a hang**, not as slowness.
 - **`Basis.scaled()` scales the WORLD axes**, WAVs import as QOA, and `TorusMesh` has no arc
   parameter.
+- **Depth on a high-albedo surface under soft sky light reads through ambient occlusion and
+  normals, not albedo**, and the vertex grid must be finer than the feature width.
+  `techniques/godot-rendering-traps.md`.
 
 ## Export, signing and the two builds
 
@@ -391,10 +400,19 @@ done while the check is in flight.
   BOM-less file as ANSI and corrupts every non-ASCII byte. Use the Edit/Write tools, or
   `[System.IO.File]::ReadAllText/WriteAllText` with `UTF8Encoding($false)`. `stamp.ps1`, which
   rewrites `src/build_stamp.gd` on every build, is the one script that has to get this right.
-- **Never put backslash escapes in a Python heredoc through the Bash tool.** Write the script to
-  a file and run it, with an `assert pattern in text` beside every replace.
+- **Write Windows paths with forward slashes whenever they cross the Bash tool**
+  (`C:/dev/gamedev-notes/scripts/progress.ps1`) - PowerShell, Godot, node, python, adb and ffmpeg
+  all accept them, so no case needs the backslash form. A backslash path silently loses its
+  escapes crossing the tool: as an output directory with no error at all (a run-together
+  capitalized name like `SERSGIDEOAPPDATAocaltemp` IS `C:\Users\gideo\AppData\Local\Temp` with
+  `\U`, `\A`, `\L`, `\T` eaten - treat it as this bug and look for the files it swallowed rather
+  than deleting it blind), or as an argument with a visible error
+  (`-File 'C:devgamedev-notesscriptsprogress.ps1'`). If a backslash path is unavoidable,
+  single-quote it and check what arrived before doing anything with it. **Never put backslash
+  escapes in a Python heredoc through the Bash tool** for the same reason: write the script to a
+  file and run it, with an `assert pattern in text` beside every replace.
 - **Do not juggle source files through the shell for a two-line experiment**, and never
   `git checkout -- <file>` on a file with uncommitted edits. Commit before probing.
-- **Normalise line endings on day one**: `* text=auto eol=lf` in `.gitattributes`, one pass
+- **Normalize line endings on day one**: `* text=auto eol=lf` in `.gitattributes`, one pass
   converting the repo, before the first bulk edit. Mixed endings inside a file defeat every
   exact-match edit silently.

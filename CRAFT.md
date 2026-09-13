@@ -29,12 +29,10 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   will make it feel like a game (Stillwater was "clunky" with a working sim and a film grade).
 - Give the run-scoped resource and the persistent one different jobs; leftover run resource
   converts at the end so nothing is wasted. (unplayed) One resource that all converts to the same
-  number is a difficulty slider in disguise, and three distinct resources is the ceiling for
-  comprehension and the floor for a real decision.
+  number is a difficulty slider in disguise; three distinct resources is the comprehension ceiling.
 - A secondary objective must be a thing you *keep* (a collection, a logbook, one relic per
-  planet), never a number that will look small next week. Make the best reward missable. Rare
-  surprises aimed at the current bottleneck stop routine work going stale - rare enough that they
-  cannot be planned around, or they become a resource.
+  planet), never a number that will look small next week. Make the best reward missable, and aim
+  rare surprises at the current bottleneck so routine work does not go stale.
 - A dominant strategy with no cost is not a mechanic. Ask what a wild version of the input
   costs; if nothing, add selectivity (targets worth different amounts, a cost, a cap). Thinning
   density makes it worse.
@@ -45,24 +43,28 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   dying costs, and both save-scumming abuses (the free ride home, quitting before a death)
   disappear with one rule instead of two (M). Add a checkpoint at a mid-run milestone rather than
   saving everywhere.
-- **The best pressure is one the player CAUSES.** A pressure on a schedule happens whether or
-  not the player acts, so it is not a decision; water that rises because you cut the rock makes
+- **The best pressure is one the player CAUSES.** A pressure on a schedule happens whether or not
+  the player acts, so it is not a decision; water that rises because you cut the rock makes
   over-digging a cost. Derive its number from the physical story (released water raises the level
   by the cell's water fraction, 15%), keep it derived not stored, and count against the ORIGINAL
   threshold or the flood feeds itself.
 - **When a new objective ships, the old one is a stand-in and the round is not done until it is
   deleted.** Two objectives in one game is worse than either alone: the player collects components
-  that now do nothing and the next session cannot tell which ending is real. Coreward's cost 1,300
-  lines and ninety call sites across nineteen files, about two hours with the typechecker doing the
-  finding. Budget it, and expect three things: **a derived stat quietly changes** (a drill formula
-  lost its shards term, and the re-recorded golden matching the old `shards == 0` row exactly is what
-  makes the removal safe rather than a silent rebalance), **a file turns out to be two features under
-  one name** (deleting `transit.ts` took the title screen with it), and **a frozen golden keeps the
-  dead ids in its allow-list for ever**, since an overwriter leaving a cell is as legal as one
-  arriving.
+  that now do nothing and the next session cannot tell which ending is real. Budget it as real
+  work, not cleanup - Coreward's cost 1,300 lines across nineteen files.
+  `techniques/coreward-objective-removal.md`.
 - Build the meta-game early. A price next to an income is the first thing that shows the income
   is wrong; a hyper-inflationary curve (1.55x per level, M) makes any price list meaningless.
   Fix the curve upstream, not the prices.
+- **Any run resource a hazard can only shrink gets a named floor at which the run ENDS**, in the
+  same commit as the hazard. Snowball's ball shed 12% of its radius on every shove with no floor;
+  six scripted policies over six seeds never found it because no bot swipes at random, and the
+  first thirty seconds of a thumb swiping wildly on the phone did, shrinking the ball below where
+  the camera, the collision and every pickup break at once with no way out but the pause menu (M:
+  12% shed with no floor reached 0.15 m radius inside thirty seconds; zero of thirty-six bot runs
+  had ever gone under 0.4 m). Ask of every multiplicative loss what state it converges to and
+  whether the game can leave that state, and remember that **a "wild thumb" is a policy no bot set
+  contains, so the first phone session is the test for it.**
 
 ## Progression and economy
 
@@ -82,19 +84,18 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - Cap a visible resource at the number you can render; overflow converts to currency with a
   popup. (unplayed)
 - Measure a progression by simulating play, bank, buy, next level, and reporting the level each
-  thing is reached at. Dividing a late price by early income measures a player who never improved.
-- When copying a reference, keep money in its units so its prices remain usable calibration: one
-  scale constant, applied at one point.
-- Contaminated-state bugs (the bank counted as earnings) need an invariance test: same level,
-  different starting bank, same reward.
+  thing is reached at - dividing a late price by early income measures a player who never
+  improved. Keep money in a copied reference's own units, and test contaminated-state bugs (the
+  bank counted as earnings) with an invariance test: same level, different starting bank, same
+  reward. `techniques/candle-gift-measuring-the-design.md`.
 - **A thing can only be destroyed once, and the check belongs on the thing, not the shooter.**
   Any damage-over-time, aura, burn or chain effect is a SECOND caller into a payout path written
   for one: a burn ticking a broken crate brought a run home with 19,128 coins against ~340 (M).
-  An invariance test cannot see it - assert the RATE, coins per crate broken.
-- **Every prestige game needs one permanent rung with no top on it**, on a curve that rises
-  forever, and its price step must be SMALLER than the difficulty step (1.30 < 1.35) or every
-  world buys fewer ranks than the last. Play the meta loop far enough to find where the curve
-  STOPS: eighty runs found a wall twenty did not (M).
+  Assert the RATE, coins per crate broken - an invariance test cannot see it.
+- **Every prestige game needs one permanent rung with no top on it**, and its price step must be
+  SMALLER than the difficulty step or every world buys fewer ranks than the last. Play the meta
+  loop far enough to find where the curve STOPS: eighty runs found a wall twenty did not (M).
+  `techniques/human-bot-policies.md`.
 
 ## Difficulty and balance
 
@@ -139,23 +140,20 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   dodging against standing still.
 - A budget (swings, fuel) is derived from the content, never set as a rate over it, and asserted
   sufficient at every level.
-- Any game with a wind-up, reload or lag must assert window > lag at the *top* of its speed ladder:
-  five percent compounding per level quietly removed the game around level ten (M). Difficulty is
-  usually the product of two fields, so assert the content table is a monotonic ladder in the order
-  it is written, and remember every improvement to how hard a hit lands changes how long a level
-  takes - rebalance both.
+- Any game with a wind-up, reload or lag must assert window > lag at the *top* of its speed
+  ladder: five percent compounding per level quietly removed the game around level ten (M).
+  Difficulty is usually the product of two fields, so assert the content table is a monotonic
+  ladder, and rebalance both fields when either changes how long a level takes.
 - Measure per item, never as one mean, against five or six procedural seeds: single-level numbers
-  swing 25% on layout luck (M). Removing an obstacle kind removes its share of the danger, so do not
+  swing 25% on layout luck (M). Removing an obstacle kind removes its share of the danger; do not
   backfill the slot.
 - **The play-space boundary costs something the player can feel (speed, a rumble), never the
-  resource the game is scored on.** Count boundary contacts per run with the bots before hazard
-  contacts: an unplaced boundary hit 4-10 times a run in Snowball, more than any placed hazard,
-  and became the real difficulty curve by accident.
+  resource the game is scored on**, or it becomes the real difficulty curve by accident.
+  `techniques/snowball-track-and-growth.md`.
 - **When a binary control becomes proportional, re-measure balance in the quantity the new control
   moves** (strain, line given), not just land rates by band: the cost of ignoring a warning can
   migrate to a quantity that recovers between episodes, so land rates look fine while the risk
-  model breaks underneath (Stillwater, M). Bots need modelled hand lag, not just decision lag, to
-  represent human play.
+  model breaks underneath (Stillwater, M).
 ## Feel
 
 - Feel is layered and ordered: physicality (what moves), then amplification (juice), then
@@ -187,9 +185,8 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   or they are invisible to collision and to tests. Never correct while the player is coasting:
   snap on the next input.
 - On a track with a direction of travel, a depenetration must never have a component against that
-  direction: pushing an arithmetic (no physics body) avatar out along the contact normal wedged a
-  Snowball reader against a lane edge for 200+ seconds. Resolve overlaps across the track only,
-  and treat a bot that stops advancing while its inputs keep changing as a wedge, not a bug in it.
+  direction, or it can wedge an avatar against an edge for minutes.
+  `techniques/snowball-track-and-growth.md`.
 - High speed alone reads as fast-forward; a spline with ease in and out and a heading that
   follows velocity reads as piloted.
 - Indirect control needs the lag set as a feel constant (~1 s for a thumb, T), the correct
@@ -201,9 +198,8 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   cast). Give each motion its own state.
 - **When a motion feels odd, measure the per-frame change in its velocity at every state boundary
   before tuning anything.** Stillwater's cast release jumped from 54 deg/s to 361 deg/s in one
-  frame; fix a step with ONE continuous state (a damped spring whose velocity persists across the
-  boundary) plus an acceleration cap (a stiff spring's first frame is itself a step), rather than
-  a fourth ease.
+  frame; fix the step with ONE continuous state (velocity persisting across the boundary) plus an
+  acceleration cap, rather than a fourth ease.
 - An idle world reads as a screenshot. Float the vehicle on the same wave function the water
   shader uses, generated from one source so they cannot drift.
 
@@ -230,8 +226,19 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - One finger, three verbs, discriminated by movement not time: drag looks, still-hold charges,
   tap taps. A verb behind a gesture that already means something else is not a verb.
 - The action button's caption is derived by the function that performs the action - and so is its
-  whole identity. One button that becomes Cast over water and Select over the boat, grey when
+  whole identity. One button that becomes Cast over water and Select over the boat, gray when
   nothing is under the crosshair, beats two buttons for one verb.
+- **A fading control keeps its last word.** When one control cross-fades into another that stands
+  in for it (Stillwater's Cast button into the reel slide), each writes its caption only while it
+  is the LIVE control, and the outgoing one keeps the word it left with instead of recomputing it
+  every frame - one writer per word, or the ghost of the old caption and the new one read the same
+  word for several frames of the fade. Step the fade one frame after the state change and assert
+  the two captions differ; only a frame-by-frame film shows this, never a screenshot of one
+  settled state.
+- **When a control's verb changes, grep the intro and the hints for the old verb.** Stillwater's
+  intro still said "tap to reel it in" three fights after tapping was replaced by a slide - a
+  control's wording lives in the intro and the hints as well as on the button, and all of them
+  move together or none of them do.
 - "It drifts" usually means the *path* curves (a throttle floor through a turn), not that the
   physics slide. Check the path before the integrator.
 - A tracked vehicle is one constant from a car: an alignment cone outside which it only rotates,
@@ -249,41 +256,38 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   already behind the cards, which makes "playable in ten seconds" a consequence of the structure
   rather than a target to hit. `POLISH.md` gates it.
 - A forgiving tutorial must still charge *time* for ignoring a mechanic, or it trains the player
-  to ignore it and the next area punishes the habit. A station whose lowest tier is a no-op
-  teaches the player to stop reading signs: floor every station at its first real effect.
-- A transformation big enough to divide a level into before and after is a wall that cannot be
-  missed, not an optional station.
+  to ignore it and the next area punishes the habit; floor every station at its first real effect,
+  never a no-op lowest tier. A transformation big enough to divide a level into before and after
+  is a wall that cannot be missed, not an optional station.
 - Every state names a visible action, and pressing the one visible control always leads back to
   playing - a way out only the simulation knows about is not a way out. Finishing a level starts
   the next; running out restarts. This has shipped as a frozen HUD twice.
 
 ## Camera and light (rules here, arithmetic and evidence: `techniques/phone-camera-and-light.md`)
 
-- Portrait's horizontal cone is tiny (58 deg vertical is ~28 horizontal; 46 is ~22). Compute visible
-  width at the distance a thing sits, rack shops vertically, measure px per world unit at EVERY depth
-  used (122 at a 7.6 m wall against 245 at a 0.5 m drawer, M), and project the BOX.
-- A first-person camera carried by a moving object gets its own transform: ~0.9 of POSITION, 20-30%
-  of ROTATION, damped at 0.5-1 s. **Peak angular RATE predicts discomfort and nobody looks at it.**
-- **An object the player holds up to look at is part of the CAMERA rig, not of the world.** Parent
-  it to the camera, and solve its distance from its own measured bounds and the camera's half-angle
-  rather than picking a number: Stillwater's fixed held position was 56 degrees below a 37-degree
-  half-angle, off the bottom of the frame in the one moment the game asks him to look at it, and one
-  distance cannot frame a bluegill and a carp three times its length (`d = 2.57 * L`, 0.75-2.40 m).
-- Name the end at risk before measuring a frame, and check framing at the size where it BREAKS. **A
-  probe that disagrees with a picture you are looking at is measuring the wrong quantity, and the
-  picture wins.** Solve a framing promise with one constant and a bisection, not two.
-- Inverting a follow is a two-part edit and the second part is a deletion: every RELATIVE assertion
-  passes while the pair drift sixteen metres out of the boat (M), so test an ABSOLUTE claim. Put no
-  sign flip near the input, assert the convention in `test_controls.gd`, cull against the camera.
-- **A lighting complaint is about a RATIO, so measure two places** (6:1 blacks out the way home,
-  1.65:1 has no direction, M), and **any change that lifts the black floor publishes every defect
-  the darkness was covering.** A fix that improves every scene equally is a dimmer switch: attribute
-  an artefact to a *layer* first, and render the term to ALBEDO when the toggles run out.
-- Light through a grid propagates through open cells, a lamp-centred falloff is a disc and a disc
-  follows the player, surface and air light are two lights, and a shadow fan is smoothed by
-  filtering the lit-or-not ANSWER across bearings rather than by more rays.
-- Post-processing is the cheapest mood tool going, and it goes under the HUD (`POLISH.md` gates the
-  stops).
+- Portrait's horizontal cone is tiny (58 deg vertical is ~28 horizontal; 46 is ~22). Compute
+  visible width at the distance a thing sits, rack shops vertically, measure px per world unit at
+  EVERY depth used, and project the BOX.
+- A first-person camera carried by a moving object gets its own transform, damped rather than
+  parented outright. **Peak angular RATE predicts discomfort and nobody looks at it.**
+- **An object the player holds up to look at is part of the CAMERA rig, not of the world.** Solve
+  its distance from its own measured bounds and the camera's half-angle rather than picking a
+  number - one distance cannot frame a small object and one three times its length.
+- Name the end at risk before measuring a frame, and check framing at the size where it BREAKS.
+  **A probe that disagrees with a picture you are looking at is measuring the wrong quantity, and
+  the picture wins.** Solve a framing promise with one constant and a bisection, not two.
+- Inverting a follow is a two-part edit and the second part is a deletion: every RELATIVE
+  assertion can pass while the pair drift apart, so test an ABSOLUTE claim, put no sign flip near
+  the input, and cull against the camera.
+- **A lighting complaint is about a RATIO, so measure two places**, and **any change that lifts
+  the black floor publishes every defect the darkness was covering.** A fix that improves every
+  scene equally is a dimmer switch: attribute an artefact to a *layer* first, and render the term
+  to ALBEDO when the toggles run out.
+- Light through a grid propagates through open cells, a lamp-centred falloff is a disc and follows
+  the player, surface and air light are two lights, and a shadow fan is smoothed by filtering the
+  lit-or-not ANSWER across bearings rather than by more rays.
+- Post-processing is the cheapest mood tool going, and it goes under the HUD (`POLISH.md` gates
+  the stops).
 
 ## Visual legibility and art direction
 
@@ -308,27 +312,19 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - Let damage reveal history (shaved layers). When the accurate model and the readable model
   disagree, build the readable one (bands, not shells).
 - **A derived index lives in the module that OWNS the data, never in the one that asks the
-  question.** A `Set` mirroring a saved list is a second source of truth: `load()` replaces the
-  list wholesale, an index built in the frame loop never hears about it, and after a reload every
-  new entry looked already-seen so nothing was ever written again. Export a `mark()` that writes
-  both and a `reset()` that rebuilds, called from every path that replaces the list - load, wipe,
-  new game. **When adding a field to a save, grep the RESET path, not just the load path**; the
-  same sweep found a "wipe everything" that had never wiped three discovery lists.
-- **One threshold for "gone", named once, and everything else reads that constant.** Two pieces
-  of code that each decide when a thing is destroyed disagree eventually, and the disagreement is
-  a band neither can see: passability at `<= 1e-4` against a drill breaking at `0.0` left cells
-  flyable, unbroken and still reporting their ore forever. The fix is for the second to read the
-  first one's constant. Second time in that one file.
+  question**, or a reload can silently make every new entry look already-seen.
+  `techniques/coreward-save-and-render-bugs.md`.
+- **One threshold for "gone", named once, and everything else reads that constant** - two
+  independent thresholds for the same event disagree eventually, in a band neither can see.
+  `techniques/coreward-save-and-render-bugs.md`.
 - **Any "take the best of N" over frequently-uniform data is a hidden dependence on iteration
-  order**, surfacing the first time the geometry hiding it changes. Weight-average instead, and
-  make the case that must win outright an override, not a tie-break.
-- **Destruction granularity has to match the rendering STYLE, and the ratio is the number.**
-  Character width against cell width: ~18:1 Worms, ~32:1 Noita (continuous), ~1:1 SteamWorld Dig,
-  ~0.5:1 Terraria (blocky on purpose). Gravewell at 0.76:1 drew smooth contours, promising Worms
-  and delivering Dig Dug. A finer TICK cannot help; the limit is spatial.
+  order**, surfacing the first time the geometry hiding it changes.
+  `techniques/coreward-save-and-render-bugs.md`.
+- **Destruction granularity has to match the rendering STYLE, and the ratio is the number**:
+  character width against cell width, from ~18:1 (Worms) to ~0.5:1 (Terraria, blocky on purpose).
+  `techniques/coreward-save-and-render-bugs.md`.
 - **Unexplored ground is ruled squares, not black.** A map painted only where the player has been
-  reads as the map failing. A survey grid at the tile pitch, a depth rule every 50 m across the
-  WHOLE world, and a surveyed percentage.
+  reads as the map failing, not as somewhere not yet visited. `techniques/coreward-authored-rooms.md`.
 - A formation needs per-unit state and more than one unit wide to be readable. (unplayed)
 - Make failure a *shape* (lean over a neighbour), not a number, with something visible to fail
   onto, painted lighter than it. A liquid is motion and answers (a scrolling surface, entry
@@ -349,10 +345,9 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - Round-robin the players and jitter the pitch on repeats, or a restarted player cuts its own
   tail off. `ASSETS.md` decides sampled against generated; `techniques/generated-audio.md` has
   the arithmetic.
-- A texture reads as ambience; only a rhythm reads as movement. What makes music happy rather
-  than ambient is a tempo you can nod to: a cadence, movement eight times a bar, a soft kick. A
-  written theme beats random notes - without repetition there is no phrase, and a fast attack on
-  a high sine is a notification sound (his one outright dislike).
+- A texture reads as ambience; only a rhythm reads as movement. A written theme beats random
+  notes - without repetition there is no phrase, and a fast attack on a high sine is a
+  notification sound (his one outright dislike). `techniques/generated-audio.md`.
 - A mood arc is a crossfade on a gameplay quantity, never a playlist; the layer that leaves does
   more than any that arrives. Assert monotonicity and a real span. Fade times should not match:
   places arrive slowly (~1.5 s), alarms snap in (~0.25 s) and leave lazily, routed past whatever
@@ -366,31 +361,28 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   unrelated reasons. On a portrait phone the left column is action buttons and the bottom is the
   d-pad, so **the largest clear area is upper-right**.
 - A pressed control reads as pushed in, not lit up; give a needle mass, damped to what it shows.
-  A HUD over a textured world needs its own material, grain felt not seen, and labels in a 3D
-  scene are sized by the pixels they occupy.
+  A HUD over a textured world needs its own material, grain felt not seen.
+  `techniques/coreward-shop-room-and-hud.md`.
 - A shop the player is meant to be *in* is geometry, a room with the real object in it, not a
   panel and not a styled list. Hide the game entirely behind it, put the exit where a door would
   be. `techniques/coreward-shop-room-and-hud.md`.
 - **A panel printed on a 3D surface is still a panel.** An object IS what it contains: the tackle
   box holds a small rod and a spool of line, not a list of their names.
 - **A diegetic menu runs out of ANGLES before it runs out of ideas**, and a surface in the world
-  has a reading distance you check with arithmetic. No two interactables within 12 degrees of the
-  seat, hit box = whole silhouette (so long things are expensive), visible width
-  `d * tan(fov/2) * aspect * 2` with a 0.46 aspect term in portrait.
+  has a reading distance you check with arithmetic, not by eye.
   `techniques/stillwater-fishing-fight.md`.
 - Give the game ONE `close_any_room()` and one `any_room_open()`. A check keeping its own list of
   what might be open goes stale the first time a room is added, and the failure lands six checks
   later looking like a missing button.
 - **Anything that can reach the inventory must have an entry in the table the inventory looks
   things up in**, because the screen crashes rather than degrades. A new cut-stone block got a
-  weight and a value but no `DEF` entry, so the manifest opened or did not depending on whether the
-  player had cut through a wall since last looking. Both halves were covered and the join was not:
-  **every fixture that cut stone never opened the manifest, and every fixture that opened the
-  manifest never cut stone.** Assert it by sweeping the world for everything breakable into the hold
-  and checking the lookup exists, not by naming the ids that caused it - the narrow version passes
-  for the next block type somebody adds.
+  weight and a value but no `DEF` entry, so the manifest opened or crashed depending on whether the
+  player had cut through a wall since last looking - every fixture that cut stone had been tested,
+  and every fixture that opened the manifest had been tested, but never both at once. Assert it by
+  sweeping the world for everything breakable into the hold and checking the lookup exists, not by
+  naming the ids that caused it.
 - A screen you invented is invisible to you: list what the reference does *not* have, and do not
-  copy a monetisation mechanic into a game with no monetisation.
+  copy a monetization mechanic into a game with no monetization.
 - Preferences are not progress. Settings get their own file, and "erase progress" next to the
   sound switches only holds if the two are separate.
 
@@ -407,38 +399,31 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - A hazard that must punish the do-nothing line sits just past that line, never on it, so the
   open side is guaranteed by construction, and the reward for that stretch goes on the other side;
   the first such hazard comes after the first win (reader 3/6 centred, 6/6 past the line, M).
-- For a ball small next to the field (0.5-1.0 m radius), put pickups in a line sorted small to
-  large, never a scattered disc: a small avatar sweeps a narrow strip and gets about one contact
-  per disc pass against six to ten per trail pass (M). Measure contacts per pass with a bot before
-  placing growth thresholds.
+- For a ball small next to the field, put pickups in a line sorted small to large, never a
+  scattered disc - a small avatar sweeps a narrow strip. Measure contacts per pass with a bot
+  before placing growth thresholds. `techniques/snowball-track-and-growth.md`.
 - Attrition asks one question ("leave sooner"). A rhythmic announced event makes depth a bet (a
-  tremor every ~27 s past 85 m, T). Announce a zone before charging for it, land several things
-  on the same metre, and look for one hazard answering another before adding a third. A threshold
-  the player cannot see is not a mechanic.
+  tremor every ~27 s past 85 m, T). Announce a zone before charging for it, land several things on
+  the same meter, and look for one hazard answering another before adding a third. A threshold the
+  player cannot see is not a mechanic.
 - Every content band must be reachable in both directions, and every row in a content table at
-  all. The bluegill shipped uncatchable with every subsystem working.
-- If the game names a thing, it exists as visible geometry within reach of its interaction point,
-  and the anchor is placed from where the imported model's geometry sits, not from its node's
-  position. Three interactables shipped as prompts pointing at empty air, and a logbook prompted
-  over bare floorboards a metre away.
+  all - the bluegill shipped uncatchable with every subsystem working. If the game names a thing,
+  it exists as visible geometry within reach of its interaction point, anchored from where the
+  imported model's geometry sits, not its node's position: three interactables shipped as prompts
+  pointing at empty air, and a logbook prompted over bare floorboards a meter away.
 - **Authored mystery in a seeded world is hand-written room templates dropped at seeded slots.**
   Stamp after every one-of-a-kind cell and before everything that generates; drop a colliding room
   ENTIRELY rather than clipping it, because half a room is a wall with no room behind it. Keep a
   third empty, and never let a locked door lock the world. `techniques/coreward-authored-rooms.md`.
 - **Anything permanently impassable that sits INSIDE the route to later content will block that
-  content**, which is the "never let a locked door lock the world" rule applied to furniture rather
-  than doors. Coreward buried nine objectives as single unbreakable cells across only three columns,
-  and a cell that never breaks is a permanent plug in its column: **six of the nine became
-  unreachable by digging to them**, and a long-play probe read it as a balance problem for four
-  simulated hours. A "you cannot cheat your way to this" rule only needs to hold until the thing is
-  CLAIMED - unbreakable while unclaimed, merely very hard (3x the local rock) after - because a
-  claimed monument in the way is one the player may move. Write the test that drives the player to
-  **each** instance in turn, never to one.
+  content** - the "never let a locked door lock the world" rule applied to furniture rather than
+  doors. Coreward buried nine objectives as unbreakable cells and six became unreachable by
+  digging to them. `techniques/coreward-authored-rooms.md`.
 - **Once a mechanic puts the player INSIDE material, every "is this cell clear" test written
-  before that mechanic is suspect.** Three Gravewell faults were this: a lamp buried in the rock
-  it was cutting got no light, collision asked about whole metres and wedged the ship on slivers,
-  and a drowning check asked whether the metre the ship occupied was open - precisely the metre it
-  is still cutting.
+  before that mechanic is suspect.** Three Gravewell faults shared this shape: a lamp buried in
+  the rock it was cutting got no light, collision asked about whole meters and wedged the ship on
+  slivers, and a drowning check asked whether the meter the ship occupied was open - precisely the
+  one it is still cutting.
 
 ## Diagnosis and rework (more: `techniques/diagnosis-and-rework.md`)
 

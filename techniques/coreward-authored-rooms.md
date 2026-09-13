@@ -76,6 +76,20 @@ test catches:
   promise if you already know what doors are.
 - **an unlocked room contains none of the locked material**, or "locked" stops being readable.
 
+## The rule applies to furniture as well as doors
+
+Coreward buried nine objectives as single unbreakable cells across only three columns. A cell
+that never breaks is a permanent plug in its column: **six of the nine became unreachable by
+digging to them**, and a long-play probe read it as a balance problem for four simulated hours
+before the actual cause - impassable geometry, not difficulty - was found. **Anything permanently
+impassable that sits INSIDE the route to later content will block that content**, the same "never
+let a locked door lock the world" rule applied to furniture rather than doors.
+
+A "you cannot cheat your way to this" rule only needs to hold until the thing is CLAIMED:
+unbreakable while unclaimed, merely very hard (3x the local rock) after, because a claimed
+monument in the way is one the player may move. Write the test that drives the player to **each**
+instance in turn, never to one - the first nine-for-one probe would have missed the other five.
+
 ## The cheapest visual read: displacement, not texture
 
 Every rock surface has a displacement amount - that is what makes five rock types differ. Cut
