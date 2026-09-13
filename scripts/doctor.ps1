@@ -800,6 +800,17 @@ function Test-VersionCode([string] $Area, [string] $Path, [object[]] $Presets) {
     Warn $Area 'version/code' "version/code=$code matches $releases release(s), but version/name differs between presets: $($names -join ', ')."
     return
   }
+  # version/name against the changelog's top entry. The dashboard's phone page compares the
+  # versionName it reads off the handset with this number, so the two things a session can
+  # bump one at a time have to agree: when they do not, the row reads "outdated" for a build
+  # that is already installed and no amount of pressing Update ever clears it. That is the
+  # one condition which makes the phone comparison lie, and it is a WARN and never a gate,
+  # because it is this game's own next ship that fixes it.
+  $newest = [regex]::Match($text, '(?m)^\s*"version"\s*:\s*"([^"]+)"')
+  if ($newest.Success -and $newest.Groups[1].Value -ne $names[0]) {
+    Warn $Area 'version/code' "version/name=$($names[0]) in the presets but the changelog's newest release is $($newest.Groups[1].Value). Fix: bump version/name in every preset to the version the top changelog entry names, or add the changelog entry that was missed - the dashboard's phone page compares this number with what is installed on the handset."
+    return
+  }
   Pass $Area 'version/code' "$code in every preset, matching $releases changelog release(s) (version/name $($names[0]))"
 }
 

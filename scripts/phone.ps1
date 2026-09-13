@@ -16,6 +16,16 @@
     release  -Owner <slug>; gives it back. Refuses, without failing, if the lease is
              somebody else's.
     status   prints the holder and the expiry, or 'free'.
+    devices  prints whether a phone is plugged in, with its serial and model. THE ONE
+             SANCTIONED EXCEPTION to "never call adb directly", and it is sanctioned
+             because `adb devices` is the only adb command that reads nothing on the phone
+             and changes nothing on it: it asks the local adb server which handsets are
+             attached. Taking the lease to answer "is it plugged in" would be worse than
+             the rule it protects, because the dashboard asks that every time a page is
+             opened and a lease held for a listing would block a real playtest. Anything
+             that touches the device - install, launch, logcat, screencap, input - still
+             claims first, through the game's scripts\device.ps1 for a game session.
+             Exit 0 whether or not anything is attached; the text is the answer.
 
   The lease file is the fixed path C:\dev\.phone-lease. Fixed and outside every repository
   on purpose: it can never be staged or pushed the way a file inside a repo can, and a
@@ -30,11 +40,12 @@
   scripts\phone.ps1 claim -Owner gravewell
   scripts\phone.ps1 claim -Owner gravewell -Minutes 60   # a live logcat blocks for a while
   scripts\phone.ps1 status
+  scripts\phone.ps1 devices
   scripts\phone.ps1 release -Owner gravewell
 #>
 [CmdletBinding()]
 param(
-  [Parameter(Mandatory, Position = 0)] [ValidateSet('claim', 'release', 'status')] [string] $Action,
+  [Parameter(Mandatory, Position = 0)] [ValidateSet('claim', 'release', 'status', 'devices')] [string] $Action,
   [string] $Owner = "$env:USERNAME@$env:COMPUTERNAME",
   [int] $Minutes = 20
 )
@@ -106,6 +117,28 @@ function Grant([string] $Note) {
 }
 
 switch ($Action) {
+  'devices' {
+    # `adb devices -l` and nothing else: no lease, no shell, no state on the handset. The
+    # toolchain copy first, the same order scripts\device.ps1 uses, because a session older
+    # than the install does not have the user PATH that would find the other one.
+    $adb = Join-Path 'C:\dev\toolchain\android-sdk\platform-tools' 'adb.exe'
+    if (-not (Test-Path -LiteralPath $adb)) { $adb = 'adb' }
+    $out = @()
+    try { $out = @(& $adb devices -l 2>&1) } catch { Write-Host 'phone not connected (adb could not be run)'; exit 0 }
+    # Only the lines that end in a real device state. "unauthorized" and "offline" are NOT
+    # connected: the handset is plugged in but will refuse every command, and calling that
+    # connected would put an Update button in front of a phone that cannot be written to.
+    $found = 0
+    foreach ($l in $out) {
+      if ($l -notmatch '^(\S+)\s+device(\s|$)') { continue }
+      $serial = $Matches[1]
+      $model = if ($l -match '\bmodel:(\S+)') { $Matches[1] } else { 'unknown' }
+      Write-Host "phone connected: $serial ($model)"
+      $found++
+    }
+    if ($found -eq 0) { Write-Host 'phone not connected' }
+    exit 0
+  }
   'status' {
     $held = Read-Lease
     if (-not $held) { Write-Host 'phone is free'; exit 0 }

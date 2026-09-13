@@ -131,5 +131,9 @@ SDK, JDK and keystore through editor settings, not environment variables. API ke
 sites live in `C:\dev\.env` (never committed). The phone is **one device shared by every
 session**, so it is always taken through the game's `scripts\device.ps1`, which claims it
 (`scripts\phone.ps1`, exit 75 means another game has it) and never through a bare `adb` call.
+Asking whether it is plugged in at all is the one exception, and it has its own action,
+`scripts\phone.ps1 devices`: it reads the local adb server's device list, takes no lease and
+changes nothing on the handset. Everything that touches the device is still claimed first,
+through the game's `scripts\device.ps1` for a game session.
 Template: `C:\dev\godot-template`. Notes:
 `C:\dev\gamedev-notes`. Games: `C:\dev\<slug>`, GitHub `gideon6222/<slug>`.
