@@ -261,7 +261,34 @@ function Test-KnowledgeBase {
   Test-TechniquesIndex
   Test-PlaytestsIndex
   Test-TopicFileSize
+  Test-KbStrays
   if (-not $Quiet) { Test-CrossReferences }
+}
+
+# 18. Game things in the knowledge base. This base holds prose, skills and scripts; the
+#     folders it is allowed to have are listed in README.md's file table, and assets/ and
+#     addons/ are not among them. An asset that lands here belongs to no game: no game
+#     loads it, no game's CREDITS.md carries its licence, and the next asset scout fetches
+#     it again. It got here because scripts\assets.py used to fall back to the current
+#     directory when it could not find a game, which put KayKit Space Base Bits and a
+#     CREDITS.md here on 2026-09-10 and went unnoticed for two days. assets.py now refuses,
+#     so this check is what catches the copy already on disk and anything a hand-copy adds.
+#     WARN, never FAIL: files sitting in the wrong folder break nothing, and deciding which
+#     game should own them is a person's call, not a gate's.
+function Test-KbStrays {
+  $strays = @()
+  foreach ($d in 'assets', 'addons') {
+    $p = Join-Path $Notes $d
+    if (Test-Path -LiteralPath $p) {
+      $n = @(Get-ChildItem -LiteralPath $p -Recurse -File -ErrorAction SilentlyContinue).Count
+      $strays += "$d\ ($n file(s))"
+    }
+  }
+  if ($strays.Count -gt 0) {
+    Warn $KB 'game files here' "$($strays -join ', ') under $Notes. Assets belong to the game that uses them, never here. Fix: move them into that game's own assets\ or addons\ with its CREDITS.md row, or delete them if no game claims them, then remove the empty folder."
+  } else {
+    Pass $KB 'game files here' 'no assets/ or addons/ in the knowledge base'
+  }
 }
 
 # 1. The backlog itself. /digest stopping is the audit's single largest finding: 44 lessons

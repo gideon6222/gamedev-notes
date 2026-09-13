@@ -26,10 +26,11 @@ default moved.
 ## Thresholds (all in `scripts\doctor.ps1` unless noted)
 
 - Inbox backlog: PASS up to 10, WARN over 10, FAIL over 40 (`Test-InboxBacklog`). The documented digest trigger is ten (`INDEX.md`, `session-start.ps1`).
-- Auto digest: the Courier runs `/digest` unattended with Sonnet (`C:\dev\studio-dashboard\agent\digest.ps1`) when the inbox is over 10 and the last Digest commit is over 2 hours old and no lease is held; the report lands on the dashboard's Chronicle as a Librarian deed. Thresholds are that script's `-Threshold` and `-MinHours`.
+- Auto digest: the Courier runs `/digest` unattended with Sonnet (`C:\dev\studio-dashboard\agent\digest.ps1`) when the last Digest commit is old enough, no lease is held, and **either** the inbox is over 10 (`-Threshold`, then `-MinHours 2`) **or** a topic file has reached 34 KB (`-SizeKb`, then `-SizeMinHours 12`). The size trigger exists because condensing a topic file is something only `/digest` may do, so before it the cure for an oversized file was gated on an unrelated lesson backlog: on 2026-09-12 TESTING.md sat at 34.8 KB with eight lessons in the inbox and nothing scheduled would ever have brought it down. It gets the longer quiet period because folding lessons is not guaranteed to shrink a file and a two-hour window would re-fire for ever. A size run is judged a success on kilobytes removed, not on lessons folded. The report lands on the dashboard's Chronicle as a Librarian deed.
 - Digest age: WARN when lessons are waiting and the last `Digest` commit is over 3 days old (`Test-DigestAge`).
 - Lesson format (missing `Belongs in:` or `## Replaces or contradicts`): WARN, never FAIL (`Test-LessonFormat`).
-- Topic file size: WARN over 32 KB, FAIL over 35 KB (`Test-TopicFileSize`). The written target is about 30 KB.
+- Topic file size: WARN over 32 KB, FAIL over 35 KB (`Test-TopicFileSize`). The written target is about 30 KB. The auto digest fires at 34 KB, which is the last KB before the FAIL.
+- Game files in the knowledge base: WARN while `assets\` or `addons\` exists here (`Test-KbStrays`). Assets belong to the game that uses them. `scripts\assets.py` now refuses to fetch into this repo, so this catches what is already on disk and anything hand-copied.
 - Template drift: WARN for any template script whose content differs, except names listed in the game's `scripts\DIVERGENCE.md` (`Test-TemplateScriptSet`).
 - Plan outline: WARN when a game's PLAN.md has no `- [ ]` milestone lines (`Test-PlanOutline`). The dashboard's checklist reads those boxes; the changelog tab reads `src\changelog.gd` or `.ts`.
 - Phone debt: WARN while a game's NOTES.md holds a `PHONE TEST OWED` line (`Test-PhoneDebt`). Never FAIL: the repo cannot clear it while another game has the phone.

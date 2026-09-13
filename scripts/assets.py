@@ -133,11 +133,34 @@ def unzip(data_or_path, into: Path, strip_top: bool = False, ignore: tuple[str, 
 
 
 def project_root(start: Path | None = None) -> Path:
+    """The game repo an asset belongs to, or a hard stop.
+
+    There is deliberately NO fallback. This used to end `return p`, quietly making the
+    starting directory the project when it found no game marker, and a wrong answer here is
+    both silent and permanent: on 2026-09-10 a fetch run from the knowledge base put KayKit
+    Space Base Bits into C:\\dev\\gamedev-notes\\addons and started a CREDITS.md beside it,
+    where no game could ever find them, no game credited them, and nothing noticed for two
+    days. An error message costs a re-run; a silent wrong root costs a download nobody owns.
+    """
     p = (start or Path.cwd()).resolve()
     for cand in [p, *p.parents]:
+        # The knowledge base is checked first and by its own markers, because it has neither
+        # a project.godot nor a package.json and so would otherwise walk straight past.
+        if (cand / "INDEX.md").exists() and (cand / "skills").is_dir():
+            sys.exit(
+                f"{cand} is the knowledge base, not a game. Assets live in the game that uses "
+                f"them, in its own assets/ and addons/ folders with its own assets/CREDITS.md. "
+                f"Re-run with --into inside a game repo, for example "
+                f"--into C:\\dev\\<slug>\\addons\\<name>. Nothing was downloaded."
+            )
         if (cand / "project.godot").exists() or (cand / "package.json").exists():
             return cand
-    return p
+    sys.exit(
+        f"no game at or above {p}: neither it nor any parent holds a project.godot or a "
+        f"package.json, so there is no game this asset belongs to and nowhere to write "
+        f"assets/CREDITS.md. Run this from the game repo, or pass --into a path inside one. "
+        f"Nothing was downloaded."
+    )
 
 
 def credit(source: str, asset: str, licence: str, url: str, into: Path):
@@ -830,6 +853,11 @@ def main(argv=None):
         print(f"searching {a.source} for: {' '.join(a.query) or '(all)'}")
         SEARCH[a.source](a)
     else:
+        # Where it lands is checked BEFORE anything downloads, not when the credit line is
+        # written at the end. credit() runs after unzip, so a bad --into caught there leaves
+        # the files already on disk for someone to delete by hand, which is exactly the mess
+        # the 2026-09-10 KayKit fetch left in the knowledge base.
+        project_root(Path(a.into))
         print(f"fetching {a.source} {a.id}")
         GET[a.source](a)
 
