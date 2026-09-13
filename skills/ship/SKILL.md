@@ -48,7 +48,11 @@ fixed them, and the deferred lines with their phase.
 One message: the APK link (tap on the phone, install over the old one, the stamp in the
 pause menu should read the new sha), the screenshot, the changelog entry, what to try first,
 the numbered answers to his last message, the decisions made for him (from `NOTES.md`), and
-what phase comes next. Then continue into the next phase unless he said stop.
+what phase comes next. Open it with the progress block from
+`powershell C:\dev\gamedev-notes\scripts\progress.ps1 -Phase <the active phase>`, run after
+the changelog commit in section 3 so the freshly ticked boxes are counted. If it exits
+non-zero, say the plan has no outline rather than guessing a number. Then continue into the
+next phase unless he said stop.
 
 ## `store` mode: the Play listing
 

@@ -23,7 +23,7 @@ by the step that needs it.
 | `agents/` | Subagents (researcher, asset scout, playtester). Copied into `~/.claude/agents` | this repo |
 | `ADMIN.md`, `MODELS.md` | The map of the machinery (every threshold, schedule, hook and knob) and the model routing table. Read by `/studio-admin`, not by build sessions | `/studio-admin` |
 | `reports/` | Output of the weekly scheduled check (`LATEST.txt` plus the last eight full runs). Gitignored, this machine only | `scripts/weekly-check.ps1` |
-| `scripts/` | `new-game.ps1`, `kb.ps1`, `assets.py`, `doctor.ps1`, `weekly-check.ps1`. `movie.ps1` and `device.ps1` are not here: they are per-game, in each repo's own `scripts/` | this repo |
+| `scripts/` | `new-game.ps1`, `kb.ps1`, `assets.py`, `doctor.ps1`, `progress.ps1` (where a game's plan stands), `weekly-check.ps1`. `movie.ps1` and `device.ps1` are not here: they are per-game, in each repo's own `scripts/` | this repo |
 | `setup/` | `install.ps1` and the files it writes into `~/.claude`, and `install-schedule.ps1` for the weekly Task Scheduler job | this repo |
 | `archive/` | The previous generation of these notes, kept whole | never |
 

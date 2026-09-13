@@ -10,6 +10,7 @@ default moved.
 - Every game commit: the game's `scripts\check.ps1` runs `doctor.ps1 -Repo <slug> -Quiet` last. Knowledge-base findings are WARN there, never blocking (`doctor.ps1`, function `Fail`).
 - Weekly, Sunday 18:00 local: Windows Task Scheduler task "gamedev-notes weekly check" runs `scripts\weekly-check.ps1` (full doctor, writes `reports\`, no Claude). Registered by `setup\install-schedule.ps1`; `-Remove` removes, `-RunNow` fires it, `-Day`/`-At` move it.
 - On demand: `/framework-check` (judgement on the doctor), `/digest` (fold the inbox), `/studio-admin` (this).
+- At a milestone report and at every `/ship`: `scripts\progress.ps1` (`-Phase <active phase>`). Reads the game's `PLAN.md` checkboxes and prints where the plan stands; it writes nothing, spends no tokens, and no gate and no hook calls it. Its milestone regex is the same one as `doctor.ps1 Test-PlanOutline`, so a change to one is a change to both, and both carry a comment saying so.
 - Nothing in Cowork runs on a schedule. The old Cowork weekly task was deleted on 2026-09-12; it burned Fable tokens, needed the PC linked, and left git locks behind.
 
 ## The dashboard (`C:\dev\studio-dashboard`, private site on Cloudflare Pages behind Access)

@@ -1166,6 +1166,8 @@ function Test-PlanOutline([string] $Area, [string] $Path, [bool] $IsTemplate) {
   if (-not (Test-Path -LiteralPath $plan)) { return }   # required-files already reports it
   $lines = Get-TextLines $plan
   if ($null -eq $lines) { return }
+  # Same regex as scripts\progress.ps1 - it must stay identical, so a change to one is a
+  # change to both (ADMIN.md).
   $boxes = @($lines | Where-Object { $_ -match '^\s*[-*]\s+\[[ xX]\]\s+\S' })
   $done = @($boxes | Where-Object { $_ -match '\[[xX]\]' }).Count
   if ($boxes.Count -eq 0) {

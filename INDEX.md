@@ -48,7 +48,9 @@ a plan.
    are no one-off games. `PLAN.md`'s milestone list is the official outline: one `- [ ]`
    line per milestone, ticked in the commit that finishes it, and each release gets a
    changelog entry in the player's terms. The studio dashboard reads both, so an unticked
-   box for finished work and a version with no entry both show up as wrong.
+   box for finished work and a version with no entry both show up as wrong. Every
+   stop-and-report and every ship opens with the plan's own count from `scripts\progress.ps1`,
+   so the outline is what he is shown rather than a summary of it.
 4. **Use good free assets wherever the player reads something at full size** (type, UI,
    textures, sound, music, props on screen for a long time). Model in code what is judged on
    silhouette at thirty pixels, and anything whose shape IS game state. `ASSETS.md`.

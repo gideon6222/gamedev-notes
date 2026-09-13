@@ -63,7 +63,8 @@ For every milestone in `PLAN.md`:
 4. **Film it** (`/playtest desk`) whenever the milestone changes motion, a screen, or the
    first minute. Write the six-question judgement in `NOTES.md`.
 5. **Commit with a message in the player's terms**, tick the box in `PLAN.md`, and add a
-   changelog entry when the player would notice the change.
+   changelog entry when the player would notice the change. The tick happens before the
+   progress line below is taken, or the count it reports is a milestone stale.
 6. **Record the lesson** the moment something surprises you: `/record-lesson`. Not at the
    end.
 
@@ -87,4 +88,8 @@ After the last milestone of a phase (the plan groups them), run `/playtest phone
 - Report at the end of a milestone in his terms: what he can now do or see, the numbered
   answers to his asks, the APK link when there is a new build, a screenshot at 460x996, and
   anything you decided for him and wrote in `NOTES.md`. No question unless the plan cannot
-  answer it and the choice is irreversible.
+  answer it and the choice is irreversible. Open the report with the progress block from
+  `powershell C:\dev\gamedev-notes\scripts\progress.ps1 -Phase <the active phase>`, which
+  gives the step just finished out of the phase and the plan's remaining total. If it exits
+  non-zero, say the plan has no outline rather than guessing a number. This goes at a
+  stopping point and a ship, not on every message.
