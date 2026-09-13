@@ -21,6 +21,12 @@ reach.** Three HUD faults shipped behind one good-looking picture.
 
 ## Rules for the suites
 
+- **A smoke test for a web build must assert visibility by computed style** (`toBeHidden()`,
+  `toBeVisible()`, or `getComputedStyle().display`), never by the presence or absence of a class
+  like `hidden` - a class is a claim and the screen is the fact. When a feature is deleted, grep
+  for every CSS selector it carried and check who else still sets that class before removing the
+  rule.
+
 - **Golden over a whole run, with policies.** `test/policies.gd` is the definition of "playing
   well" and lives in the repo. Every policy fails for a different reason, and the pair that proves
   a decision exists differs in exactly one thing. A test helper that plays the game is a second,
@@ -61,11 +67,14 @@ reach.** Three HUD faults shipped behind one good-looking picture.
   push a real `InputEventScreenDrag`. First run on wildform: the evolution transform covered the
   whole screen for 5.08 s, three times, a fifth of the run unreadable, while all 4,800 assertions
   passed - every one drove the sim and none drove the picture. Recorded touch replays do not
-  replace it: they stop being valid the moment the layout moves, and a policy adapts. The driver
-  and the `bot_drag_pixels(policy, mem, span) -> Vector2` contract a game supplies now live in
-  `godot-template` with their own test gate - contract and mechanism in
-  `techniques/filming-a-run.md`. Wildform has the behaviour bespoke; candle-gift, gravewell,
-  stillwater and wrecking-crew still owe their own seam.
+  replace it: they go stale the moment the layout moves and a policy adapts, so re-record one FROM
+  the policy bot (`policy=<name>,record=<file>`) rather than by hand, and treat a filmed run whose
+  sim state never left its starting state as a failed film, not a calm one. The driver and the
+  `bot_drag_pixels(policy, mem, span) -> Vector2` contract a game supplies, plus an optional
+  `bot_touch_pixels(policy, mem, size) -> Vector2` (a point for down, `Vector2.INF` for up) for a
+  game played by pressing, now live in `godot-template` with their own test gate - contract and
+  mechanism in `techniques/filming-a-run.md`. Wildform has the behaviour bespoke, Stillwater uses
+  the touch contract; candle-gift, gravewell and wrecking-crew still owe their own seam.
 - **A fixture where every policy succeeds measures nothing.** Four policies on a bought-out ladder
   dealt byte-identical damage to eight decimals, because every one kills an 864 HP boss and every
   run ends at the boss's health. Check the losers actually lose, and give a policy **the loadout its
@@ -159,6 +168,11 @@ reach.** Three HUD faults shipped behind one good-looking picture.
   forward is -Z). **The tell is two identical numbers** when you set one of them yourself.
 - **A test must not depend on what the case before it left on disk.** Reset the file AND the
   value the object loaded from it.
+- **Every headless harness and every screenshot tool that boots the real shell points the save
+  AND the settings at their own paths before booting, and erases them after.** A save written by
+  a bot into the player's file is a corrupted save the player finds later. Make the path a static
+  the file wrapper reads (`SimSave.path`, `Settings.path`), not a hard constant, so a smoke test
+  or screenshot script can point it at `user://smoke-progress.json` and clean up.
 - **Verify every regression test by reintroducing the bug, and suspect any fix you cannot make
   fail.** That proves nothing if the check is never REACHED - one session "verified" a guard that
   had been silently skipped - so read the assertion count alongside it. If the bug goes back in and
@@ -243,16 +257,26 @@ reach.** Three HUD faults shipped behind one good-looking picture.
   local check is not a green build** wherever a local step can silently measure the wrong thing.
 - **What a green run actually ran is its own subject**, and five shipped faults are in
   `techniques/the-test-harness.md`. The rules:
+  - **When a check moves to run after a step that writes files, run it once against that step's
+    real output in the same commit.** A placeholder-scan moved after the README/CLAUDE stubs
+    failed on its own legitimate text (`built from C:\dev\godot-template`) on the very next
+    scaffold, because nothing had exercised the new order before then.
   - **Point runners at a glob and FAIL on an empty glob** - zero suites and a green exit are
     indistinguishable from outside, and a sibling game reported "65 passing" for a suite that had
     never run. **A glob discovers through the IMPORT CACHE**, so run the gate, never a bare
     `--script`, before believing a green: gravewell read 195 tests over 20 suites all session
     against the gate's 204 over 22. **Print the suite LIST, not only the count**, and treat an
     untracked `.uid` beside a tracked `.gd` as the tell.
-  - **Enforce a FLOOR on the assertion count.** A runtime error inside a check is non-fatal in
-    GDScript: the function stops, everything below it never runs, and the harness prints "all
-    passing" with a smaller number nobody reads (402 -> 387 deleted "the gauge is actually on
-    screen"). `const MIN_ASSERTIONS` is a canary, not a target. Grep for `SCRIPT ERROR` too.
+  - **Enforce a FLOOR on the assertion count, and give the harness a `Logger` that counts engine
+    errors per test.** A runtime error inside a check is non-fatal in GDScript: the function
+    stops, everything below it never runs, and the harness prints "all passing" with a smaller
+    number nobody reads (402 -> 387 deleted "the gauge is actually on screen"). `const
+    MIN_ASSERTIONS` is a canary, not a target, and grepping for `SCRIPT ERROR` after the fact is
+    not enough - install an `OS.add_logger` (4.5+) that closes each test on `begin()`/`end()` and
+    fails the one whose body raised an error, with the error's own text. Raise a probe error from
+    a helper function, never `_init` itself, or the abort hangs the run instead of failing it.
+    Assert every precondition a test's assertions sit behind too: an untaken `if` is a body that
+    never ran, and passes exactly like the abort does.
   - **Wait on game STATE, never wall-clock time, and on that state rather than a proxy for it.**
     Anything accumulating over game time runs through `freeze()` then `advance(seconds)`; a depth
     is a proxy for having drilled and the fuel gauge moving IS having drilled. "Until 10 m" passed
@@ -359,6 +383,12 @@ frame as each action, acceleration and coasting, anything popping in or drawn ov
 behind, the short states visible in at least one frame, a win and a visible next goal in the first
 sixty seconds, and any frame where the player would not know what to do. Spelled out in
 `techniques/filming-a-run.md`; `POLISH.md` gates on the answers. Then fix and film again.
+
+- **A filmstrip driven by fixed-step advance misreports anything timed per drawn frame or on the
+  wall clock** (fades, flashes, light-field smoothing, CSS transitions): the skipped simulation
+  time is real and correct for the game, but a sheet of quarter-second frames can show a fade
+  that has barely started. When a sheet shows something that should have finished, screenshot the
+  same moment on the real clock before touching the game.
 
 ## On the phone
 

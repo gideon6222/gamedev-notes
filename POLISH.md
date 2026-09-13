@@ -102,9 +102,13 @@ deferred. Read the same way at plan time: phase one owes every line that is not 
       READOUT wherever a gauge is watched under pressure: a small pulse for the event, a heavier
       sustained one as the thing nears breaking. A continuous effort is one modulated loop, never
       a pulse per hit.
-- [ ] Adaptive launcher icon (foreground, background, monochrome at 432 px), a splash that
-      matches the game's palette, `splash_screen/disable_godot_boot_splash` on, a 512 px
-      store icon exported. App name and package `com.gideon.<slug>` set.
+- [ ] Adaptive launcher icon (foreground, background, monochrome at 432 px) AND the boot splash
+      set separately - they are two different engine-default faces. Set
+      `application/boot_splash/image` and `bg_color` to the game's own and assert both with a
+      test that reads `ProjectSettings`; expect Android's own system splash (a Gradle theme
+      colour, not a project setting) to stay dark until a Gradle build overrides it.
+      `splash_screen/disable_godot_boot_splash` does not exist in the Godot 4.7 Android export
+      preset. A 512 px store icon exported. App name and package `com.gideon.<slug>` set.
 
 ## Performance and stability
 

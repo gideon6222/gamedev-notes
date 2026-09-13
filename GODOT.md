@@ -183,6 +183,11 @@ as "the buttons are about half an inch too high".
   property and was true on every run for the whole time the window was broken. **Put the
   arithmetic in a pure static function and assert THAT, fed the awkward inputs.** Guard the
   arithmetic, not the reading. `techniques/phone-layout-and-safe-area.md`.
+- **Off-tree, a Control's `get_global_rect()` reports offsets, not pixels, and a container's
+  children have zero size** - anchored controls report raw, often negative, numbers measured from
+  an unresolved parent. Nothing errors, so a pure-suite test must assert WHICH control was chosen
+  (distance to each candidate's centre) rather than that a point lies inside its rect; leave
+  "inside" to the smoke suite (which adds the scene to the root) or a film.
 
 ## Touch and scrolling
 
@@ -263,6 +268,16 @@ as "the buttons are about half an inch too high".
   `FAIL` at all. Tell a parse error from slow code by CPU share
   (`Get-Process Godot* | % { $_.CPU }` against elapsed): real work pins a core, and a ratio well
   under 100% means the file is broken, not slow.
+- **Never let a `MeshInstance3D` hold the only reference to a material it was given.** Freeing
+  such a node headless prints `Parameter "material" is null` at
+  `material_get_instance_shader_parameters` once per node, which a Logger-based harness
+  (`TESTING.md`) turns into a failure on every controls and bot-seam test. Keep duplicated or
+  generated materials in a cache keyed by the source material's instance id, shared across
+  instances, rather than one duplicate per node.
+- **`JSON.stringify(data)` defaults to `full_precision = false`** and truncates a state float on
+  the way to disk, so a round-trip save test can fail on a real precision loss (`1.371412` back
+  as `1.37141`). Pass `full_precision = true` for any float that is state, and compare saved
+  dictionaries by KEY, never as `str(dict)` (`sort_keys` changes order).
 - **GDScript lambdas capture by VALUE.** A probe that writes its result into a captured local
   reports the initial value forever: Stillwater's loss-reason probe said no fish is ever lost
   anywhere in the game, which was a fact about the closure, and a model change was half built on

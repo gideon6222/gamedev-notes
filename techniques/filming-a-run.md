@@ -104,10 +104,37 @@ last one is a property rather than a restatement of the formula, so it catches a
 without naming one: a wrong sign moves the avatar the other way and the second ask comes back
 LARGER, not zero.
 
-**Owed, not yet paid.** candle-gift, gravewell, stillwater and wrecking-crew each grew their own
-control seam under their own name, and none has the template's `drag_by`: each needs its own small
-bespoke `bot_drag_pixels` and gate. Wildform has the behaviour already and should move onto the
-template's shared contract so there is one shape rather than two.
+**Owed, not yet paid.** candle-gift, gravewell and wrecking-crew each grew their own control seam
+under their own name, and none has the template's `drag_by`: each needs its own small bespoke
+`bot_drag_pixels` and gate. Wildform has the behaviour already and should move onto the template's
+shared contract so there is one shape rather than two.
+
+**A game played by pressing, not dragging, needs a second contract.** Stillwater is played
+entirely by holding one button, so a faithful `bot_drag_pixels` would return zero forever - the
+exact inert seam the gate exists to catch. The template driver now also accepts an optional
+
+```gdscript
+## Where the thumb is DOWN this frame in viewport pixels, or Vector2.INF for up.
+func bot_touch_pixels(policy: String, mem: Dictionary, size: Vector2) -> Vector2
+```
+
+turning the edges into real `InputEventScreenTouch` press/release pairs on finger index 1 (finger
+0 stays the drag thumb), lifting the thumb whenever `bot_can_drive()` refuses, and treating a
+point that moved to a different control as a lift now and a press next frame. Game side, split
+`act` into a read-only `wants(...) -> verb` the filmed bot reads and an `apply(verb, sim)` the
+balance bots call, so the film never touches the sim directly.
+
+## A recorded replay goes stale the moment a control moves
+
+**A recorded replay films nobody once the control it targets moves**, and nothing reports it: the
+film runs to the end, the sheet gets produced, and it looks like a calm boat. Stillwater's
+`first-cast.json` was recorded when touching the water cast the rod; once casting moved to a
+button, the replay's touches on the water did nothing, the rod never moved for 36 tiles, and the
+caption still read "Cast" throughout. A policy film of the same moment (`policy=<name>`) cast
+correctly, because a policy adapts and a recording cannot. **Generate scenario replays from the
+policy bot** (`policy=<name>,record=<file>`) rather than typing them by hand, so the file is
+regenerated from the current layout rather than aimed at an old one, and treat a filmed run whose
+sim state never left its starting state as a failed film, not a calm one.
 
 ## Scenarios
 

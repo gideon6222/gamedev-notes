@@ -41,6 +41,10 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - Name the setting where a condition fires about half the time before building it; if none
   exists it is a wall wearing a decision's clothes.
 - Interruption is a feature: let the player keep the partial progress of a stopped commitment.
+- **In a run-based game with a hub, save only at the hub** so quitting mid-run costs exactly what
+  dying costs, and both save-scumming abuses (the free ride home, quitting before a death)
+  disappear with one rule instead of two (M). Add a checkpoint at a mid-run milestone rather than
+  saving everywhere.
 - **The best pressure is one the player CAUSES.** A pressure on a schedule happens whether or
   not the player acts, so it is not a decision; water that rises because you cut the rock makes
   over-digging a cost. Derive its number from the physical story (released water raises the level
@@ -143,6 +147,15 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - Measure per item, never as one mean, against five or six procedural seeds: single-level numbers
   swing 25% on layout luck (M). Removing an obstacle kind removes its share of the danger, so do not
   backfill the slot.
+- **The play-space boundary costs something the player can feel (speed, a rumble), never the
+  resource the game is scored on.** Count boundary contacts per run with the bots before hazard
+  contacts: an unplaced boundary hit 4-10 times a run in Snowball, more than any placed hazard,
+  and became the real difficulty curve by accident.
+- **When a binary control becomes proportional, re-measure balance in the quantity the new control
+  moves** (strain, line given), not just land rates by band: the cost of ignoring a warning can
+  migrate to a quantity that recovers between episodes, so land rates look fine while the risk
+  model breaks underneath (Stillwater, M). Bots need modelled hand lag, not just decision lag, to
+  represent human play.
 ## Feel
 
 - Feel is layered and ordered: physicality (what moves), then amplification (juice), then
@@ -173,6 +186,10 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
 - Apply corrections as a velocity through the normal collision path, never as a position write,
   or they are invisible to collision and to tests. Never correct while the player is coasting:
   snap on the next input.
+- On a track with a direction of travel, a depenetration must never have a component against that
+  direction: pushing an arithmetic (no physics body) avatar out along the contact normal wedged a
+  Snowball reader against a lane edge for 200+ seconds. Resolve overlaps across the track only,
+  and treat a bot that stops advancing while its inputs keep changing as a wedge, not a bug in it.
 - High speed alone reads as fast-forward; a spline with ease in and out and a heading that
   follows velocity reads as piloted.
 - Indirect control needs the lag set as a feel constant (~1 s for a thumb, T), the correct
@@ -182,6 +199,11 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   reaches and measure how often the cap binds.
 - Two motions sharing one variable will be shown doing each other's job (a rod that bends on the
   cast). Give each motion its own state.
+- **When a motion feels odd, measure the per-frame change in its velocity at every state boundary
+  before tuning anything.** Stillwater's cast release jumped from 54 deg/s to 361 deg/s in one
+  frame; fix a step with ONE continuous state (a damped spring whose velocity persists across the
+  boundary) plus an acceleration cap (a stiff spring's first frame is itself a step), rather than
+  a fourth ease.
 - An idle world reads as a screenshot. Float the vehicle on the same wave function the water
   shader uses, generated from one source so they cannot drift.
 
@@ -382,6 +404,13 @@ Captain Run and Wick rules Gideon never played. Long write-ups are in `technique
   object in the game. Cap flat damage as a fraction of the batch.
 - An obstacle anchored to the track edge guarantees its own gap; its hitbox derives from the
   drawing.
+- A hazard that must punish the do-nothing line sits just past that line, never on it, so the
+  open side is guaranteed by construction, and the reward for that stretch goes on the other side;
+  the first such hazard comes after the first win (reader 3/6 centred, 6/6 past the line, M).
+- For a ball small next to the field (0.5-1.0 m radius), put pickups in a line sorted small to
+  large, never a scattered disc: a small avatar sweeps a narrow strip and gets about one contact
+  per disc pass against six to ten per trail pass (M). Measure contacts per pass with a bot before
+  placing growth thresholds.
 - Attrition asks one question ("leave sooner"). A rhythmic announced event makes depth a bet (a
   tremor every ~27 s past 85 m, T). Announce a zone before charging for it, land several things
   on the same metre, and look for one hazard answering another before adding a third. A threshold

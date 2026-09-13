@@ -131,6 +131,29 @@ memory every frame - the tap rhythm re-initialised, the interval never elapsed, 
 landed nothing", which reads as a broken game rather than a broken caller. Grep for the call
 sites the moment a policy gains state.
 
+## A scripted policy has one decision-maker
+
+**A reflex layered over a planner disagrees with it at the boundary of the thing it reacts to,
+and the bot dithers there.** Snowball's reader had a planner (score every lateral candidate,
+time-to-clear included) plus a reflex ("wall on my line inside the lookahead: lean away").
+Traced frame by frame, the planner decided to cross with 34 m to spare, the reflex aborted at
+32 m, the planner re-planned the crossing, and the wanted strip flipped every 0.7 s until the
+ball met the obstacle at full speed - killed 3 of 6 seeds this way. Removing the reflex and
+putting every consideration into the planner's own score (the lean it asks for IS the brake)
+took the reader to 6 of 6. Put every consideration into the ONE decision-maker, scale a penalty
+by how badly a line fails rather than binary (a flat penalty on every crossing froze a bot
+under the first tree because every candidate tied), and trace a death frame by frame - position,
+speed, wanted input, applied input, the objects ahead - before touching a game constant.
+
+**A scripted policy may not move an input faster than the filmed thumb is allowed to.** Snowball's
+pure policies set a steering strip from -1 to +1 in one frame; the filmed thumb clamps a drag to
+54 px per frame (a third of a second to cross a 1080 px width) and needs 18 frames for the same
+move, so a reader that cleared every pure seed died on a tree the thumb couldn't dodge in time.
+Take the rate limit from the SAME constant the film driver uses, converted through the game's own
+handler (`THUMB_STEP = 54 / 1080 * 2 / 0.9` strip units per frame here), so the pure suite and the
+film agree by construction, and re-measure every balance number after adding it - the median
+wall-contact speed moved from 10.3 to 11.1 m/s here, which moved the shatter threshold.
+
 ## Read the spread, not the mean
 
 **Difficulty is usually the PRODUCT of two fields, and neither one tells you where a thing
