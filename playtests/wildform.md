@@ -92,3 +92,26 @@ phone as a delivery target rather than an instrument. It is the only way to meas
 thermal throttling, the real display cutout, logcat on real hardware, and the lifecycle paths -
 and it is the reason M16 exists as its own milestone. Say what the phone is FOR when asking him
 to plug it in, not just that it is needed.
+
+## 2026-09-13
+
+Asked, with the phone unavailable and the store listing offered as the next door:
+
+> I would like to test everything before doing that. It looks like the models and graphics are
+> a little rough still. Can you research how to make the world look more unique and
+> interesting. Add additional textures, models, backgrounds, enemies. The world still looks
+> kind of boring.
+
+**He turned down a ship to ask for looks.** Read against `PLAYER.md`, this is the same shape as
+the ask that opened the second month: he does not report a bug, he describes what he wants to
+SEE. Four separate nouns - textures, models, backgrounds, enemies - and the studio's own lesson
+from M19b is that taking his list literally, item by item, is what produces the right thing. A
+single "prettier biome pass" would satisfy the sentence and not the request.
+
+**"Boring" is about the WORLD, not the creature.** The creature got a whole milestone in the
+second month (M19b: veins, rim, aura). What he is looking at for the other fifty-nine seconds
+of every minute is ground, road, rails, sky and the things beside the track - and beside the
+track there is nothing. He also asked for **enemies**, which this game does not have as a
+category at all: it has gates, crates, hazards and one boss.
+
+And "test everything" comes first, in his own order.
