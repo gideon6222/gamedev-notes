@@ -72,3 +72,30 @@ Five screenshots, one at 88 m with the lamp on LANCE and the power at 9%, so he 
 further in and the lighting fix has held. **He named two candidate mechanisms and asked which is
 right** rather than restating the feel, which is the first time he has done that: he is pointing
 at the granularity of the destruction, not only at the speed.
+
+## 2026-09-12 - build 25, on the phone
+
+> The mechanics and how the dirt and rock disappear are much better. I am not sure what the
+> goal of the game is though. If I run out of fuel, it says to tap to return or something
+> like that but the game doesn't do anything. If I return to the surface before running out
+> of fuel, I don't get more fuel or see what I am supposed to do. Can you expand on the
+> actually game play, rules, and introduction of the game. I want there to be a goal,
+> upgrades, and secrets.
+
+1. **The destruction is right.** First unqualified approval of the digging since the plow
+   work. Nothing about it changes.
+2. **"The game doesn't do anything" is literal, and it is one bug.** `main.gd` has no
+   reaction to `Phase.OVER` and never calls `sim.enter_hold()`. The descent ends, `step()`
+   returns early, the world freezes, the HUD prints "TAP TO DESCEND AGAIN", and no listener
+   exists for that tap. The only thing connected to `descent_over` writes the save.
+3. **The Hold is unreachable in play**, which is why the surface gives no fuel and no
+   instruction. The shop, the whole upgrade ladder, the drive, the vaults and the keepsakes
+   are built and tested in `src/sim` and none of them can be reached with a thumb.
+4. **"I am not sure what the goal is" is the consequence, not a separate complaint.** The
+   plan's own rule is that the objective is stated in the first two minutes because every
+   top game in the genre does it. It is stated nowhere.
+
+**The lesson that generalises: a tested simulation is not a played game.** Every one of
+these systems has passing tests. The suite proves the rules and never once proves that a
+thumb can reach them, because the smoke test drives `Sim` directly and never stands up the
+scene that a player actually touches.
