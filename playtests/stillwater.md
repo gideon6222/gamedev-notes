@@ -436,3 +436,5 @@ centre holds, down gives line - so the player matches the fish rather than toggl
 standard: the button and the reeling animation carry the mechanic, and if they look cheap
 the mechanic reads cheap. Answered in: PLAN.md 4.3d and phase F2 (research first, plan
 shown before building).
+
+> "That sounds perfect, lets do it" (2026-09-12, on the sixth-fight plan, PLAN.md 4.3d and phase F2)
